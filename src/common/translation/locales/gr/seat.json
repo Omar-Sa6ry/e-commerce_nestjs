@@ -1,0 +1,13 @@
+{
+  "CREATED": "Erstellen Sie einen neuen Sitzplatz",
+  "UPDATED": "Aktualisieren Sie einen vorhandenen Sitzplatz",
+  "DELETED": "Löschen Sie einen Sitzplatz",
+  "BOOKED": "Buchen Sie einen Sitzplatz",
+  "ALREADY_EXISTS": "Der Sitzplatz existiert bereits.",
+  "NOT_AVAILABLE": "Der Sitzplatz ist nicht verfügbar.",
+  "AVAILABLE": "Der Sitzplatz ist verfügbar.",
+  "NOT_HAVE_THIS_SEAT": "Sie haben diesen Sitzplatz nicht in Ihren Flügen",
+  "CANCELLED": "Stornieren Sie einen gebuchten Sitzplatz",
+  "NOT_FOUND": "Der Sitzplatz wurde nicht gefunden.",
+  "AVALIABLES": "Alle Sitzplätze sind jetzt verfügbar"
+}

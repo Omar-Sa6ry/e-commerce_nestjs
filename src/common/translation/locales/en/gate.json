@@ -1,0 +1,8 @@
+{
+  "CREATED": "gate is created successfully",
+  "UPDATED": "gate is updated successfully",
+  "DELETED": "gate is deleted successfully",
+  "NOT_FOUND": "gate not found",
+  "NOT_FOUNDS": "gate not founds in this terminal",
+  "EXISTS": "gate already exists"
+}

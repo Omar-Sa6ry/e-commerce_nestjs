@@ -1,0 +1,21 @@
+{
+  "CREATED": "Benutzerregistrierung erfolgreich",
+  "LOGIN": "Benutzeranmeldung erfolgreich",
+  "UPDATED": "Benutzer erfolgreich aktualisiert",
+  "DELETED": "Benutzer erfolgreich gelöscht",
+  "NOT_ADMIN": "Benutzer ist kein Administrator",
+  "END_EMAIL": "Benutzer muss mit @gmail.com enden",
+  "NOT_FOUND": "Benutzer nicht gefunden",
+  "EMAIL_USED": "E-Mail wird bereits verwendet",
+  "EMAIL_WRONG": "E-Mail ist falsch",
+  "SANE_PASSWORD": "Sie haben dasselbe Passwort eingegeben",
+  "USERNAME_USED": "Benutzername wird bereits verwendet",
+  "UPDATE_PASSWORD": "Ihr Passwort wurde erfolgreich aktualisiert",
+  "SEND_MSG": "Nachricht erfolgreich an Ihr Gmail gesendet",
+  "NO_TOKEN": "Kein Token",
+  "INVALID_TOKEN": "Ungültiges Token",
+  "INVALID_TOKEN_PAYLOAD": "Ungültige Token-Nutzlast",
+  "OLD_IS_EQUAL_NEW": "Das alte Passwort ist gleich dem neuen Passwort",
+  "ROLE": "Sie sind kein Partner",
+  "INSUFFICIENT_PERMISSIONS": "Unzureichende Berechtigungen"
+}

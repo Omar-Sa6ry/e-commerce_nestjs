@@ -1,0 +1,15 @@
+{
+  "CREATED": "Flug wurde erfolgreich erstellt",
+  "UPDATED": "Flug wurde erfolgreich aktualisiert",
+  "DELETED": "Flug wurde erfolgreich gelöscht",
+  "NOT_FOUND": "Flug nicht gefunden",
+  "NOT_FOUNDS": "Flüge nicht gefunden",
+  "SCHEDULED": "Flug ist geplant",
+  "ARRIVAL": "Flug kommt an",
+  "IN_FLIGHT": "Flug ist in der Luft",
+  "CANCELED": "Flug wurde storniert",
+  "DELAYED": "Flug ist verspätet",
+  "LANDED": "Flug ist gelandet",
+  "GATE_CHANGE": "Flugsteig wurde geändert",
+  "SAME_AIRPORT": "Flug befindet sich am selben Flughafen"
+}

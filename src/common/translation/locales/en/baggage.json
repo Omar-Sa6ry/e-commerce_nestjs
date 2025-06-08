@@ -1,0 +1,7 @@
+{
+  "CREATED": "Baggage created successfully",
+  "DELETED": "Baggage deleted successfully",
+  "UPDATED": "Baggage updated successfully",
+  "NOT_FOUND": "Baggage not found",
+  "NOT_AUTHORIZED": "You are not authorized to access this baggage"
+}

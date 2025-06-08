@@ -1,0 +1,8 @@
+{
+  "CREATED": "Tor wurde erfolgreich erstellt",
+  "UPDATED": "Tor wurde erfolgreich aktualisiert",
+  "DELETED": "Tor wurde erfolgreich gelöscht",
+  "NOT_FOUND": "Tor nicht gefunden",
+  "NOT_FOUNDS": "Tor nicht in diesem Terminal gefunden",
+  "EXISTS": "Tor existiert bereits"
+}

@@ -1,0 +1,8 @@
+{
+  "EXISTED_CREW": "Crew already exists",
+  "EXISTED_PILOT": " Pilot already exists",
+  "NOT_MATCH_ROLE": "Role does not match",
+  "DELETED": "Airport crew deleted",
+  "NOT_FOUND": "Airport crew not found",
+  "NOT_FOUNDS": "Airport crews not found"
+}

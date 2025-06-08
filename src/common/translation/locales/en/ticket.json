@@ -1,0 +1,11 @@
+{
+  "NOT_FOUND": "Ticket not found",
+  "NOT_FOUNDS": "Tickets not found",
+  "SENT": "Send Ticket",
+  "CREATED": "Ticket is sent sucessfully for your gmail",
+  "ATTACHED": "Attached is your flight ticket.",
+  "YOUR_TICKET": "Your Ticket",
+  "DELETED": "Ticket is deleted sucessfully",
+  "CANCELED": "Ticket is canceled sucessfully",
+  "UDTATED": "Ticket is updated sucessfully"
+}

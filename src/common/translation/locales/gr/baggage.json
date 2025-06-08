@@ -1,0 +1,7 @@
+{
+  "CREATED": "Gepäck erfolgreich erstellt",
+  "DELETED": "Gepäck erfolgreich gelöscht",
+  "UPDATED": "Gepäck erfolgreich aktualisiert",
+  "NOT_FOUND": "Gepäck nicht gefunden",
+  "NOT_AUTHORIZED": "Sie sind nicht berechtigt, auf dieses Gepäck zuzugreifen"
+}

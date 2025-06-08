@@ -1,0 +1,7 @@
+{
+  "EXIST": "Standort existiert bereits",
+  "CREATED": "Standort erfolgreich erstellt",
+  "UPDATED": "Standort erfolgreich aktualisiert",
+  "NOT_FOUND": "Standort nicht gefunden",
+  "NOT_FOUNDS": "Standorte nicht gefunden"
+}

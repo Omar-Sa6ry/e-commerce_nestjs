@@ -1,0 +1,10 @@
+{
+  "EXISTED": "Benutzer hat bereits eine Fluggesellschaft",
+  "CREATED": "Fluggesellschaft erfolgreich erstellt",
+  "NOT_FOUND": "Fluggesellschaft nicht gefunden",
+  "NOT_FOUNDS": "Fluggesellschaften nicht gefunden",
+  "EXIST_NAME": "Name der Fluggesellschaft existiert bereits",
+  "NOT_OWNER": "Sie besitzen keine Fluggesellschaft",
+  "UPDATED": "Fluggesellschaft erfolgreich aktualisiert",
+  "DELETED": "Fluggesellschaft erfolgreich gelöscht"
+}

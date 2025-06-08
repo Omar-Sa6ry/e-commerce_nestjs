@@ -1,0 +1,10 @@
+{
+  "NOT_FOUND": "Mitarbeiter nicht gefunden",
+  "NOT_FOUNDS": "Mitarbeiter nicht gefunden",
+  "CREATED": "Mitarbeiter erfolgreich erstellt",
+  "UPDATED": "Mitarbeiter erfolgreich aktualisiert",
+  "DELETED": "Mitarbeiter erfolgreich gelöscht",
+  "ROLE_NOT_FOUND": "Rolle nicht gefunden",
+  "ROLE_NOT_Admin": "Sie haben keine Berechtigung, diese Aktion auszuführen",
+  "NOT_MANAGER_IN_THIS_AIRPORT": "Sie sind kein Manager an diesem Flughafen"
+}

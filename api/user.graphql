@@ -1,0 +1,51 @@
+query {
+  getUserById(id: "01JSHJBFA8X6PXXHP2YVJJG8XB") {
+    success
+    statusCode
+    message
+    data {
+      id
+      passengerId
+      firstName
+      lastName
+      fullName
+      fcmToken
+      phone
+      email
+    }
+  }
+}
+
+query {
+  getUserByEmail(email: "omarsabry@gmail.com") {
+    success
+    statusCode
+    message
+    data {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+}
+
+mutation {
+  updateUser(updateUserDto: { lastName: "Ahmed Sabry", phone: "01123450089" }) {
+    success
+    statusCode
+    message
+    data {
+      id
+      phone
+    }
+  }
+}
+
+mutation {
+  deleteUser {
+    success
+    statusCode
+    message
+  }
+}

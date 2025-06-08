@@ -1,0 +1,7 @@
+{
+  "CREATED": "Airport created successfully",
+  "UPDATED": "Airport updated successfully",
+  "DELETED": "Airport deleted  successfully",
+  "NOT_FOUND": "Airport not found",
+  "AIRPORT_ALREADY_EXISTS": "Airport already exists"
+}

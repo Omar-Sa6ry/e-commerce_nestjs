@@ -1,0 +1,7 @@
+{
+  "CREATED": "Flughafen erfolgreich erstellt",
+  "UPDATED": "Flughafen erfolgreich aktualisiert",
+  "DELETED": "Flughafen erfolgreich gelöscht",
+  "NOT_FOUND": "Flughafen nicht gefunden",
+  "AIRPORT_ALREADY_EXISTS": "Flughafen existiert bereits"
+}

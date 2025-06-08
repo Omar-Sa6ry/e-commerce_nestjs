@@ -1,0 +1,129 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  firstName: String!
+  lastName: String!
+  fullName: String!
+  avatar: String
+  phone: String!
+  email: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type AuthOutPut {
+  user: User!
+  token: String!
+}
+
+type AuthResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: AuthOutPut
+}
+
+type UserResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: User
+}
+
+type TicketExpired {
+  id: String!
+  seatId: String!
+  message: String!
+}
+
+type TicketExpiredResponsee {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: TicketExpired
+}
+
+type NotifySubscription {
+  userId: String!
+  message: String!
+}
+
+type UpdateFlightSubscription {
+  userId: String!
+  message: String!
+}
+
+type Query {
+  sayHello: String!
+  getUserById(id: String!): UserResponse!
+  getUserByEmail(email: String!): UserResponse!
+  deleteUser: UserResponse!
+}
+
+type Mutation {
+  register(fcmToken: String!, createUserDto: CreateUserDto!, avatar: CreateImagDto): AuthResponse!
+  login(fcmToken: String!, loginDto: LoginDto!): AuthResponse!
+  forgotPassword: AuthResponse!
+  resetPassword(resetPasswordDto: ResetPasswordDto!): UserResponse!
+  changePassword(changePasswordDto: ChangePasswordDto!): UserResponse!
+  logout: Boolean!
+  updateUser(updateUserDto: UpdateUserDto!): UserResponse!
+  UpdateUserRole(email: String!): String!
+}
+
+input CreateUserDto {
+  firstName: String!
+  lastName: String!
+  email: String!
+  password: String!
+  phone: String!
+}
+
+input CreateImagDto {
+  name: String
+  breed: String
+  image: Upload!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+input LoginDto {
+  email: String!
+  password: String!
+}
+
+input ResetPasswordDto {
+  token: String!
+  password: String!
+}
+
+input ChangePasswordDto {
+  password: String!
+  newPassword: String!
+}
+
+input UpdateUserDto {
+  firstName: String
+  lastName: String
+  avatar: CreateImagDto
+  email: String
+  phone: String
+}
+
+type Subscription {
+  ticketExpired: TicketExpiredResponsee!
+  notifyUsers: NotifySubscription!
+  updateFlight: UpdateFlightSubscription!
+}

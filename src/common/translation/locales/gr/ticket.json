@@ -1,0 +1,11 @@
+{
+  "NOT_FOUND": "Ticket nicht gefunden",
+  "NOT_FOUNDS": "Tickets nicht gefunden",
+  "SENT": "Ticket senden",
+  "CREATED": "Ticket wurde erfolgreich an Ihre Gmail-Adresse gesendet",
+  "ATTACHED": "Ihr Flugticket ist angehängt.",
+  "YOUR_TICKET": "Ihr Ticket",
+  "DELETED": "Ticket wurde erfolgreich gelöscht",
+  "CANCELED": "Ticket wurde erfolgreich storniert",
+  "UDTATED": "Ticket wurde erfolgreich aktualisiert"
+}
