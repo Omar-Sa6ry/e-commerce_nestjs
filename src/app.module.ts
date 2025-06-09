@@ -10,6 +10,7 @@ import { UserModule } from './modules/users/users.module';
 import { PubSubModule } from './common/pubSub/pubsub.module';
 import { DatabaseModule } from './common/database/database';
 import { CompanyModule } from './modules/company/company.module';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CompanyModule } from './modules/company/company.module';
     AuthModule,
     UserModule,
     CompanyModule,
+    CategoryModule,
   ],
 
   providers: [AppService, AppResolver],

@@ -10,6 +10,6 @@ import { EmailModule } from 'src/common/queues/email/email.module';
 @Module({
   imports: [TypeOrmModule.forFeature([User]), EmailModule, RedisModule],
   providers: [UserService, UserResolver, UploadService],
-  exports: [UserService],
+  exports: [UserService, TypeOrmModule],
 })
 export class UserModule {}

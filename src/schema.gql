@@ -78,6 +78,13 @@ type UpdateFlightSubscription {
   message: String!
 }
 
+type Category {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+}
+
 type PaginationInfo {
   totalPages: Int!
   currentPage: Int!
@@ -101,6 +108,23 @@ type CompanysResponse {
   pagination: PaginationInfo
 }
 
+type CategoryResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Category
+}
+
+type CategoriesResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Category!]
+  pagination: PaginationInfo
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
@@ -109,6 +133,9 @@ type Query {
   getCompanyById(id: String!): CompanyResponse
   getCompanyByName(name: String!): CompanyResponse
   getAllCompanys(page: Int, limit: Int): CompanysResponse
+  getAllCategories(page: Float, limit: Float): CategoriesResponse!
+  getCategoryById(id: String!): CategoryResponse!
+  getCategoryByName(name: String!): CategoryResponse!
 }
 
 type Mutation {
@@ -125,6 +152,9 @@ type Mutation {
   deleteEmployee(companyId: String!, userId: String!): CompanyResponse!
   updateCompany(id: String!, updateCompanyDto: UpdateCompanyDto!): CompanyResponse!
   deleteCompany(id: String!): CompanyResponse!
+  createCategory(name: String!): CategoryResponse!
+  updateCategory(id: String!, name: String!): CategoryResponse!
+  deleteCategory(id: String!): CategoryResponse!
 }
 
 input CreateUserDto {

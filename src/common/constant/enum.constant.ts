@@ -25,6 +25,11 @@ export enum Permission {
   VIEW_COMPANY = 'view_company',
   ADD_EMPLOYEE = 'add_employee',
   DELETE_EMPLOYEE = 'delete_employee',
+
+  // Category
+  CREATE_CATEGORY = 'create_category',
+  UPDATE_CATEGORY = 'update_category',
+  DELETE_CATEGORY = 'delete_category',
 }
 
 export enum Currency {

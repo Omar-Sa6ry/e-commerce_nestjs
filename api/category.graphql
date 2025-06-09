@@ -1,0 +1,71 @@
+mutation {
+  createCategory(name: "technologyy") {
+    success
+    message
+    data {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+query {
+  getAllCategories(page: 1, limit: 10) {
+    success
+    message
+    items {
+      id
+      name
+    }
+    pagination {
+      totalItems
+      totalPages
+      currentPage
+    }
+  }
+}
+
+query {
+  getCategoryById(id: "01JXAARC8017ZKW5M8RKJ9GD2F") {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+query {
+  getCategoryByName(name: "Electronics") {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+mutation {
+  updateCategory(
+    id: "01JXAARM1XV93XHZ0Q3VJFKZ2F"
+    name: "Updated Category Name"
+  ) {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+mutation {
+  deleteCategory(id: "01JXAARM1XV93XHZ0Q3VJFKZ2F") {
+    success
+    message
+  }
+}
