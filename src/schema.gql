@@ -2,6 +2,23 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Company {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  website: String!
+  phone: String!
+  email: String!
+  userId: Int
+  employees: [User!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type User {
   id: ID!
   createdAt: DateTime!
@@ -12,12 +29,9 @@ type User {
   avatar: String
   phone: String!
   email: String!
+  companyId: String
+  company: Company
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type AuthOutPut {
   user: User!
@@ -64,11 +78,37 @@ type UpdateFlightSubscription {
   message: String!
 }
 
+type PaginationInfo {
+  totalPages: Int!
+  currentPage: Int!
+  totalItems: Int!
+}
+
+type CompanyResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Company
+}
+
+type CompanysResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Company!]
+  pagination: PaginationInfo
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
   getUserByEmail(email: String!): UserResponse!
   deleteUser: UserResponse!
+  getCompanyById(id: String!): CompanyResponse
+  getCompanyByName(name: String!): CompanyResponse
+  getAllCompanys(page: Int, limit: Int): CompanysResponse
 }
 
 type Mutation {
@@ -80,6 +120,11 @@ type Mutation {
   logout: Boolean!
   updateUser(updateUserDto: UpdateUserDto!): UserResponse!
   UpdateUserRole(email: String!): String!
+  createCompany(createCompanyDto: CreateCompanyDto!, userId: String!): CompanyResponse!
+  addEmployee(companyId: String!, userId: String!): CompanyResponse!
+  deleteEmployee(companyId: String!, userId: String!): CompanyResponse!
+  updateCompany(id: String!, updateCompanyDto: UpdateCompanyDto!): CompanyResponse!
+  deleteCompany(id: String!): CompanyResponse!
 }
 
 input CreateUserDto {
@@ -120,6 +165,20 @@ input UpdateUserDto {
   avatar: CreateImagDto
   email: String
   phone: String
+}
+
+input CreateCompanyDto {
+  name: String!
+  email: String!
+  phone: String!
+  website: String!
+}
+
+input UpdateCompanyDto {
+  name: String
+  email: String
+  phone: String
+  website: String
 }
 
 type Subscription {

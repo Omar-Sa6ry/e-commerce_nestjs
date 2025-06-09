@@ -9,15 +9,18 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { IsEmailConstraint } from 'src/common/constant/validEmail';
+import { CapitalizeWords } from 'src/common/constant/CapitalizeWords';
 
 @InputType()
 export class CreateUserDto {
   @Field()
   @IsString()
+  @Transform(({ value }) => CapitalizeWords(value))
   firstName: string;
 
   @Field()
   @IsString()
+  @Transform(({ value }) => CapitalizeWords(value))
   lastName: string;
 
   @Field()

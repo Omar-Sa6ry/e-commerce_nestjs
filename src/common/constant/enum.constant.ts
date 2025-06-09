@@ -4,6 +4,7 @@ export enum Role {
   ADMIN = 'admin',
   MANAGER = 'manager',
   USER = 'user',
+  COMPANY = 'company',
 }
 export const AllRoles: Role[] = Object.values(Role);
 
@@ -16,6 +17,14 @@ export enum Permission {
   CHANGE_PASSWORD = 'CHANGE_PASSWORD',
   FORGOT_PASSWORD = 'FORGOT_PASSWORD',
   LOGOUT = 'LOGOUT',
+
+  // Company
+  CREATE_COMPANY = 'create_company',
+  UPDATE_COMPANY = 'update_company',
+  DELETE_COMPANY = 'delete_company',
+  VIEW_COMPANY = 'view_company',
+  ADD_EMPLOYEE = 'add_employee',
+  DELETE_EMPLOYEE = 'delete_employee',
 }
 
 export enum Currency {

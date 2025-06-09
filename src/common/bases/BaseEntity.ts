@@ -5,6 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity as TypeOrmBaseEntity,
+  AfterInsert,
+  AfterUpdate,
+  AfterRemove,
 } from 'typeorm';
 
 @ObjectType()
@@ -20,4 +23,23 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
   @Field(() => Date)
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  protected get entityName(): string {
+    return this.constructor.name;
+  }
+
+  @AfterInsert()
+  logInsert() {
+    console.log(`Inserted ${this.entityName} with id: ${this.id}`);
+  }
+
+  @AfterUpdate()
+  logUpdate() {
+    console.log(`Updated ${this.entityName} with id: ${this.id}`);
+  }
+
+  @AfterRemove()
+  logRemove() {
+    console.log(`Removed ${this.entityName} with id: ${this.id}`);
+  }
 }

@@ -2,7 +2,16 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Role } from 'src/common/constant/enum.constant';
-import { Entity, Column, Index, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Company } from 'src/modules/company/entity/company.entity';
+import {
+  Entity,
+  Column,
+  Index,
+  BeforeInsert,
+  BeforeUpdate,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 
 @ObjectType()
 @Entity('user')
@@ -55,6 +64,15 @@ export class User extends BaseEntity {
   @Exclude()
   @Column({ nullable: true })
   fcmToken?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  companyId?: string;
+
+  @ManyToOne(() => Company, (company) => company.users, { nullable: true })
+  @JoinColumn({ name: 'companyId' })
+  @Field(() => Company, { nullable: true })
+  company?: Company;
 
   @BeforeInsert()
   @BeforeUpdate()

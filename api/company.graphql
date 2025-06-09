@@ -1,0 +1,105 @@
+mutation {
+  createCompany(
+    createCompanyDto: {
+      name: "Microsoftt"
+      website: "https://openai.com"
+      phone: "1234563090"
+      email: "microsoftt@gmail.com"
+    }
+    userId: "01JX9ZH7EWWF5WYHRD4XZT9KCN"
+  ) {
+    message
+    data {
+      id
+      name
+      email
+      website
+      phone
+    }
+  }
+}
+
+mutation AddEmployee {
+  addEmployee(
+    companyId: "01JXA3XGBBB7KWS2YN3Z83C0BY"
+    userId: "01JXA3T6DY58A7BBSQ3X60QPEV"
+  ) {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+mutation DeleteEmployee {
+  deleteEmployee(
+    companyId: "01JXA3XGBBB7KWS2YN3Z83C0BY"
+    userId: "01JXA3T6DY58A7BBSQ3X60QPEV"
+  ) {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+query GetCompanyById {
+  getCompanyById(id: "01JXA3XGBBB7KWS2YN3Z83C0BY") {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+query GetCompanyByName {
+  getCompanyByName(name: "Microsoftt") {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+query GetAllCompanys {
+  getAllCompanys {
+    success
+    message
+    items {
+      id
+      name
+      employees {
+        fullName
+      }
+    }
+  }
+}
+
+mutation UpdateCompany {
+  updateCompany(
+    id: "01JXA3XGBBB7KWS2YN3Z83C0BY"
+    updateCompanyDto: { name: "Microsoft" }
+  ) {
+    success
+    message
+    data {
+      id
+      name
+    }
+  }
+}
+
+mutation deleteCompany {
+  deleteCompany(id: "01JXA3XGBBB7KWS2YN3Z83C0BY") {
+    success
+    message
+  }
+}
