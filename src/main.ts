@@ -17,7 +17,7 @@ async function bootstrap() {
     app.enableCors();
     app.useGlobalPipes(new ValidationPipe());
     app.useGlobalInterceptors(new GeneralResponseInterceptor());
-    app.use(graphqlUploadExpress({ maxFileSize: 1000000, maxFiles: 1 }));
+    app.use(graphqlUploadExpress({ maxFileSize: 1000000, maxFiles: 5 }));
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
     );

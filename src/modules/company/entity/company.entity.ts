@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
+import { Product } from 'src/modules/product/entities/product.entity';
 import { User } from 'src/modules/users/entity/user.entity';
 import { Column, Entity, JoinColumn, OneToMany } from 'typeorm';
 
@@ -26,9 +27,9 @@ export class Company extends BaseEntity {
   // @OneToOne(() => Address, address => address.id, { onDelete: 'SET NULL' })
   // addressId: number
 
-  // @Field(() => [Product])
-  // @OneToMany(() => Product, product => product.company)
-  // products?: Product[]
+  @Field(() => [Product])
+  @OneToMany(() => Product, (product) => product.company)
+  products?: Product[];
 
   @Column({ nullable: true })
   @Field(() => Int, { nullable: true })

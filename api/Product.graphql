@@ -1,0 +1,64 @@
+query {
+  getAllProducts(
+    findProductInput: { name: "My", priceMin: 1.0, priceMax: 3000.0 }
+    page: 1
+    limit: 10
+  ) {
+    items {
+      id
+      name
+      price
+      category {
+        id
+        name
+      }
+    }
+    pagination {
+      totalPages
+      currentPage
+      totalItems
+    }
+  }
+}
+
+query {
+  getProductById(id: "01JXBD6MKGAJMVTX699DW8VJED") {
+    data {
+      id
+      name
+      price
+      category {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation {
+  updateProduct(
+    updateProductInput: {
+      id: "01JXBD6MKGAJMVTX699DW8VJED"
+      name: "New Product Name"
+      price: 2500
+    }
+  ) {
+    data {
+      id
+      name
+      price
+      details {
+        color
+      }
+    }
+  }
+}
+
+
+mutation {
+  deleteProduct(id: "01JXBD6MKGAJMVTX699DW8VJED") {
+    success
+    statusCode
+    message
+  }
+}

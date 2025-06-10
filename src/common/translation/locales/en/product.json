@@ -1,0 +1,10 @@
+{
+  "CREATED": "Product ( {name} ) created successfully",
+  "UPDATED": "Product ( {name} ) updated successfully",
+  "DELETED": "Product ( {name} {id} ) deleted successfully",
+  "EXISTED": "Product ( {name} ) already exists",
+  "NOT_FOUND": "Product ( {name} {id} ) not found",
+  "NOT_FOUNDS": "Products not found",
+  "NOT_PERMISSION": "You don't have permission to perform this action",
+  "MAX_IMAGE": "Maximum number of images is 5"
+}

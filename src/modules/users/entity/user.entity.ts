@@ -3,6 +3,7 @@ import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Role } from 'src/common/constant/enum.constant';
 import { Company } from 'src/modules/company/entity/company.entity';
+import { Product } from 'src/modules/product/entities/product.entity';
 import {
   Entity,
   Column,
@@ -11,6 +12,7 @@ import {
   BeforeUpdate,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 @ObjectType()
@@ -73,6 +75,10 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'companyId' })
   @Field(() => Company, { nullable: true })
   company?: Company;
+
+  @Field(() => [Product], { nullable: true })
+  @OneToMany(() => Product, (product) => product.user)
+  products: Product[];
 
   @BeforeInsert()
   @BeforeUpdate()

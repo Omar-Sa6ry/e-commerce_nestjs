@@ -1,9 +1,9 @@
-import { ApolloDriver } from '@nestjs/apollo'
-import { Module } from '@nestjs/common'
-import { APP_FILTER } from '@nestjs/core'
-import { GraphQLModule } from '@nestjs/graphql'
-import { join } from 'path'
-import { HttpExceptionFilter } from '../filter/errorHandling.filter'
+import { ApolloDriver } from '@nestjs/apollo';
+import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
+import { GraphQLModule } from '@nestjs/graphql';
+import { join } from 'path';
+import { HttpExceptionFilter } from '../filter/errorHandling.filter';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { HttpExceptionFilter } from '../filter/errorHandling.filter'
         },
         'graphql-ws': true,
       },
-      formatError: error => {
+      formatError: (error) => {
         return {
           message: error.message,
           extensions: {
@@ -34,7 +34,7 @@ import { HttpExceptionFilter } from '../filter/errorHandling.filter'
             locations: undefined,
             path: undefined,
           },
-        }
+        };
       },
     }),
   ],

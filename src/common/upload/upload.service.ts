@@ -1,30 +1,30 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto'
-import { UploadApiResponse } from 'cloudinary'
-import { ConfigService } from '@nestjs/config'
-import { configureCloudinary } from './config/cloudinary'
-import { v2 as cloudinary } from 'cloudinary'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto';
+import { UploadApiResponse } from 'cloudinary';
+import { ConfigService } from '@nestjs/config';
+import { configureCloudinary } from './config/cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 
 @Injectable()
 export class UploadService {
-  constructor (private configService: ConfigService) {
-    configureCloudinary(this.configService)
+  constructor(private configService: ConfigService) {
+    configureCloudinary(this.configService);
   }
 
-  async uploadImage (
+  async uploadImage(
     createImageInput: CreateImagDto,
     dirUpload: string = 'avatars',
   ): Promise<string> {
     try {
-      const { createReadStream, filename } = await createImageInput.image
+      const { createReadStream, filename } = await createImageInput.image;
 
       if (!createReadStream || typeof createReadStream !== 'function') {
-        throw new HttpException('Invalid file input', HttpStatus.BAD_REQUEST)
+        throw new HttpException('Invalid file input', HttpStatus.BAD_REQUEST);
       }
 
-      const stream = createReadStream()
+      const stream = createReadStream();
 
-      console.log('Uploading image...')
+      console.log('Uploading image...');
 
       const result: UploadApiResponse = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -35,58 +35,60 @@ export class UploadService {
           },
           (error, result) => {
             if (error) {
-              console.error('Cloudinary Upload Error:', error)
+              console.error('Cloudinary Upload Error:', error);
               reject(
                 new HttpException(
                   'Image upload failed',
                   HttpStatus.BAD_REQUEST,
                 ),
-              )
+              );
             } else {
-              resolve(result)
+              resolve(result);
             }
           },
-        )
+        );
 
-        stream.pipe(uploadStream)
-      })
+        stream.pipe(uploadStream);
+      });
 
       if (!result || !result.secure_url) {
         throw new HttpException(
           'Cloudinary response invalid',
           HttpStatus.BAD_REQUEST,
-        )
+        );
       }
 
-      console.log('Upload successful:', result.secure_url)
-      return result.secure_url
+      console.log('Upload successful:', result.secure_url);
+      return result.secure_url;
     } catch (error) {
-      console.error('Upload Error:', error)
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      console.error('Upload Error:', error);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async deleteImage (imageUrl: string): Promise<void> {
+  async deleteImage(imageUrl: string): Promise<void> {
     try {
-      const publicId = imageUrl?.split('/').pop()?.split('.')[0]
+      const publicId = imageUrl?.split('/').pop()?.split('.')[0];
 
-      if (!publicId) {
-        throw new HttpException('Invalid Image URL', HttpStatus.BAD_REQUEST)
-      }
+      if (!publicId)
+        throw new HttpException('Invalid Image URL', HttpStatus.BAD_REQUEST);
 
-      const result = await cloudinary.uploader.destroy(publicId)
+      const result = await cloudinary.uploader.destroy(publicId);
 
-      if (result.result !== 'ok') {
+      if (result.result !== 'ok' && result.result !== 'not found') {
         throw new HttpException(
-          'Failed to delete image',
+          `Failed to delete image. Reason: ${result.result}`,
           HttpStatus.BAD_REQUEST,
-        )
+        );
       }
 
-      console.log('Deleted Image:', imageUrl)
+      console.log('Deleted Image:', imageUrl);
     } catch (error) {
-      console.error('Delete Image Error:', error)
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      console.error('Delete Image Error:', error);
+      throw new HttpException(
+        error?.message || 'Error deleting image',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

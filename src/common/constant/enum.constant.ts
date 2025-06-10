@@ -30,6 +30,19 @@ export enum Permission {
   CREATE_CATEGORY = 'create_category',
   UPDATE_CATEGORY = 'update_category',
   DELETE_CATEGORY = 'delete_category',
+
+  // Product
+  CREATE_PRODUCT = 'create_product',
+  UPDATE_PRODUCT = 'update_product',
+  DELETE_PRODUCT = 'delete_product',
+}
+
+export enum Size {
+  SMALL = 'small',
+  XSMALL = 'x small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
+  XLARGE = 'x large',
 }
 
 export enum Currency {
@@ -197,7 +210,13 @@ registerEnumType(Permission, {
   name: 'Permission',
   description: 'Detailed permissions in the system',
 });
+
 registerEnumType(Role, {
   name: 'Role',
   description: 'User roles in the system',
+});
+
+registerEnumType(Size, {
+  name: 'Size',
+  description: 'Detailed Product Size in the system',
 });

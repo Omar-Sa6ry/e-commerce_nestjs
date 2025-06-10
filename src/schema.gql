@@ -2,6 +2,63 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Category {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  products: [Product!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Image {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  path: String!
+  productId: String!
+  product: Product!
+}
+
+type Details {
+  id: Int!
+  color: String!
+  quantity: Int!
+  size: Size
+  productId: String!
+  product: Product!
+}
+
+"""Detailed Product Size in the system"""
+enum Size {
+  SMALL
+  XSMALL
+  MEDIUM
+  LARGE
+  XLARGE
+}
+
+type Product {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String!
+  price: Float!
+  categoryId: String!
+  companyId: String!
+  userId: String!
+  category: Category!
+  company: Company
+  user: User!
+  images: [Image!]!
+  details: [Details!]!
+}
+
 type Company {
   id: ID!
   createdAt: DateTime!
@@ -10,14 +67,10 @@ type Company {
   website: String!
   phone: String!
   email: String!
+  products: [Product!]!
   userId: Int
   employees: [User!]
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type User {
   id: ID!
@@ -31,6 +84,7 @@ type User {
   email: String!
   companyId: String
   company: Company
+  products: [Product!]
 }
 
 type AuthOutPut {
@@ -52,37 +106,6 @@ type UserResponse {
   timeStamp: String
   statusCode: Float
   data: User
-}
-
-type TicketExpired {
-  id: String!
-  seatId: String!
-  message: String!
-}
-
-type TicketExpiredResponsee {
-  message: String
-  success: Boolean
-  timeStamp: String
-  statusCode: Float
-  data: TicketExpired
-}
-
-type NotifySubscription {
-  userId: String!
-  message: String!
-}
-
-type UpdateFlightSubscription {
-  userId: String!
-  message: String!
-}
-
-type Category {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
 }
 
 type PaginationInfo {
@@ -125,6 +148,31 @@ type CategoriesResponse {
   pagination: PaginationInfo
 }
 
+type ProductResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Product
+}
+
+type ProductsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Product!]
+  pagination: PaginationInfo
+}
+
+type ProductPubsupResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Product
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
@@ -136,6 +184,17 @@ type Query {
   getAllCategories(page: Float, limit: Float): CategoriesResponse!
   getCategoryById(id: String!): CategoryResponse!
   getCategoryByName(name: String!): CategoryResponse!
+  getAllProducts(findProductInput: FindProductInput, page: Int, limit: Int): ProductsResponse!
+  getProductById(id: String!): ProductResponse!
+}
+
+input FindProductInput {
+  name: String
+  description: String
+  priceMin: Float
+  priceMax: Float
+  categoryId: String
+  companyId: String
 }
 
 type Mutation {
@@ -155,6 +214,9 @@ type Mutation {
   createCategory(name: String!): CategoryResponse!
   updateCategory(id: String!, name: String!): CategoryResponse!
   deleteCategory(id: String!): CategoryResponse!
+  createProduct(createProductInput: CreateProductInput!): ProductResponse!
+  updateProduct(updateProductInput: UpdateProductInput!): ProductResponse!
+  deleteProduct(id: String!): ProductResponse!
 }
 
 input CreateUserDto {
@@ -168,7 +230,7 @@ input CreateUserDto {
 input CreateImagDto {
   name: String
   breed: String
-  image: Upload!
+  image: Upload
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -211,8 +273,32 @@ input UpdateCompanyDto {
   website: String
 }
 
+input CreateProductInput {
+  name: String!
+  description: String!
+  price: Float!
+  categoryId: String!
+  details: [CreateDetailInput!]!
+  images: [CreateImagDto!]!
+}
+
+input CreateDetailInput {
+  color: String!
+  quantity: Int!
+  size: Size
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  price: Float
+  categoryId: String
+  details: [CreateDetailInput!]
+  images: [CreateImagDto!]
+  id: String!
+}
+
 type Subscription {
-  ticketExpired: TicketExpiredResponsee!
-  notifyUsers: NotifySubscription!
-  updateFlight: UpdateFlightSubscription!
+  productCreated: ProductPubsupResponse!
+  productDeleted: String!
 }
