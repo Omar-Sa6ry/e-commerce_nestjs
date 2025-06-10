@@ -63,6 +63,11 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.CREATE_PRODUCT,
     Permission.UPDATE_PRODUCT,
     Permission.DELETE_PRODUCT,
+
+    // Product Details
+    Permission.CREATE_PRODUCT_DETAILS,
+    Permission.UPDATE_PRODUCT_DETAILS,
+    Permission.DELETE_PRODUCT_DETAILS,
     ,
   ],
 };

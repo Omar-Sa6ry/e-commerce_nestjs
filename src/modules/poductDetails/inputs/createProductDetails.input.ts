@@ -15,4 +15,7 @@ export class CreateDetailInput {
   @Field(() => Size, { nullable: true })
   @IsOptional()
   size?: Size;
+
+  @Field()
+  productId: string;
 }

@@ -13,7 +13,7 @@ import { Category } from 'src/modules/category/entity/category.entity';
 import { Company } from 'src/modules/company/entity/company.entity';
 import { User } from 'src/modules/users/entity/user.entity';
 import { Image } from './image.entity';
-import { Details } from './productDetails.entity';
+import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
 
 @ObjectType()
 @Entity('product')

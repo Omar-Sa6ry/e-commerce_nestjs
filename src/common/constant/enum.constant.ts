@@ -35,6 +35,11 @@ export enum Permission {
   CREATE_PRODUCT = 'create_product',
   UPDATE_PRODUCT = 'update_product',
   DELETE_PRODUCT = 'delete_product',
+
+  // Product Details
+  CREATE_PRODUCT_DETAILS = 'create_product_details',
+  UPDATE_PRODUCT_DETAILS = 'update_product_details',
+  DELETE_PRODUCT_DETAILS = 'delete_product_details',
 }
 
 export enum Size {

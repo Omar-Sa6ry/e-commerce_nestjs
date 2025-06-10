@@ -1,21 +1,12 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Product } from './product.entity';
 import { Size } from 'src/common/constant/enum.constant';
+import { Product } from 'src/modules/product/entities/product.entity';
+import { BaseEntity } from 'src/common/bases/BaseEntity';
 
 @ObjectType()
 @Entity('productDetails')
-export class Details {
-  @Field(() => Int)
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Details extends BaseEntity {
   @Field()
   @Column({ length: 7 })
   color: string;

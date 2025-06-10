@@ -1,0 +1,8 @@
+{
+  "ADDQUANTITY": "Quantity added successfully, now there are {quantity} items of this product",
+  "EXISTEDCOLOR": "Product color {color} details already exists",
+  "EXISTEDSIZE": "Product size {size} details already exists",
+  "NOT_FOUNDS": "There are no products details to display",
+  "NOT_FOUND": "Product details {id} not found",
+  "UPDATED": "Product details {id} updated successfully"
+}

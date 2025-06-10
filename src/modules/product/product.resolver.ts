@@ -9,7 +9,7 @@ import {
   Parent,
 } from '@nestjs/graphql';
 import { ProductService } from './product.service';
-import { ProductResponse, ProductsResponse } from './dto/productResponse.dto';
+import { ProductResponse, ProductsResponse } from './dtos/productResponse.dto';
 import { CreateProductInput } from './inputs/createProduct.input';
 import { UpdateProductInput } from './inputs/updateProduct.input';
 import { PubSub } from 'graphql-subscriptions';
@@ -19,11 +19,11 @@ import { Permission, Role } from '../../common/constant/enum.constant';
 import { Auth } from 'src/common/decerator/auth.decerator';
 import { FindProductInput } from './inputs/findProduct.input';
 import { RedisService } from 'src/common/redis/redis.service';
-import { Details } from './entities/productDetails.entity';
-import { ProductDetailsLoader } from './loader/productDetails.loader';
+import { ProductDetailsLoader } from '../poductDetails/loader/productDetails.loader';
 import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
-import { ProductPubsupResponse } from './dto/product.subscription';
+import { ProductPubsupResponse } from './dtos/product.subscription';
+import { Details } from '../poductDetails/entity/productDetails.entity';
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -31,8 +31,8 @@ export class ProductResolver {
     private readonly redisService: RedisService,
     private readonly productService: ProductService,
     private readonly productDetailsLoader: ProductDetailsLoader,
-    @Inject('PUB_SUB') private readonly pubSub: PubSub<any>
-) {}
+    @Inject('PUB_SUB') private readonly pubSub: PubSub<any>,
+  ) {}
 
   @Mutation(() => ProductResponse)
   @Auth([Role.COMPANY], [Permission.CREATE_PRODUCT])

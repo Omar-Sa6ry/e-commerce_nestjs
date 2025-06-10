@@ -2,7 +2,7 @@ import * as DataLoader from 'dataloader';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { Details } from '../entities/productDetails.entity';
+import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
 
 @Injectable()
 export class ProductDetailsLoader {

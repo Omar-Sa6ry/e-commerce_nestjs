@@ -10,23 +10,24 @@ import { Category } from '../category/entity/category.entity';
 import { Company } from '../company/entity/company.entity';
 import { User } from '../users/entity/user.entity';
 import { I18nService } from 'nestjs-i18n';
-import { ProductResponse, ProductsResponse } from './dto/productResponse.dto';
+import { ProductResponse, ProductsResponse } from './dtos/productResponse.dto';
 import { UploadService } from './../../common/upload/upload.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductInput } from './inputs/createProduct.input';
-import { Details } from './entities/productDetails.entity';
 import { Image } from './entities/image.entity';
 import { RedisService } from 'src/common/redis/redis.service';
 import { PubSub } from 'graphql-subscriptions';
 import { UpdateProductInput } from './inputs/updateProduct.input';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { FindProductInput } from './inputs/findProduct.input';
+import { Details } from '../poductDetails/entity/productDetails.entity';
 import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -280,7 +281,6 @@ export class ProductService {
           await this.uploadService.deleteImage(image.path);
         }),
       );
-      console.log(images);
 
       await this.productRepository.remove(product);
 

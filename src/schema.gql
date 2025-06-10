@@ -25,7 +25,9 @@ type Image {
 }
 
 type Details {
-  id: Int!
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
   color: String!
   quantity: Int!
   size: Size
@@ -173,6 +175,23 @@ type ProductPubsupResponse {
   data: Product
 }
 
+type ProductDetailResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Details
+}
+
+type ProductDetailsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Details!]
+  pagination: PaginationInfo
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
@@ -186,6 +205,8 @@ type Query {
   getCategoryByName(name: String!): CategoryResponse!
   getAllProducts(findProductInput: FindProductInput, page: Int, limit: Int): ProductsResponse!
   getProductById(id: String!): ProductResponse!
+  getAllProductDetails(findProductDetailsInput: FindProductDetailsInput, page: Int, limit: Int): ProductDetailsResponse!
+  getProductDetailById(id: String!): ProductDetailResponse!
 }
 
 input FindProductInput {
@@ -195,6 +216,13 @@ input FindProductInput {
   priceMax: Float
   categoryId: String
   companyId: String
+}
+
+input FindProductDetailsInput {
+  color: String
+  quantity: Int
+  size: Size
+  productId: String
 }
 
 type Mutation {
@@ -217,6 +245,9 @@ type Mutation {
   createProduct(createProductInput: CreateProductInput!): ProductResponse!
   updateProduct(updateProductInput: UpdateProductInput!): ProductResponse!
   deleteProduct(id: String!): ProductResponse!
+  createProductDetail(createDetailInput: CreateDetailInput!): ProductDetailResponse!
+  updateProductDetail(updateProductDetailsInput: UpdateProductDetailsInput!): ProductDetailResponse!
+  deleteProductDetail(id: String!): ProductDetailResponse!
 }
 
 input CreateUserDto {
@@ -286,6 +317,7 @@ input CreateDetailInput {
   color: String!
   quantity: Int!
   size: Size
+  productId: String!
 }
 
 input UpdateProductInput {
@@ -295,6 +327,14 @@ input UpdateProductInput {
   categoryId: String
   details: [CreateDetailInput!]
   images: [CreateImagDto!]
+  id: String!
+}
+
+input UpdateProductDetailsInput {
+  color: String
+  quantity: Int
+  size: Size
+  productId: String
   id: String!
 }
 

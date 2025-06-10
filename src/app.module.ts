@@ -12,6 +12,7 @@ import { CompanyModule } from './modules/company/company.module';
 import { CategoryModule } from './modules/category/category.module';
 import { ProductModule } from './modules/product/product.module';
 import { PubSubModule } from './common/pubsup/pubSub.module';
+import { ProductDetailsModule } from './modules/poductDetails/productDetails.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { PubSubModule } from './common/pubsup/pubSub.module';
     CompanyModule,
     CategoryModule,
     ProductModule,
+    ProductDetailsModule
   ],
 
   providers: [AppService, AppResolver],

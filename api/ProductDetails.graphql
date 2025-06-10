@@ -1,0 +1,78 @@
+mutation {
+  createProductDetail(
+    createDetailInput: {
+      productId: "01JXBCTYCC8K6HMH90QY0X4KC5"
+      color: "#FF5734"
+      size: MEDIUM
+      quantity: 5
+    }
+  ) {
+    data {
+      id
+      color
+      quantity
+      product {
+        name
+      }
+    }
+  }
+}
+
+query {
+  getAllProductDetails(page: 1, limit: 5) {
+    items {
+      id
+      color
+      product {
+        name
+      }
+    }
+    pagination {
+      totalItems
+    }
+  }
+}
+
+mutation {
+  updateProductDetail(
+    updateProductDetailsInput: {
+      id: "01JXD4Q6R7FTRG3GT81P5KYRV0"
+      quantity: 7
+      size: XSMALL
+    }
+  ) {
+    message
+    data {
+      quantity
+      color
+      product {
+        name
+      }
+    }
+  }
+}
+
+query GetProductDetailById {
+  getProductDetailById(id: "01JXD4SB82BYQ8R5JYT0GKZPA6") {
+    statusCode
+    message
+    data {
+      id
+      color
+      size
+      quantity
+      product {
+        id
+        name
+        price
+      }
+    }
+  }
+}
+
+mutation DeleteProductDetail {
+  deleteProductDetail(id: "01JXD4SB82BYQ8R5JYT0GKZPA6") {
+    statusCode
+    message
+  }
+}
