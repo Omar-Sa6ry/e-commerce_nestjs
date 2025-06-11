@@ -46,6 +46,18 @@ export enum Permission {
   UPDATE_CART = 'update_cart',
   DELETE_CART = 'delete_cart',
   VIEW_CART = 'view_cart',
+
+  // Coupon
+  CREATE_COUPON = 'create_coupon',
+  UPDATE_COUPON = 'update_coupon',
+  DELETE_COUPON = 'delete_coupon',
+  VIEW_COUPON = 'view_coupon',
+  COUPON_ACTIVE = 'coupon_active',
+}
+
+export enum TypeCoupon {
+  FIXED = 'fixed',
+  PERCENTAGE = 'percentage',
 }
 
 export enum Size {
@@ -225,6 +237,11 @@ registerEnumType(Permission, {
 registerEnumType(Role, {
   name: 'Role',
   description: 'User roles in the system',
+});
+
+registerEnumType(TypeCoupon, {
+  name: 'TypeCoupon',
+  description: 'Types of Coupons in the system',
 });
 
 registerEnumType(Size, {

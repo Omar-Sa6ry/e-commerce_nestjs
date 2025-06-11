@@ -2,18 +2,38 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Category {
+type Coupon {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  categoryId: String!
   name: String!
-  products: [Product!]
+  discount: Float!
+  type: TypeCoupon!
+  isActive: Boolean!
+  expiryDate: DateTime!
+  categories: Category!
 }
 
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+"""Types of Coupons in the system"""
+enum TypeCoupon {
+  FIXED
+  PERCENTAGE
+}
+
+type Category {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  products: [Product!]
+  coupon: Coupon!
+}
 
 type Company {
   id: ID!
@@ -250,6 +270,23 @@ type TotalCartsResponse {
   data: Float
 }
 
+type CouponResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Coupon
+}
+
+type CouponsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Coupon!]
+  pagination: PaginationInfo
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
@@ -267,6 +304,9 @@ type Query {
   getProductDetailById(id: String!): ProductDetailResponse!
   findCartItems(cartId: String!): CartItemsResponse!
   checkTotalCart: TotalCartsResponse!
+  findCouponByName(name: String!): CouponResponse!
+  findCouponById(id: String!): CouponResponse!
+  findAllCoupons(findCouponInput: FindCouponInput, page: Int, limit: Int): CouponsResponse!
 }
 
 input FindProductInput {
@@ -283,6 +323,15 @@ input FindProductDetailsInput {
   quantity: Int
   size: Size
   productId: String
+}
+
+input FindCouponInput {
+  expiryDate: DateTime
+  name: String
+  categoryId: String
+  type: TypeCoupon
+  discount: Float
+  isActive: Boolean
 }
 
 type Mutation {
@@ -312,6 +361,10 @@ type Mutation {
   updateCartItemQuantity(cartItemId: String!, quantity: Float!): CartItemResponse!
   deleteCartItems: CartResponse!
   deleteCart(cartId: String!): CartResponse!
+  createCoupon(createCouponInput: CreateCouponInput!): CouponResponse!
+  updateCouponActive(id: String!): CouponResponse!
+  updateCoupon(updateCouponInput: UpdateCouponInput!): CouponResponse!
+  deleteCoupon(id: String!): CouponResponse!
 }
 
 input CreateUserDto {
@@ -406,6 +459,23 @@ input CartItemInput {
   productId: String!
   detailsId: String!
   quantity: Float!
+}
+
+input CreateCouponInput {
+  expiryDate: DateTime!
+  name: String!
+  categoryId: String!
+  type: TypeCoupon!
+  discount: Float!
+}
+
+input UpdateCouponInput {
+  expiryDate: DateTime
+  name: String
+  categoryId: String
+  type: TypeCoupon
+  discount: Float
+  id: String!
 }
 
 type Subscription {

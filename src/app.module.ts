@@ -14,6 +14,7 @@ import { ProductModule } from './modules/product/product.module';
 import { PubSubModule } from './common/pubsup/pubSub.module';
 import { ProductDetailsModule } from './modules/poductDetails/productDetails.module';
 import { CartModule } from './modules/cart/cart.module';
+import { CouponModule } from './modules/coupon/coupon.module';
 
 @Module({
   imports: [
@@ -30,7 +31,9 @@ import { CartModule } from './modules/cart/cart.module';
     CategoryModule,
     ProductModule,
     ProductDetailsModule,
-    CartModule,  ],
+    CartModule,
+    CouponModule,
+  ],
 
   providers: [AppService, AppResolver],
 })

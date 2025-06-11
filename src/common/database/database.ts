@@ -5,6 +5,7 @@ import { Cart } from 'src/modules/cart/entities/cart.entity';
 import { CartItem } from 'src/modules/cart/entities/cartItem.enitty';
 import { Category } from 'src/modules/category/entity/category.entity';
 import { Company } from 'src/modules/company/entity/company.entity';
+import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
 import { Image } from 'src/modules/product/entities/image.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
@@ -32,6 +33,7 @@ import { User } from 'src/modules/users/entity/user.entity';
           Details,
           Cart,
           CartItem,
+          Coupon,
         ],
         synchronize: true,
         logging: false,

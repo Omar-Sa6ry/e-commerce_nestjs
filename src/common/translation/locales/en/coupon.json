@@ -1,0 +1,11 @@
+{
+  "EXISTED": "Coupon code {name} already exists",
+  "CREATED": "Coupon created successfully",
+  "UPDATED": "Coupon {id} updated successfully",
+  "DELETED": "Coupon {id} deleted successfully",
+  "NOT_FOUND": "Coupon {id} not found",
+  "NOT_FOUND_BY_NAME": "Coupon {name} not found",
+  "NOT_FOUNDS": "Coupons not found",
+  "ACTIVE": "Coupon {id} is {active}",
+  "PERCENTAGE": "Coupon must be percentage and discount must be between 0 and 90"
+}

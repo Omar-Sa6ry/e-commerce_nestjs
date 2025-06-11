@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
+import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 
@@ -13,4 +14,11 @@ export class Category extends BaseEntity {
   @Field(() => [Product], { nullable: true })
   @OneToMany(() => Product, (product) => product.user)
   products: Product[];
+
+  @Field(() => Coupon)
+  @OneToMany(() => Coupon, (Coupon) => Coupon.categories, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  coupon: Coupon;
 }

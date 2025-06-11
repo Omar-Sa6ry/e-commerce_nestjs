@@ -27,6 +27,13 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.UPDATE_CART,
     Permission.DELETE_CART,
     Permission.VIEW_CART,
+
+    // Coupon
+    Permission.CREATE_COUPON,
+    Permission.UPDATE_COUPON,
+    Permission.DELETE_COUPON,
+    Permission.VIEW_COUPON,
+    Permission.COUPON_ACTIVE,
   ],
 
   [Role.MANAGER]: [
@@ -60,6 +67,9 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
 
     // Company
     Permission.VIEW_COMPANY,
+
+    // Coupon
+    Permission.VIEW_COUPON,
 
     // Cart
     Permission.CREATE_CART,
