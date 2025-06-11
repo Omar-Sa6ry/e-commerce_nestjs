@@ -13,6 +13,7 @@ import { CategoryModule } from './modules/category/category.module';
 import { ProductModule } from './modules/product/product.module';
 import { PubSubModule } from './common/pubsup/pubSub.module';
 import { ProductDetailsModule } from './modules/poductDetails/productDetails.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -28,8 +29,8 @@ import { ProductDetailsModule } from './modules/poductDetails/productDetails.mod
     CompanyModule,
     CategoryModule,
     ProductModule,
-    ProductDetailsModule
-  ],
+    ProductDetailsModule,
+    CartModule,  ],
 
   providers: [AppService, AppResolver],
 })

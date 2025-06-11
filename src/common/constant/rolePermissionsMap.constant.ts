@@ -21,6 +21,12 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.CREATE_CATEGORY,
     Permission.UPDATE_CATEGORY,
     Permission.DELETE_CATEGORY,
+
+    // Cart
+    Permission.CREATE_CART,
+    Permission.UPDATE_CART,
+    Permission.DELETE_CART,
+    Permission.VIEW_CART,
   ],
 
   [Role.MANAGER]: [
@@ -37,7 +43,11 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.UPDATE_COMPANY,
     Permission.VIEW_COMPANY,
 
-    ,
+    // Cart
+    Permission.CREATE_CART,
+    Permission.UPDATE_CART,
+    Permission.DELETE_CART,
+    Permission.VIEW_CART,
   ],
 
   [Role.USER]: [
@@ -51,7 +61,11 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     // Company
     Permission.VIEW_COMPANY,
 
-    ,
+    // Cart
+    Permission.CREATE_CART,
+    Permission.UPDATE_CART,
+    Permission.DELETE_CART,
+    Permission.VIEW_CART,
   ],
 
   [Role.COMPANY]: [
@@ -68,6 +82,8 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.CREATE_PRODUCT_DETAILS,
     Permission.UPDATE_PRODUCT_DETAILS,
     Permission.DELETE_PRODUCT_DETAILS,
-    ,
+
+    // Cart
+    Permission.VIEW_CART,
   ],
 };

@@ -4,5 +4,6 @@
   "EXISTEDSIZE": "Product size {size} details already exists",
   "NOT_FOUNDS": "There are no products details to display",
   "NOT_FOUND": "Product details {id} not found",
-  "UPDATED": "Product details {id} updated successfully"
+  "UPDATED": "Product details {id} updated successfully",
+  "NOT_MATCHED": "Product details {id} not matched"
 }

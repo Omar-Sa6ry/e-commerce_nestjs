@@ -1,0 +1,10 @@
+{
+  "CREATED": "Cart created successfully",
+  "UPDATED": "Cart updated successfully",
+  "NOT_ENOUGH": "Not enough quantity",
+  "EMPTY": "Cart is empty",
+  "NOT_FOUND": "Cart {id} not found",
+  "QUANTITY_UPDATED": "Quantity updated successfully",
+  "DELETED_CART": "Cart {id} deleted successfully",
+  "NOT_ENOUGH_STOCK": "Not enough stock"
+}

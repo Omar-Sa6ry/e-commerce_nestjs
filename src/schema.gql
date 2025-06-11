@@ -15,6 +15,19 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Company {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  website: String!
+  phone: String!
+  email: String!
+  products: [Product!]!
+  userId: Int
+  employees: [User!]
+}
+
 type Image {
   id: ID!
   createdAt: DateTime!
@@ -33,6 +46,7 @@ type Details {
   size: Size
   productId: String!
   product: Product!
+  cartItem: CartItem!
 }
 
 """Detailed Product Size in the system"""
@@ -59,19 +73,29 @@ type Product {
   user: User!
   images: [Image!]!
   details: [Details!]!
+  cartItem: CartItem!
 }
 
-type Company {
+type CartItem {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  name: String!
-  website: String!
-  phone: String!
-  email: String!
-  products: [Product!]!
-  userId: Int
-  employees: [User!]
+  productId: String!
+  detailsId: String!
+  quantity: Int!
+  totalPrice: Float!
+  product: Product!
+  details: Details!
+  cart: Cart!
+}
+
+type Cart {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  totalPrice: Float!
+  userId: String!
+  cartItems: [CartItem!]
 }
 
 type User {
@@ -87,6 +111,7 @@ type User {
   companyId: String
   company: Company
   products: [Product!]
+  cart: [Cart!]
 }
 
 type AuthOutPut {
@@ -192,6 +217,39 @@ type ProductDetailsResponse {
   pagination: PaginationInfo
 }
 
+type CartResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Cart
+}
+
+type CartItemResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: CartItem
+}
+
+type CartItemsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [CartItem!]
+  pagination: PaginationInfo
+}
+
+type TotalCartsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Float
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
@@ -207,6 +265,8 @@ type Query {
   getProductById(id: String!): ProductResponse!
   getAllProductDetails(findProductDetailsInput: FindProductDetailsInput, page: Int, limit: Int): ProductDetailsResponse!
   getProductDetailById(id: String!): ProductDetailResponse!
+  findCartItems(cartId: String!): CartItemsResponse!
+  checkTotalCart: TotalCartsResponse!
 }
 
 input FindProductInput {
@@ -248,6 +308,10 @@ type Mutation {
   createProductDetail(createDetailInput: CreateDetailInput!): ProductDetailResponse!
   updateProductDetail(updateProductDetailsInput: UpdateProductDetailsInput!): ProductDetailResponse!
   deleteProductDetail(id: String!): ProductDetailResponse!
+  addToCart(cartItemInput: CartItemInput!): CartResponse!
+  updateCartItemQuantity(cartItemId: String!, quantity: Float!): CartItemResponse!
+  deleteCartItems: CartResponse!
+  deleteCart(cartId: String!): CartResponse!
 }
 
 input CreateUserDto {
@@ -336,6 +400,12 @@ input UpdateProductDetailsInput {
   size: Size
   productId: String
   id: String!
+}
+
+input CartItemInput {
+  productId: String!
+  detailsId: String!
+  quantity: Float!
 }
 
 type Subscription {

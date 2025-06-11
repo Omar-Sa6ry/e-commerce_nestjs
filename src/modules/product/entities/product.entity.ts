@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Column,
-  ManyToOne,
-  OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { ObjectType, Field, Float } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Category } from 'src/modules/category/entity/category.entity';
@@ -14,6 +6,7 @@ import { Company } from 'src/modules/company/entity/company.entity';
 import { User } from 'src/modules/users/entity/user.entity';
 import { Image } from './image.entity';
 import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
+import { CartItem } from 'src/modules/cart/entities/cartItem.enitty';
 
 @ObjectType()
 @Entity('product')
@@ -65,11 +58,9 @@ export class Product extends BaseEntity {
   @OneToMany(() => Details, (details) => details.product)
   details: Details[];
 
-  @Field()
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
-
-  @Field()
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
+  @Field(() => CartItem)
+  @OneToMany(() => CartItem, (cartItem) => cartItem.details, {
+    onDelete: 'SET NULL',
+  })
+  cartItem: CartItem;
 }

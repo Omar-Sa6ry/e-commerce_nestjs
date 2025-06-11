@@ -3,6 +3,7 @@
 /node_modules
 /build
 /issues.txt
+/api 
 
 # Logs
 logs

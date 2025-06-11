@@ -40,6 +40,12 @@ export enum Permission {
   CREATE_PRODUCT_DETAILS = 'create_product_details',
   UPDATE_PRODUCT_DETAILS = 'update_product_details',
   DELETE_PRODUCT_DETAILS = 'delete_product_details',
+
+  // Cart
+  CREATE_CART = 'create_cart',
+  UPDATE_CART = 'update_cart',
+  DELETE_CART = 'delete_cart',
+  VIEW_CART = 'view_cart',
 }
 
 export enum Size {
@@ -187,7 +193,7 @@ export enum Currency {
   TJS = 'tjs', // Tajikistani Somoni
   TMT = 'tmt', // Turkmenistani Manat
   TND = 'tnd', // Tunisian Dinar
-  TOP = 'top', // Tongan Pa’anga
+  TOP = 'top', // Tongan Pa'anga
   TRY = 'try', // Turkish Lira
   TTD = 'ttd', // Trinidad and Tobago Dollar
   TWD = 'twd', // New Taiwan Dollar
