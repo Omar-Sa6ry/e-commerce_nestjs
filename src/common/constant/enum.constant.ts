@@ -18,6 +18,26 @@ export enum Permission {
   FORGOT_PASSWORD = 'FORGOT_PASSWORD',
   LOGOUT = 'LOGOUT',
 
+  // Location
+  CREATE_COUNTRY = 'create_country',
+  UPDATE_COUNTRY = 'update_country',
+  DELETE_COUNTRY = 'delete_country',
+
+  CREATE_CITY = 'create_city',
+  UPDATE_CITY = 'update_city',
+  DELETE_CITY = 'delete_city',
+
+  // Address
+  CREATE_ADDRESS = 'create_address',
+  UPDATE_ADDRESS = 'update_address',
+  DELETE_ADDRESS = 'delete_address',
+  VIEW_ADDRESS = 'view_address',
+
+  // User Address
+  CREATE_USER_ADDRESS = 'create_user_address',
+  UPDATE_USER_ADDRESS = 'update_user_address',
+  DELETE_USER_ADDRESS = 'delete_user_address',
+
   // Company
   CREATE_COMPANY = 'create_company',
   UPDATE_COMPANY = 'update_company',
@@ -58,6 +78,14 @@ export enum Permission {
 export enum TypeCoupon {
   FIXED = 'fixed',
   PERCENTAGE = 'percentage',
+}
+
+export enum AddressType {
+  HOME = 'home',
+  WORK = 'work',
+  BILLING = 'billing',
+  SHIPPING = 'shipping',
+  OTHER = 'other',
 }
 
 export enum Size {
@@ -247,4 +275,9 @@ registerEnumType(TypeCoupon, {
 registerEnumType(Size, {
   name: 'Size',
   description: 'Detailed Product Size in the system',
+});
+
+registerEnumType(AddressType, {
+  name: 'AddressType',
+  description: 'Detailed Address Type in the system',
 });

@@ -2,7 +2,7 @@ import { Field, InputType } from '@nestjs/graphql';
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto';
 import { Transform } from 'class-transformer';
 import { IsEmailConstraint } from 'src/common/constant/validEmail';
-import { CapitalizeWords } from 'src/common/constant/CapitalizeWords';
+import { CapitalizeWords } from 'src/common/constant/WordsTransform';
 import {
   IsEmail,
   IsString,

@@ -1,0 +1,15 @@
+{
+  "EXISTED_COUNTRY": "Country {name} already exists",
+  "CREATED_COUNTRY": "Country {name} created successfully",
+  "NOT_FOUNDS_COUNTIES": "Counties not found",
+  "NOT_FOUND_COUNTRY": "Country {id} not found",
+  "UPDATED_COUNTRY": "Country {id} updated successfully",
+  "DELETED_COUNTRY": "Country {id} deleted successfully",
+
+  "CREATED_CITY": "City {name} created successfully",
+  "NOT_FOUND_CITY": "City {id} not found",
+  "NOT_FOUNDS_CITIES": "Cities not found",
+  "EXISTED_CITY": "City {name} already exists",
+  "UPDATED_CITY": "City {id} updated successfully",
+  "DELETED_CITY": "City {id} deleted successfully"
+}

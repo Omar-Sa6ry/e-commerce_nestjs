@@ -1,7 +1,7 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { Transform } from 'class-transformer';
 import { IsEmailConstraint } from 'src/common/constant/validEmail';
-import { CapitalizeWords } from 'src/common/constant/CapitalizeWords';
+import { CapitalizeWords } from 'src/common/constant/WordsTransform';
 import {
   IsEmail,
   IsOptional,

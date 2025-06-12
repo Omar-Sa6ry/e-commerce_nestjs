@@ -12,7 +12,7 @@ import {
   CategoriesResponse,
   CategoryResponse,
 } from './dto/categoryResponse.dto';
-import { CapitalizeWords } from 'src/common/constant/CapitalizeWords';
+import { CapitalizeWords } from 'src/common/constant/WordsTransform';
 
 @Injectable()
 export class CategoryService {

@@ -26,7 +26,7 @@ export class CompanyService {
   async create(
     createCompanyDto: CreateCompanyDto,
     userId: string,
-    // createAddressDto: CreateAddressDto,
+    // createAddressInput: CreateAddressInput,
   ): Promise<CompanyResponse> {
     const queryRunner =
       this.companyRepository.manager.connection.createQueryRunner();
@@ -60,7 +60,7 @@ export class CompanyService {
         );
 
       // // Create the address within the transaction
-      // const address = await this.addressService.create(createAddressDto);
+      // const address = await this.addressService.create(createAddressInput);
 
       const company = await this.companyRepository.create({
         ...createCompanyDto,

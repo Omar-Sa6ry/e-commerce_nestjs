@@ -11,6 +11,14 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.FORGOT_PASSWORD,
     Permission.LOGOUT,
 
+    // Location
+    Permission.CREATE_COUNTRY,
+    Permission.UPDATE_COUNTRY,
+    Permission.DELETE_COUNTRY,
+    Permission.CREATE_CITY,
+    Permission.UPDATE_CITY,
+    Permission.DELETE_CITY,
+
     // Company
     Permission.CREATE_COMPANY,
     Permission.UPDATE_COMPANY,
@@ -64,6 +72,15 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.CHANGE_PASSWORD,
     Permission.FORGOT_PASSWORD,
     Permission.LOGOUT,
+
+    // Addresss
+    Permission.CREATE_ADDRESS,
+    Permission.UPDATE_ADDRESS,
+    Permission.DELETE_ADDRESS,
+    Permission.VIEW_ADDRESS,
+    Permission.DELETE_USER_ADDRESS,
+    Permission.CREATE_USER_ADDRESS,
+    Permission.UPDATE_USER_ADDRESS,
 
     // Company
     Permission.VIEW_COMPANY,

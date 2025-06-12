@@ -24,13 +24,17 @@ import { I18nService } from 'nestjs-i18n';
 import { WebSocketMessageGateway } from 'src/common/websocket/websocket.gateway';
 import { UserInputResponse } from '../users/inputs/User.input';
 import { AuthResponse } from './dto/AuthRes.dto';
+import { CreateAddressInput } from '../address/inputs/createAddress.dto';
+import { UserAddressService } from '../userAdress/userAddress.service';
+import { CreateUserAddressInput } from '../userAdress/inputs/createUserAddress.input';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly i18n: I18nService,
     private userService: UserService,
-    private generateToken: GenerateToken,
+    private readonly addressService: UserAddressService,
+    private readonly generateToken: GenerateToken,
     private readonly redisService: RedisService,
     private readonly uploadService: UploadService,
     private readonly sendEmailService: SendEmailService,
@@ -42,6 +46,8 @@ export class AuthService {
     fcmToken: string,
     createUserDto: CreateUserDto,
     avatar?: CreateImagDto,
+    address?: CreateAddressInput,
+    userAddress?: CreateUserAddressInput,
   ): Promise<AuthResponse> {
     const { email } = createUserDto;
 
@@ -61,6 +67,13 @@ export class AuthService {
         if (typeof filename === 'string') {
           user.avatar = filename;
         }
+      }
+
+      if (address && userAddress) {
+        await this.addressService.connectAddressToUser(user.id, address, {
+          ...userAddress,
+          isDefault: true,
+        });
       }
 
       user.fcmToken = fcmToken;

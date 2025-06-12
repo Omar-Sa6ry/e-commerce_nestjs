@@ -3,7 +3,7 @@ import { IsNumber, IsString, IsArray, ValidateNested } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { CreateDetailInput } from '../../poductDetails/inputs/createProductDetails.input';
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto';
-import { CapitalizeWords } from 'src/common/constant/CapitalizeWords';
+import { CapitalizeWords } from 'src/common/constant/WordsTransform';
 
 @InputType()
 export class CreateProductInput {

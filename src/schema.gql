@@ -2,6 +2,62 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Country {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  cities: [City!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type City {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  state: String!
+  countryId: String!
+  postalCode: String
+  country: Country!
+  addresses: [Address!]
+}
+
+type Address {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  locationId: String!
+  street: String!
+  addressType: AddressType!
+  city: City!
+  userAddresses: [UserAddress!]
+}
+
+"""Detailed Address Type in the system"""
+enum AddressType {
+  HOME
+  WORK
+  BILLING
+  SHIPPING
+  OTHER
+}
+
+type UserAddress {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  userId: String!
+  addressId: String!
+  isDefault: Boolean!
+  user: User!
+  address: Address!
+}
+
 type Coupon {
   id: ID!
   createdAt: DateTime!
@@ -14,11 +70,6 @@ type Coupon {
   expiryDate: DateTime!
   categories: Category!
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 """Types of Coupons in the system"""
 enum TypeCoupon {
@@ -131,6 +182,7 @@ type User {
   companyId: String
   company: Company
   products: [Product!]
+  userAddresses: [UserAddress!]
   cart: [Cart!]
 }
 
@@ -155,10 +207,26 @@ type UserResponse {
   data: User
 }
 
+type AddressResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Address
+}
+
 type PaginationInfo {
   totalPages: Int!
   currentPage: Int!
   totalItems: Int!
+}
+
+type UserAddressResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: UserAddress
 }
 
 type CompanyResponse {
@@ -287,11 +355,51 @@ type CouponsResponse {
   pagination: PaginationInfo
 }
 
+type CountryResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Country
+}
+
+type CountrysResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Country!]
+  pagination: PaginationInfo
+}
+
+type CityResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: City
+}
+
+type CitysResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [City!]
+  pagination: PaginationInfo
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
   getUserByEmail(email: String!): UserResponse!
   deleteUser: UserResponse!
+  getAddress(addressId: String!): AddressResponse!
+  findAllCities(page: Float = 1, limit: Float = 10): CitysResponse!
+  findCityById(id: String!): CityResponse!
+  findCitiesByCountryId(countryId: String!): CitysResponse!
+  findAllCountries(page: Float = 1, limit: Float = 10): CountrysResponse!
+  findCountryById(id: String!): CountryResponse!
   getCompanyById(id: String!): CompanyResponse
   getCompanyByName(name: String!): CompanyResponse
   getAllCompanys(page: Int, limit: Int): CompanysResponse
@@ -343,6 +451,19 @@ type Mutation {
   logout: Boolean!
   updateUser(updateUserDto: UpdateUserDto!): UserResponse!
   UpdateUserRole(email: String!): String!
+  createAddress(createAddressInput: CreateAddressInput!): AddressResponse!
+  updateAddress(addressId: String!, updateAddressInput: UpdateAddressInput!): AddressResponse!
+  deleteAddress(addressId: String!): AddressResponse!
+  createUserAddress(createUserAddressInput: CreateUserAddressInput!): UserAddressResponse!
+  updateUserAddress(addressId: String!, updateAddressInput: UpdateAddressInput, updateUserAddressInput: UpdateUserAddressInput): UserAddressResponse!
+  deleteUserAddress(userAddressId: String!): UserAddressResponse!
+  setDefaultAddress(userAddressId: String!): UserAddressResponse!
+  createCity(createCityInput: CreateCityInput!): CityResponse!
+  updateCity(id: String!, name: String!): CityResponse!
+  deleteCity(id: String!): CityResponse!
+  createCountry(createCountryInput: CreateCountryInput!): CountryResponse!
+  updateCountry(id: String!, name: String!): CountryResponse!
+  deleteCountry(id: String!): CountryResponse!
   createCompany(createCompanyDto: CreateCompanyDto!, userId: String!): CompanyResponse!
   addEmployee(companyId: String!, userId: String!): CompanyResponse!
   deleteEmployee(companyId: String!, userId: String!): CompanyResponse!
@@ -405,6 +526,39 @@ input UpdateUserDto {
   avatar: CreateImagDto
   email: String
   phone: String
+}
+
+input CreateAddressInput {
+  locationId: String!
+  street: String!
+  addressType: AddressType
+}
+
+input UpdateAddressInput {
+  locationId: String
+  street: String
+  addressType: AddressType
+}
+
+input CreateUserAddressInput {
+  createAddress: CreateAddressInput!
+  isDefault: Boolean
+}
+
+input UpdateUserAddressInput {
+  createAddress: CreateAddressInput
+  isDefault: Boolean
+}
+
+input CreateCityInput {
+  name: String!
+  countryId: String!
+  postalCode: String
+  state: String
+}
+
+input CreateCountryInput {
+  name: String!
 }
 
 input CreateCompanyDto {

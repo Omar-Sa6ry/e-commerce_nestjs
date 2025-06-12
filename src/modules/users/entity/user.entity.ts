@@ -2,6 +2,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Role } from 'src/common/constant/enum.constant';
+import { UserAddress } from 'src/modules/userAdress/entity/userAddress.entity';
 import { Cart } from 'src/modules/cart/entities/cart.entity';
 import { Company } from 'src/modules/company/entity/company.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
@@ -80,6 +81,10 @@ export class User extends BaseEntity {
   @Field(() => [Product], { nullable: true })
   @OneToMany(() => Product, (product) => product.user)
   products: Product[];
+
+  @Field(() => [UserAddress], { nullable: true })
+  @OneToMany(() => UserAddress, (UserAddress) => UserAddress.user)
+  userAddresses: UserAddress[];
 
   @Field(() => [Cart], { nullable: true })
   @OneToMany(() => Cart, (cart) => cart.user, {

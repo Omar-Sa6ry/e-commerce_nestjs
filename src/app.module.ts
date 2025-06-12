@@ -15,6 +15,9 @@ import { PubSubModule } from './common/pubsup/pubSub.module';
 import { ProductDetailsModule } from './modules/poductDetails/productDetails.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CouponModule } from './modules/coupon/coupon.module';
+import { UserAddressModule } from './modules/userAdress/userAddress.module';
+import { AddressModule } from './modules/address/address.module';
+import { LocationModule } from './modules/location/location.module';
 
 @Module({
   imports: [
@@ -27,6 +30,9 @@ import { CouponModule } from './modules/coupon/coupon.module';
 
     AuthModule,
     UserModule,
+    LocationModule,
+    AddressModule,
+    UserAddressModule,
     CompanyModule,
     CategoryModule,
     ProductModule,

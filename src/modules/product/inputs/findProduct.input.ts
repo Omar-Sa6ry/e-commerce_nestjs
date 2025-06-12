@@ -1,6 +1,6 @@
 import { InputType, Field, Float, Int } from '@nestjs/graphql';
 import { Transform } from 'class-transformer';
-import { CapitalizeWords } from 'src/common/constant/CapitalizeWords';
+import { CapitalizeWords } from 'src/common/constant/WordsTransform';
 
 @InputType()
 export class FindProductInput {

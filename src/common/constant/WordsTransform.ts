@@ -1,3 +1,9 @@
+export function LowwerWords(value: string): string {
+  if (!value || typeof value !== 'string') return value;
+
+  return value.toLowerCase();
+}
+
 export function CapitalizeWords(value: string): string {
   if (!value || typeof value !== 'string') return value;
 
