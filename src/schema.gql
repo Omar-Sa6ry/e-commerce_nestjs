@@ -461,7 +461,6 @@ type OrdersResponse {
 }
 
 type CreateOrder {
-  order: Order!
   url: String
 }
 

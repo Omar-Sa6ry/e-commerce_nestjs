@@ -8,6 +8,48 @@ export enum Role {
 }
 export const AllRoles: Role[] = Object.values(Role);
 
+export enum OrderStatus {
+  PENDING = 'pending',
+  SHIPPED = 'shipped',
+  COMPLETED = 'completed',
+  CANCELED = 'canceled',
+}
+
+export enum PaymentStatus {
+  UNPAID = 'unpaid',
+  PAID = 'paid',
+}
+
+export enum PaymentMethod {
+  STRIPE = 'stripe',
+  CASH_ON_DELIVERY = 'cash_on_delivery',
+}
+
+export enum TypeCoupon {
+  FIXED = 'fixed',
+  PERCENTAGE = 'percentage',
+}
+
+export enum AddressType {
+  HOME = 'home',
+  WORK = 'work',
+  BILLING = 'billing',
+  SHIPPING = 'shipping',
+  OTHER = 'other',
+}
+
+export enum Size {
+  SMALL = 'small',
+  XSMALL = 'x small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
+  XLARGE = 'x large',
+}
+
+export enum QueuesNames {
+  ORDER_PROCESSING = 'order_processing',
+}
+
 export enum Permission {
   UPDATE_USER = 'update_user',
   DELETE_USER = 'delete_user',
@@ -83,46 +125,6 @@ export enum Permission {
   TRACK_ORDER_STATUS = 'track_order_status',
   ORDER_STATICTISC = 'order_statistics',
 }
-
-export enum OrderStatus {
-  PENDING = 'pending',
-  SHIPPED = 'shipped',
-  COMPLETED = 'completed',
-  CANCELED = 'canceled',
-}
-
-export enum PaymentStatus {
-  UNPAID = 'unpaid',
-  PAID = 'paid',
-}
-
-export enum PaymentMethod {
-  STRIPE = 'stripe',
-  CASH_ON_DELIVERY = 'cash_on_delivery',
-}
-
-export enum TypeCoupon {
-  FIXED = 'fixed',
-  PERCENTAGE = 'percentage',
-}
-
-export enum AddressType {
-  HOME = 'home',
-  WORK = 'work',
-  BILLING = 'billing',
-  SHIPPING = 'shipping',
-  OTHER = 'other',
-}
-
-export enum Size {
-  SMALL = 'small',
-  XSMALL = 'x small',
-  MEDIUM = 'medium',
-  LARGE = 'large',
-  XLARGE = 'x large',
-}
-
-
 
 registerEnumType(Permission, {
   name: 'Permission',

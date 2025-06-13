@@ -64,6 +64,7 @@ export class OrderResolver {
   ): Promise<CreateOrderResponse> {
     return this.orderService.createOrderFromProducts(
       user.id,
+      user.email,
       addressId,
       paymentMethod,
       detailsId,

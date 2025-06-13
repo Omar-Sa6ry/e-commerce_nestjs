@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { TrackOrderStatusResponse } from '../dtos/trackOrder.dto';
-import { Product } from 'src/modules/product/entities/product.entity';
 import { OrderItemsResponse } from '../dtos/orderItemResponse.dto';
+import { OrderStatisticsResponse } from '../dtos/orderStatistics.dto';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { PaymentService } from './payment.service';
 import { OrderResponse, OrdersResponse } from '../dtos/orderResponse.dto';
 import { CreateOrderResponse } from '../dtos/createOrderResponse.dto';
@@ -13,13 +15,14 @@ import { I18nService } from 'nestjs-i18n';
 import {
   OrderStatus,
   PaymentMethod,
+  QueuesNames,
 } from '../../../common/constant/enum.constant';
 import {
   DelevaryPrice,
   Limit,
   Page,
 } from '../../../common/constant/messages.constant';
-import { OrderStatisticsResponse } from '../dtos/orderStatistics.dto';
+
 
 @Injectable()
 export class OrderService {
@@ -30,8 +33,7 @@ export class OrderService {
     private readonly orderProcessingService: OrderProcessingService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
+    @InjectQueue('ORDER_QUEUE') private readonly orderQueue: Queue,
   ) {}
 
   async createOrderFromCart(
@@ -46,51 +48,22 @@ export class OrderService {
     await queryRunner.startTransaction();
 
     try {
-      const coupon =
-        (await this.orderProcessingService.validateCoupon(
-          queryRunner,
-          couponId,
-        )) || null;
-
-      const address = await this.orderProcessingService.validateAddress(
-        queryRunner,
-        userId,
-        addressId,
-      );
-
       const user = await this.orderProcessingService.validateUser(
         queryRunner,
         userId,
         true,
       );
 
-      await this.orderProcessingService.validateAddress(
-        queryRunner,
-        userId,
-        addressId,
-      );
       await this.orderProcessingService.validateCart(user);
 
-      const order = await queryRunner.manager.create(Order, {
+       this.orderQueue.add(QueuesNames.ORDER_PROCESSING, {
         userId,
-        addressId: address.id,
-        couponId: coupon?.id ?? null,
+        addressId,
         paymentMethod,
-      });
-      await queryRunner.manager.save(order);
-
-      const totalPrice = await this.orderProcessingService.processCartItems(
-        queryRunner,
-        user.cart.cartItems,
-        order.id,
         delevaryPrice,
-      );
-
-      let totalPriceAfterDiscount = totalPrice;
-      if (coupon) {
-        totalPriceAfterDiscount =
-          this.orderProcessingService.applyCouponDiscount(coupon, totalPrice);
-      }
+        couponId,
+        cartItems: user.cart.cartItems,
+      });
 
       let paymentData = null;
       if (paymentMethod === PaymentMethod.STRIPE) {
@@ -107,22 +80,14 @@ export class OrderService {
         );
       }
 
-      order.totalPrice = parseFloat(totalPrice.toFixed(2));
-      order.totalPriceAfterDiscount = parseFloat(
-        totalPriceAfterDiscount.toFixed(2),
-      );
-
-      await queryRunner.manager.save(order);
-      await this.orderProcessingService.clearUserCart(queryRunner, user);
       await queryRunner.commitTransaction();
 
       return {
         data: {
           url: paymentData,
-          order,
         },
         statusCode: 201,
-        message: await this.i18n.t('order.CREATED'),
+        message: await this.i18n.t('order.SENT'),
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -134,6 +99,7 @@ export class OrderService {
 
   async createOrderFromProducts(
     userId: string,
+    email: string,
     addressId: string,
     paymentMethod: PaymentMethod,
     detailsId: string,
@@ -146,61 +112,22 @@ export class OrderService {
     await queryRunner.startTransaction();
 
     try {
-      const coupon =
-        (await this.orderProcessingService.validateCoupon(
-          queryRunner,
-          couponId,
-        )) || null;
-
       const details = await this.orderProcessingService.validateProductDetails(
         queryRunner,
         detailsId,
       );
 
-      const address = await this.orderProcessingService.validateAddress(
-        queryRunner,
+      this.orderQueue.add(QueuesNames.ORDER_PROCESSING, {
         userId,
         addressId,
-      );
-
-      const user = await this.orderProcessingService.validateUser(
-        queryRunner,
-        userId,
-      );
-
-      await this.orderProcessingService.validateAddress(
-        queryRunner,
-        userId,
-        addressId,
-      );
-
-      const order = await queryRunner.manager.create(Order, {
-        userId,
-        addressId: address.id,
-        couponId: coupon?.id ?? null,
         paymentMethod,
-      });
-      await queryRunner.manager.save(order);
-
-      const totalPrice = await this.orderProcessingService.processSingleProduct(
-        queryRunner,
-        order.id,
-        detailsId,
-        quantity,
         delevaryPrice,
-      );
-
-      let totalPriceAfterDiscount = totalPrice;
-      if (coupon) {
-        totalPriceAfterDiscount =
-          this.orderProcessingService.applyCouponDiscount(coupon, totalPrice);
-      }
-
-      order.totalPrice = parseFloat(totalPrice.toFixed(2));
-      order.totalPriceAfterDiscount = parseFloat(
-        totalPriceAfterDiscount.toFixed(2),
-      );
-      await queryRunner.manager.save(order);
+        couponId,
+        singleProduct: {
+          detailsId,
+          quantity,
+        },
+      });
 
       let paymentData = null;
       if (paymentMethod === PaymentMethod.STRIPE) {
@@ -214,7 +141,7 @@ export class OrderService {
 
         paymentData = await this.paymentService.handleStripePayment(
           userId,
-          user.email,
+          email,
           items,
         );
       }
@@ -224,10 +151,9 @@ export class OrderService {
       return {
         data: {
           url: paymentData,
-          order,
         },
         statusCode: 201,
-        message: await this.i18n.t('order.CREATED'),
+        message: await this.i18n.t('order.SENT'),
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();

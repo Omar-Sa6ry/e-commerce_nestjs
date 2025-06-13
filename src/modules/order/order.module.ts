@@ -6,16 +6,38 @@ import { OrderService } from './services/order.service';
 import { OrderResolver } from './order.resolver';
 import { UserModule } from '../users/users.module';
 import { PaymentService } from './services/payment.service';
-import { OrderProcessingService } from './services/orderProcessing.service';
 import { Product } from '../product/entities/product.entity';
+import { OrderProcessingService } from './services/orderProcessing.service';
+import { BullModule } from '@nestjs/bullmq';
+import { QueuesNames } from 'src/common/constant/enum.constant';
+import { NotificationModule } from 'src/common/queues/notification/notification.module';
+import { EmailModule } from 'src/common/queues/email/email.module';
+import { OrderProcessor } from './queue/order.processor';
+import { SendEmailService } from 'src/common/queues/email/sendemail.service';
+import { NotificationService } from 'src/common/queues/notification/notification.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, Product, OrderItem]), UserModule],
+  imports: [
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || '127.0.0.1',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+      },
+    }),
+    BullModule.registerQueue({ name: 'ORDER_QUEUE' }),
+    TypeOrmModule.forFeature([Order, Product, OrderItem]),
+    EmailModule,
+    NotificationModule,
+    UserModule,
+  ],
   providers: [
     OrderService,
     OrderResolver,
     PaymentService,
     OrderProcessingService,
+    OrderProcessor,
+    SendEmailService,
+    NotificationService,
   ],
 })
 export class OrderModule {}
