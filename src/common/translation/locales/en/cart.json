@@ -6,5 +6,6 @@
   "NOT_FOUND": "Cart {id} not found",
   "QUANTITY_UPDATED": "Quantity updated successfully",
   "DELETED_CART": "Cart {id} deleted successfully",
-  "NOT_ENOUGH_STOCK": "Not enough stock"
+  "NOT_ENOUGH_STOCK": "Not enough stock",
+  "CART_EMPTY": "Cart is empty"
 }

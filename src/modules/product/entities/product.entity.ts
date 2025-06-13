@@ -55,7 +55,9 @@ export class Product extends BaseEntity {
   images: Image[];
 
   @Field(() => [Details])
-  @OneToMany(() => Details, (details) => details.product)
+  @OneToMany(() => Details, (details) => details.product, {
+    onDelete: 'SET NULL',
+  })
   details: Details[];
 
   @Field(() => CartItem)

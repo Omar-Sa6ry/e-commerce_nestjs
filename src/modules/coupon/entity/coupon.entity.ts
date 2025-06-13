@@ -2,7 +2,8 @@ import { Field, Float, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { TypeCoupon } from 'src/common/constant/enum.constant';
 import { Category } from 'src/modules/category/entity/category.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Order } from 'src/modules/order/entities/order.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity()
 @ObjectType()
@@ -37,4 +38,11 @@ export class Coupon extends BaseEntity {
   })
   @JoinColumn({ name: 'categoryId' })
   categories: Category;
+
+  @Field(() => [Order], { nullable: true })
+  @OneToMany(() => Order, (Order) => Order.user, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  orders: Order[];
 }

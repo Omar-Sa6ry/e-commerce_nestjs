@@ -9,6 +9,8 @@ import { Company } from 'src/modules/company/entity/company.entity';
 import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 import { City } from 'src/modules/location/entities/city.entity';
 import { Country } from 'src/modules/location/entities/country.entity';
+import { Order } from 'src/modules/order/entities/order.entity';
+import { OrderItem } from 'src/modules/order/entities/orderItem.entity';
 import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
 import { Image } from 'src/modules/product/entities/image.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
@@ -42,6 +44,8 @@ import { User } from 'src/modules/users/entity/user.entity';
           Cart,
           CartItem,
           Coupon,
+          Order,
+          OrderItem,
         ],
         synchronize: true,
         logging: false,

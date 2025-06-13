@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { User } from '../../users/entity/user.entity';
 import { CartItem } from './cartItem.enitty';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
@@ -15,7 +15,7 @@ export class Cart extends BaseEntity {
   @Field(() => String)
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.cart, {
+  @OneToOne(() => User, (user) => user.cart, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })

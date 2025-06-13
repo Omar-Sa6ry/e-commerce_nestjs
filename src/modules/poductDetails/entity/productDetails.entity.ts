@@ -4,6 +4,7 @@ import { Size } from 'src/common/constant/enum.constant';
 import { Product } from 'src/modules/product/entities/product.entity';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { CartItem } from 'src/modules/cart/entities/cartItem.enitty';
+import { OrderItem } from 'src/modules/order/entities/orderItem.entity';
 
 @ObjectType()
 @Entity('productDetails')
@@ -40,4 +41,8 @@ export class Details extends BaseEntity {
     onDelete: 'SET NULL',
   })
   cartItem: CartItem;
+
+  @Field(() => [OrderItem])
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.productDetails)
+  orderItems: OrderItem[];
 }

@@ -2,6 +2,136 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Coupon {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  categoryId: String!
+  name: String!
+  discount: Float!
+  type: TypeCoupon!
+  isActive: Boolean!
+  expiryDate: DateTime!
+  categories: Category!
+  orders: [Order!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+"""Types of Coupons in the system"""
+enum TypeCoupon {
+  FIXED
+  PERCENTAGE
+}
+
+type Category {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  products: [Product!]
+  coupon: Coupon!
+}
+
+type Company {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  website: String!
+  phone: String!
+  email: String!
+  products: [Product!]!
+  userId: Int
+  employees: [User!]
+}
+
+type Image {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  path: String!
+  productId: String!
+  product: Product!
+}
+
+type Cart {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  totalPrice: Float!
+  userId: String!
+  cartItems: [CartItem!]
+}
+
+type CartItem {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  productId: String!
+  detailsId: String!
+  quantity: Int!
+  totalPrice: Float!
+  product: Product!
+  details: Details!
+  cart: Cart!
+}
+
+type Product {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String!
+  price: Float!
+  categoryId: String!
+  companyId: String!
+  userId: String!
+  category: Category!
+  company: Company
+  user: User!
+  images: [Image!]!
+  details: [Details!]!
+  cartItem: CartItem!
+}
+
+type Details {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  color: String!
+  quantity: Int!
+  size: Size
+  productId: String!
+  product: Product!
+  cartItem: CartItem!
+  orderItems: [OrderItem!]!
+}
+
+"""Detailed Product Size in the system"""
+enum Size {
+  SMALL
+  XSMALL
+  MEDIUM
+  LARGE
+  XLARGE
+}
+
+type OrderItem {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  orderId: String!
+  detailsId: String!
+  quantity: Int!
+  price: Float!
+  order: Order!
+  productDetails: Details!
+}
+
 type Country {
   id: ID!
   createdAt: DateTime!
@@ -9,11 +139,6 @@ type Country {
   name: String!
   cities: [City!]!
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type City {
   id: ID!
@@ -56,117 +181,45 @@ type UserAddress {
   isDefault: Boolean!
   user: User!
   address: Address!
+  orders: [Order!]
 }
 
-type Coupon {
+type Order {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  categoryId: String!
-  name: String!
-  discount: Float!
-  type: TypeCoupon!
-  isActive: Boolean!
-  expiryDate: DateTime!
-  categories: Category!
-}
-
-"""Types of Coupons in the system"""
-enum TypeCoupon {
-  FIXED
-  PERCENTAGE
-}
-
-type Category {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
-  products: [Product!]
-  coupon: Coupon!
-}
-
-type Company {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
-  website: String!
-  phone: String!
-  email: String!
-  products: [Product!]!
-  userId: Int
-  employees: [User!]
-}
-
-type Image {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  path: String!
-  productId: String!
-  product: Product!
-}
-
-type Details {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  color: String!
-  quantity: Int!
-  size: Size
-  productId: String!
-  product: Product!
-  cartItem: CartItem!
-}
-
-"""Detailed Product Size in the system"""
-enum Size {
-  SMALL
-  XSMALL
-  MEDIUM
-  LARGE
-  XLARGE
-}
-
-type Product {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
-  description: String!
-  price: Float!
-  categoryId: String!
-  companyId: String!
   userId: String!
-  category: Category!
-  company: Company
+  totalPrice: Float!
+  totalPriceAfterDiscount: Float!
+  addressId: String!
+  couponId: String
+  orderStatus: OrderStatus!
+  paymentMethod: PaymentMethod!
+  paymentStatus: PaymentStatus!
   user: User!
-  images: [Image!]!
-  details: [Details!]!
-  cartItem: CartItem!
+  address: UserAddress!
+  coupon: Coupon
+  orderItems: [OrderItem!]
 }
 
-type CartItem {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  productId: String!
-  detailsId: String!
-  quantity: Int!
-  totalPrice: Float!
-  product: Product!
-  details: Details!
-  cart: Cart!
+"""Detailed Order Status in the system"""
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  COMPLETED
+  CANCELED
 }
 
-type Cart {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  totalPrice: Float!
-  userId: String!
-  cartItems: [CartItem!]
+"""Detailed Payment Method in the system"""
+enum PaymentMethod {
+  STRIPE
+  CASH_ON_DELIVERY
+}
+
+"""Detailed Payment Status in the system"""
+enum PaymentStatus {
+  UNPAID
+  PAID
 }
 
 type User {
@@ -183,7 +236,8 @@ type User {
   company: Company
   products: [Product!]
   userAddresses: [UserAddress!]
-  cart: [Cart!]
+  cart: Cart
+  orders: [Order!]
 }
 
 type AuthOutPut {
@@ -389,6 +443,73 @@ type CitysResponse {
   pagination: PaginationInfo
 }
 
+type OrderResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Order
+}
+
+type OrdersResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Order!]
+  pagination: PaginationInfo
+}
+
+type CreateOrder {
+  order: Order!
+  url: String
+}
+
+type CreateOrderResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: CreateOrder
+}
+
+type TrackOrderStatus {
+  status: OrderStatus!
+  updatedAt: DateTime!
+}
+
+type TrackOrderStatusResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: TrackOrderStatus
+}
+
+type OrderItemsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [OrderItem!]
+  pagination: PaginationInfo
+}
+
+type OrderStatistics {
+  totalOrders: Int!
+  completedOrders: Int!
+  canceledOrders: Int!
+  totalRevenue: Int!
+}
+
+type OrderStatisticsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: OrderStatistics
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
@@ -415,6 +536,13 @@ type Query {
   findCouponByName(name: String!): CouponResponse!
   findCouponById(id: String!): CouponResponse!
   findAllCoupons(findCouponInput: FindCouponInput, page: Int, limit: Int): CouponsResponse!
+  getAllOrders(page: Int, limit: Int): OrdersResponse!
+  getMyOrders(page: Int, limit: Int): OrdersResponse!
+  getOrderById(id: String!): OrderResponse!
+  searchOrders(userId: String, status: String, startDate: DateTime, endDate: DateTime, page: Float, limit: Float): OrdersResponse!
+  getOrderItems(orderId: String!): OrderItemsResponse!
+  trackOrderStatus(id: String!): TrackOrderStatusResponse!
+  orderStatistics: OrderStatisticsResponse!
 }
 
 input FindProductInput {
@@ -486,6 +614,12 @@ type Mutation {
   updateCouponActive(id: String!): CouponResponse!
   updateCoupon(updateCouponInput: UpdateCouponInput!): CouponResponse!
   deleteCoupon(id: String!): CouponResponse!
+  createOrderFromCart(addressId: String!, paymentMethod: PaymentMethod!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
+  createOrderFromProducts(addressId: String!, paymentMethod: PaymentMethod!, detailsId: String!, quantity: Int!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
+  updateOrderStatus(id: String!, status: OrderStatus!): OrderResponse!
+  cancelOrder(id: String!): OrderResponse!
+  deleteOrder(id: String!): OrderResponse!
+  deleteCompletedOrder: OrderResponse!
 }
 
 input CreateUserDto {

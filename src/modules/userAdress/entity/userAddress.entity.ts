@@ -2,7 +2,8 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Address } from '../../address/entity/address.entity';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { User } from 'src/modules/users/entity/user.entity';
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Order } from 'src/modules/order/entities/order.entity';
 
 @ObjectType()
 @Entity()
@@ -28,4 +29,11 @@ export class UserAddress extends BaseEntity {
   @ManyToOne(() => Address, (address) => address.userAddresses)
   @JoinColumn({ name: 'addressId' })
   address: Address;
+
+  @Field(() => [Order], { nullable: true })
+  @OneToMany(() => Order, (Order) => Order.user, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  orders: Order[];
 }

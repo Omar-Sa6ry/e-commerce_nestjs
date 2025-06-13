@@ -18,6 +18,7 @@ import { CouponModule } from './modules/coupon/coupon.module';
 import { UserAddressModule } from './modules/userAdress/userAddress.module';
 import { AddressModule } from './modules/address/address.module';
 import { LocationModule } from './modules/location/location.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LocationModule } from './modules/location/location.module';
     ProductDetailsModule,
     CartModule,
     CouponModule,
+    OrderModule,
   ],
 
   providers: [AppService, AppResolver],

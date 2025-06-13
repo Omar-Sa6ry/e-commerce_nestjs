@@ -2,6 +2,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Role } from 'src/common/constant/enum.constant';
+import { Order } from 'src/modules/order/entities/order.entity';
 import { UserAddress } from 'src/modules/userAdress/entity/userAddress.entity';
 import { Cart } from 'src/modules/cart/entities/cart.entity';
 import { Company } from 'src/modules/company/entity/company.entity';
@@ -15,6 +16,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 @ObjectType()
@@ -86,12 +88,19 @@ export class User extends BaseEntity {
   @OneToMany(() => UserAddress, (UserAddress) => UserAddress.user)
   userAddresses: UserAddress[];
 
-  @Field(() => [Cart], { nullable: true })
-  @OneToMany(() => Cart, (cart) => cart.user, {
+  @Field(() => Cart, { nullable: true })
+  @OneToOne(() => Cart, (cart) => cart.user, {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  cart: Cart[];
+  cart: Cart;
+
+  @Field(() => [Order], { nullable: true })
+  @OneToMany(() => Order, (Order) => Order.user, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  orders: Order[];
 
   @BeforeInsert()
   @BeforeUpdate()

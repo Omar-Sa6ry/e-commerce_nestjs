@@ -7,5 +7,6 @@
   "NOT_FOUND_BY_NAME": "Coupon {name} not found",
   "NOT_FOUNDS": "Coupons not found",
   "ACTIVE": "Coupon {id} is {active}",
+  "INVALID_COUPON": "Invalid coupon code",
   "PERCENTAGE": "Coupon must be percentage and discount must be between 0 and 90"
 }
