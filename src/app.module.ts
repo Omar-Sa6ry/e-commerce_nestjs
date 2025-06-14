@@ -19,6 +19,7 @@ import { UserAddressModule } from './modules/userAdress/userAddress.module';
 import { AddressModule } from './modules/address/address.module';
 import { LocationModule } from './modules/location/location.module';
 import { OrderModule } from './modules/order/order.module';
+import { ColorModule } from './modules/color/color.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { OrderModule } from './modules/order/order.module';
     CompanyModule,
     CategoryModule,
     ProductModule,
+    ColorModule,
     ProductDetailsModule,
     CartModule,
     CouponModule,

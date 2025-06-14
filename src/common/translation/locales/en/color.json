@@ -1,0 +1,9 @@
+{
+  "EXISTED": "Color {name} already exists",
+  "CREATED": "Color created successfully",
+  "UPDATED": "Color {id} updated successfully",
+  "DELETED": "Color {id} deleted successfully",
+  "NOT_FOUND": "Color {id} not found",
+  "NOT_FOUND_BY_NAME": "Color {name} not found",
+  "NOT_FOUNDS": "Colors not found"
+}

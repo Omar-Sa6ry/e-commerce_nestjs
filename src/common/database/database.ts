@@ -5,6 +5,7 @@ import { Address } from 'src/modules/address/entity/address.entity';
 import { Cart } from 'src/modules/cart/entities/cart.entity';
 import { CartItem } from 'src/modules/cart/entities/cartItem.enitty';
 import { Category } from 'src/modules/category/entity/category.entity';
+import { Color } from 'src/modules/color/entity/color.entity';
 import { Company } from 'src/modules/company/entity/company.entity';
 import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 import { City } from 'src/modules/location/entities/city.entity';
@@ -39,6 +40,7 @@ import { User } from 'src/modules/users/entity/user.entity';
           Company,
           Category,
           Product,
+          Color,
           Image,
           Details,
           Cart,

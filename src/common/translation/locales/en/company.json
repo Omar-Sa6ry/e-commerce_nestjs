@@ -6,7 +6,7 @@
   "NOT_FOUND_BY_NAME": "Company with name {name} not found",
   "NOT_FOUND": "Company with id {id} not found",
   "NOT_FOUNDS": "Companys not found",
-
+  "UPDATE_USER": "User {name} updated to compony successfully",
   "ADD_EMPLOYEE": "Employee added to {name} company successfully",
   "NO_EMPLOYEES": "No employees in {name}} company",
   "NOT_MANAGER": "You are not manager"

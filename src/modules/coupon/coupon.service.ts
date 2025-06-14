@@ -13,6 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { TypeCoupon } from 'src/common/constant/enum.constant';
+import { Category } from '../category/entity/category.entity';
 
 @Injectable()
 export class CouponService {
@@ -36,6 +37,17 @@ export class CouponService {
         throw new BadRequestException(
           await this.i18n.t('coupon.EXISTED', {
             args: { name: createCouponInput.name },
+          }),
+        );
+
+      const existedCategory = await queryRunner.manager.findOne(Category, {
+        where: { id: createCouponInput.categoryId },
+      });
+
+      if (!existedCategory)
+        throw new NotFoundException(
+          await this.i18n.t('category.NOT_FOUND', {
+            args: { id: createCouponInput.categoryId },
           }),
         );
 

@@ -24,6 +24,7 @@ export class CartItem extends BaseEntity {
   @Field(() => Number)
   totalPrice: number;
 
+  @Field()
   @Column()
   cartId: string;
 

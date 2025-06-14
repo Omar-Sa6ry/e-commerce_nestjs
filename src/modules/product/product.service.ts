@@ -97,7 +97,7 @@ export class ProductService {
           }),
         );
 
-      const product = queryRunner.manager.create(
+      const product = await queryRunner.manager.create(
         this.productRepository.target,
         {
           name: createProductInput.name,
@@ -110,11 +110,13 @@ export class ProductService {
       );
       await queryRunner.manager.save(product);
 
-      const details = createProductInput.details.map((detail) =>
-        queryRunner.manager.create(this.pDetailsRepository.target, {
-          ...detail,
-          productId: product.id,
-        }),
+      const details = await Promise.all(
+        createProductInput.details.map((detail) =>
+          queryRunner.manager.create(this.pDetailsRepository.target, {
+            ...detail,
+            productId: product.id,
+          }),
+        ),
       );
       await queryRunner.manager.save(details);
 

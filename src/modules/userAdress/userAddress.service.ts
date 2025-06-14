@@ -29,7 +29,7 @@ export class UserAddressService {
     userId: string,
     createUserAddressInput: CreateUserAddressInput,
   ): Promise<UserAddressResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
+    const queryRunner = await this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -58,11 +58,11 @@ export class UserAddressService {
         address,
       });
 
-      if (createUserAddressInput?.isDefault)
-        await this.setDefaultAddress(userId, address.id);
-
       await queryRunner.manager.save(userAddress);
       await queryRunner.commitTransaction();
+
+      if (createUserAddressInput?.isDefault)
+        await this.setDefaultAddress(userId, userAddress.id);
 
       return {
         statusCode: 201,
@@ -120,7 +120,7 @@ export class UserAddressService {
     userId: string,
     id: string,
   ): Promise<UserAddressResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
+    const queryRunner = await this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

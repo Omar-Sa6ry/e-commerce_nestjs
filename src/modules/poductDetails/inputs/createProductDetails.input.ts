@@ -1,12 +1,11 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsOptional, IsInt, IsHexColor } from 'class-validator';
+import { IsOptional, IsInt } from 'class-validator';
 import { Size } from 'src/common/constant/enum.constant';
 
 @InputType()
 export class CreateDetailInput {
   @Field()
-  @IsHexColor()
-  color: string;
+  colorId: string;
 
   @Field(() => Int)
   @IsInt()
@@ -16,6 +15,6 @@ export class CreateDetailInput {
   @IsOptional()
   size?: Size;
 
-  @Field()
-  productId: string;
+  @Field({ nullable: true })
+  productId?: string;
 }

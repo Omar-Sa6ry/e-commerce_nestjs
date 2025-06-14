@@ -93,6 +93,12 @@ export enum Permission {
   UPDATE_CATEGORY = 'update_category',
   DELETE_CATEGORY = 'delete_category',
 
+  // Color
+  CREATE_COLOR = 'CREATE_COLOR',
+  UPDATE_COLOR = 'UPDATE_COLOR',
+  DELETE_COLOR = 'DELETE_COLOR',
+  VIEW_COLOR = 'VIEW_COLOR',
+
   // Product
   CREATE_PRODUCT = 'create_product',
   UPDATE_PRODUCT = 'update_product',

@@ -30,6 +30,12 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.UPDATE_CATEGORY,
     Permission.DELETE_CATEGORY,
 
+    // Color
+    Permission.CREATE_COLOR,
+    Permission.UPDATE_COLOR,
+    Permission.DELETE_COLOR,
+    Permission.VIEW_COLOR,
+
     // Cart
     Permission.CREATE_CART,
     Permission.UPDATE_CART,
@@ -98,6 +104,9 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     // Order
     Permission.CREATE_ORDER,
     Permission.VIEW_ORDER_ITEM,
+
+    // Color
+    Permission.VIEW_COLOR,
 
     // Cart
     Permission.CREATE_CART,

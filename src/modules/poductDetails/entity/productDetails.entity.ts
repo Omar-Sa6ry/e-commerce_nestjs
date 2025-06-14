@@ -5,13 +5,14 @@ import { Product } from 'src/modules/product/entities/product.entity';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { CartItem } from 'src/modules/cart/entities/cartItem.enitty';
 import { OrderItem } from 'src/modules/order/entities/orderItem.entity';
+import { Color } from 'src/modules/color/entity/color.entity';
 
 @ObjectType()
 @Entity('productDetails')
 export class Details extends BaseEntity {
   @Field()
-  @Column({ length: 7 })
-  color: string;
+  @Column({ length: 26 })
+  colorId: string;
 
   @Field(() => Int)
   @Column({ type: 'int' })
@@ -43,6 +44,15 @@ export class Details extends BaseEntity {
   cartItem: CartItem;
 
   @Field(() => [OrderItem])
-  @OneToMany(() => OrderItem, (orderItem) => orderItem.productDetails)
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.productDetails, {
+    onDelete: 'SET NULL',
+  })
   orderItems: OrderItem[];
+
+  @Field(() => Color)
+  @ManyToOne(() => Color, (Color) => Color.details, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'colorId' })
+  color: Color;
 }

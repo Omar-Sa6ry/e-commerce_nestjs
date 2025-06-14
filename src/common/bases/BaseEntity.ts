@@ -7,7 +7,7 @@ import {
   BaseEntity as TypeOrmBaseEntity,
   AfterInsert,
   AfterUpdate,
-  AfterRemove,
+  BeforeRemove,
 } from 'typeorm';
 
 @ObjectType()
@@ -38,7 +38,7 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
     console.log(`Updated ${this.entityName} with id: ${this.id}`);
   }
 
-  @AfterRemove()
+  @BeforeRemove()
   logRemove() {
     console.log(`Removed ${this.entityName} with id: ${this.id}`);
   }

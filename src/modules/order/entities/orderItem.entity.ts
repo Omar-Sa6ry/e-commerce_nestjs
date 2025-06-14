@@ -29,7 +29,7 @@ export class OrderItem extends BaseEntity {
   order: Order;
 
   @Field(() => Details)
-  @ManyToOne(() => Details)
+  @ManyToOne(() => Details, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'detailsId' })
   productDetails: Details;
 }

@@ -17,6 +17,7 @@ import { Auth } from 'src/common/decerator/auth.decerator';
 import { User } from '../users/entity/user.entity';
 import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
+import { UserResponse } from '../users/dto/UserResponse.dto';
 
 @Resolver(() => Company)
 export class CompanyResolver {
@@ -83,6 +84,15 @@ export class CompanyResolver {
   @Mutation(() => CompanyResponse)
   async deleteCompany(@Args('id') id: string): Promise<CompanyResponse> {
     return this.companyService.delete(id);
+  }
+
+  @Auth([Role.ADMIN], [Permission.EDIT_USER_ROLE])
+  @Mutation(() => UserResponse)
+  async editUserRole(
+    @Args('userId') userId: string,
+    @Args('companyId') companyId: string,
+  ): Promise<UserResponse> {
+    return this.companyService.editUserToCompany(userId, companyId);
   }
 
   @ResolveField(() => [User], { nullable: true })

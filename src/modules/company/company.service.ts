@@ -13,6 +13,7 @@ import { I18nService } from 'nestjs-i18n';
 import { User } from '../users/entity/user.entity';
 import { Role } from 'src/common/constant/enum.constant';
 import { Limit, Page } from 'src/common/constant/messages.constant';
+import { UserResponse } from '../users/dto/UserResponse.dto';
 
 @Injectable()
 export class CompanyService {
@@ -238,6 +239,35 @@ export class CompanyService {
     return {
       data: null,
       message: await this.i18n.t('company.DELETED', { args: { id } }),
+    };
+  }
+
+  async editUserToCompany(
+    userId: string,
+    componyId: string,
+  ): Promise<UserResponse> {
+    const company = await this.companyRepository.findOne({
+      where: { id: componyId },
+    });
+    if (!company)
+      throw new NotFoundException(
+        await this.i18n.t('company.NOT_FOUND', {
+          args: { componyId },
+        }),
+      );
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
+
+    user.role = Role.COMPANY;
+    user.companyId = company.id;
+    await this.userRepository.save(user);
+
+    return {
+      data: user,
+      message: await this.i18n.t('company.UPDATE_USER', {
+        args: { name: user.fullName },
+      }),
     };
   }
 }

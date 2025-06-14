@@ -75,6 +75,7 @@ type CartItem {
   detailsId: String!
   quantity: Int!
   totalPrice: Float!
+  cartId: String!
   product: Product!
   details: Details!
   cart: Cart!
@@ -98,17 +99,26 @@ type Product {
   cartItem: CartItem!
 }
 
+type Color {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  details: [Details!]!
+}
+
 type Details {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  color: String!
+  colorId: String!
   quantity: Int!
   size: Size
   productId: String!
   product: Product!
   cartItem: CartItem!
   orderItems: [OrderItem!]!
+  color: Color!
 }
 
 """Detailed Product Size in the system"""
@@ -509,6 +519,23 @@ type OrderStatisticsResponse {
   data: OrderStatistics
 }
 
+type ColorResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: Color
+}
+
+type ColorsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [Color!]
+  pagination: PaginationInfo
+}
+
 type Query {
   sayHello: String!
   getUserById(id: String!): UserResponse!
@@ -528,6 +555,9 @@ type Query {
   getCategoryByName(name: String!): CategoryResponse!
   getAllProducts(findProductInput: FindProductInput, page: Int, limit: Int): ProductsResponse!
   getProductById(id: String!): ProductResponse!
+  getAllColors(page: Int, limit: Int): ColorsResponse!
+  getColorById(id: String!): ColorResponse!
+  getColorByName(name: String!): ColorResponse!
   getAllProductDetails(findProductDetailsInput: FindProductDetailsInput, page: Int, limit: Int): ProductDetailsResponse!
   getProductDetailById(id: String!): ProductDetailResponse!
   findCartItems(cartId: String!): CartItemsResponse!
@@ -554,7 +584,7 @@ input FindProductInput {
 }
 
 input FindProductDetailsInput {
-  color: String
+  colorId: String
   quantity: Int
   size: Size
   productId: String
@@ -596,12 +626,16 @@ type Mutation {
   deleteEmployee(companyId: String!, userId: String!): CompanyResponse!
   updateCompany(id: String!, updateCompanyDto: UpdateCompanyDto!): CompanyResponse!
   deleteCompany(id: String!): CompanyResponse!
+  editUserRole(userId: String!, companyId: String!): UserResponse!
   createCategory(name: String!): CategoryResponse!
   updateCategory(id: String!, name: String!): CategoryResponse!
   deleteCategory(id: String!): CategoryResponse!
   createProduct(createProductInput: CreateProductInput!): ProductResponse!
   updateProduct(updateProductInput: UpdateProductInput!): ProductResponse!
   deleteProduct(id: String!): ProductResponse!
+  createColor(createColorInput: CreateColorInput!): ColorResponse!
+  updateColor(updateColorInput: UpdateColorInput!): ColorResponse!
+  deleteColor(id: String!): ColorResponse!
   createProductDetail(createDetailInput: CreateDetailInput!): ProductDetailResponse!
   updateProductDetail(updateProductDetailsInput: UpdateProductDetailsInput!): ProductDetailResponse!
   deleteProductDetail(id: String!): ProductDetailResponse!
@@ -718,10 +752,10 @@ input CreateProductInput {
 }
 
 input CreateDetailInput {
-  color: String!
+  colorId: String!
   quantity: Int!
   size: Size
-  productId: String!
+  productId: String
 }
 
 input UpdateProductInput {
@@ -734,8 +768,17 @@ input UpdateProductInput {
   id: String!
 }
 
+input CreateColorInput {
+  name: String!
+}
+
+input UpdateColorInput {
+  id: String!
+  name: String!
+}
+
 input UpdateProductDetailsInput {
-  color: String
+  colorId: String
   quantity: Int
   size: Size
   productId: String

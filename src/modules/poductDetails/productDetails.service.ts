@@ -19,6 +19,7 @@ import {
   ProductDetailResponse,
   ProductDetailsResponse,
 } from './dto/productDetailsResponse.dto';
+import { Color } from '../color/entity/color.entity';
 
 @Injectable()
 export class ProductDetailsService {
@@ -26,6 +27,8 @@ export class ProductDetailsService {
     private readonly i18n: I18nService,
     private dataSource: DataSource,
 
+    @InjectRepository(Color)
+    private readonly colorRepository: Repository<Color>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Details)
@@ -45,7 +48,11 @@ export class ProductDetailsService {
     await queryRunner.startTransaction();
 
     try {
-      await this.validateProductAndUser(createDetailInput.productId, userId);
+      await this.validateProductAndUser(
+        createDetailInput.productId,
+        createDetailInput.colorId,
+        userId,
+      );
 
       const existingDetail = await this.findExistingDetail(createDetailInput);
 
@@ -82,21 +89,28 @@ export class ProductDetailsService {
     }
   }
 
-  private async validateProductAndUser(productId: string, userId: string) {
-    const [product, user] = await Promise.all([
+  private async validateProductAndUser(
+    productId: string,
+    colorId: string,
+    userId: string,
+  ) {
+    const [product, color, user] = await Promise.all([
       this.productRepository.findOne({ where: { id: productId } }),
+      this.colorRepository.findOne({ where: { id: colorId } }),
       this.userRepository.findOne({ where: { id: userId } }),
     ]);
 
-    if (!product) {
+    if (!product)
       throw new NotFoundException(
         await this.i18n.t('product.NOT_FOUND', { args: { id: productId } }),
       );
-    }
 
-    if (!user) {
-      throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
-    }
+    if (!color)
+      throw new NotFoundException(
+        await this.i18n.t('color.NOT_FOUND', { args: { id: productId } }),
+      );
+
+    if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
 
     if (user.companyId !== product.companyId) {
       throw new BadRequestException(
@@ -116,7 +130,7 @@ export class ProductDetailsService {
 
     return allDetails.find(
       (detail) =>
-        detail.color === createDetailInput.color &&
+        detail.colorId === createDetailInput.colorId &&
         detail.size === createDetailInput.size,
     );
   }
@@ -167,8 +181,8 @@ export class ProductDetailsService {
     const where: FindOptionsWhere<Details> = {};
 
     if (findProductDetailsInput) {
-      if (findProductDetailsInput.color)
-        where.color = findProductDetailsInput.color;
+      if (findProductDetailsInput.colorId)
+        where.colorId = findProductDetailsInput.colorId;
 
       if (findProductDetailsInput.size)
         where.size = findProductDetailsInput.size;
@@ -214,15 +228,19 @@ export class ProductDetailsService {
     updateProductInput: UpdateProductDetailsInput,
     userId: string,
   ): Promise<ProductDetailResponse> {
-    await this.validateProductAndUser(updateProductInput.productId, userId);
-
     const detail = await this.findDetail(updateProductInput.id);
+
+    await this.validateProductAndUser(
+      updateProductInput.productId,
+      updateProductInput.colorId ? updateProductInput.colorId : detail.colorId,
+      userId,
+    );
 
     if (updateProductInput.quantity)
       detail.quantity = updateProductInput.quantity;
 
-    if (updateProductInput.color)
-      await this.validateAndUpdateColor(detail, updateProductInput.color);
+    if (updateProductInput.colorId)
+      await this.validateAndUpdateColor(detail, updateProductInput.colorId);
 
     if (updateProductInput.size)
       await this.validateAndUpdateSize(detail, updateProductInput.size);
@@ -238,7 +256,10 @@ export class ProductDetailsService {
   }
 
   private async findDetail(id: string): Promise<Details> {
-    const detail = await this.pDetailsRepository.findOne({ where: { id } });
+    const detail = await this.pDetailsRepository.findOne({
+      where: { id },
+      relations: ['product', 'color'],
+    });
 
     if (!detail) {
       throw new NotFoundException(
@@ -253,10 +274,10 @@ export class ProductDetailsService {
 
   private async validateAndUpdateColor(
     detail: Details,
-    newColor: string,
+    colorId: string,
   ): Promise<void> {
     const existingDetail = await this.pDetailsRepository.findOneBy({
-      color: newColor,
+      colorId: colorId,
       size: detail.size,
       productId: detail.productId,
     });
@@ -264,12 +285,12 @@ export class ProductDetailsService {
     if (existingDetail) {
       throw new BadRequestException(
         await this.i18n.t('productDetails.EXISTEDCOLOR', {
-          args: { color: newColor },
+          args: { color: colorId },
         }),
       );
     }
 
-    detail.color = newColor;
+    detail.colorId = colorId;
   }
 
   private async validateAndUpdateSize(
@@ -353,5 +374,22 @@ export class ProductDetailsService {
     }
 
     return detail.product;
+  }
+
+  async findColorsFromDetailsId(detailId: string): Promise<Color> {
+    const detail = await this.pDetailsRepository.findOne({
+      where: { id: detailId },
+      relations: ['color'],
+    });
+
+    if (!detail) {
+      throw new NotFoundException(
+        await this.i18n.t('productDetails.NOT_FOUND', {
+          args: { id: detailId },
+        }),
+      );
+    }
+
+    return detail.color;
   }
 }
