@@ -1,5 +1,13 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { User } from '../../users/entity/user.entity';
 import { CartItem } from './cartItem.enitty';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
@@ -13,6 +21,7 @@ export class Cart extends BaseEntity {
 
   @Column()
   @Field(() => String)
+  @Index()
   userId: string;
 
   @OneToOne(() => User, (user) => user.cart, {

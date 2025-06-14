@@ -11,6 +11,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToOne,
+  Index,
 } from 'typeorm';
 
 @ObjectType()
@@ -18,6 +19,7 @@ import {
 export class Address extends BaseEntity {
   @Field()
   @Column({ length: 26 })
+  @Index()
   locationId: string;
 
   @Field()

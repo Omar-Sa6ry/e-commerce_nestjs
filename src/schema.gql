@@ -93,6 +93,7 @@ type Company {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  userId: Int!
   name: String!
   website: String!
   phone: String!
@@ -100,7 +101,6 @@ type Company {
   addressId: String
   address: Address
   products: [Product!]!
-  userId: Int
   employees: [User!]
 }
 
@@ -129,7 +129,7 @@ type CartItem {
   productId: String!
   detailsId: String!
   quantity: Int!
-  totalPrice: Float!
+  totalPrice: Int!
   cartId: String!
   product: Product!
   details: Details!

@@ -23,19 +23,19 @@ import {
 @Entity('user')
 export class User extends BaseEntity {
   @Field()
-  @Column()
+  @Column({ length: 100 })
   firstName: string;
 
   @Field()
-  @Column()
+  @Column({ length: 100 })
   lastName: string;
 
   @Field()
-  @Column()
+  @Column({ length: 201 })
   fullName: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ length: 255, nullable: true })
   avatar: string;
 
   @Field()
@@ -43,7 +43,7 @@ export class User extends BaseEntity {
   phone: string;
 
   @Field()
-  @Column({ unique: true })
+  @Column({ length: 100, unique: true })
   @Index()
   email: string;
 
@@ -75,32 +75,38 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   companyId?: string;
 
-  @ManyToOne(() => Company, (company) => company.users, { nullable: true })
+  @ManyToOne(() => Company, (company) => company.users, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   @JoinColumn({ name: 'companyId' })
   @Field(() => Company, { nullable: true })
   company?: Company;
 
   @Field(() => [Product], { nullable: true })
   @OneToMany(() => Product, (product) => product.user)
-  products: Product[];
+  products?: Product[];
 
   @Field(() => [UserAddress], { nullable: true })
-  @OneToMany(() => UserAddress, (UserAddress) => UserAddress.user)
-  userAddresses: UserAddress[];
+  @OneToMany(() => UserAddress, (UserAddress) => UserAddress.user, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  userAddresses?: UserAddress[];
 
   @Field(() => Cart, { nullable: true })
   @OneToOne(() => Cart, (cart) => cart.user, {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  cart: Cart;
+  cart?: Cart;
 
   @Field(() => [Order], { nullable: true })
   @OneToMany(() => Order, (Order) => Order.user, {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  orders: Order[];
+  orders?: Order[];
 
   @BeforeInsert()
   @BeforeUpdate()

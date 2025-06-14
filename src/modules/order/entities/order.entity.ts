@@ -5,25 +5,27 @@ import {
   OneToMany,
   JoinColumn,
   BeforeInsert,
+  Index,
 } from 'typeorm';
 import { OrderItem } from './orderItem.entity';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
+import { User } from 'src/modules/users/entity/user.entity';
+import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
+import { ObjectType, Field, Float } from '@nestjs/graphql';
+import { UserAddress } from 'src/modules/userAdress/entity/userAddress.entity';
 import {
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
 } from 'src/common/constant/enum.constant';
-import { User } from 'src/modules/users/entity/user.entity';
-import { Address } from 'src/modules/address/entity/address.entity';
-import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
-import { ObjectType, Field, Float } from '@nestjs/graphql';
-import { UserAddress } from 'src/modules/userAdress/entity/userAddress.entity';
+
 
 @ObjectType()
 @Entity()
 export class Order extends BaseEntity {
   @Field(() => String)
   @Column({ length: 26 })
+  @Index()
   userId: string;
 
   @Field(() => Float)
@@ -36,6 +38,7 @@ export class Order extends BaseEntity {
 
   @Field(() => String)
   @Column({ length: 26 })
+  @Index()
   addressId: string;
 
   @Field(() => String, { nullable: true })

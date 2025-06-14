@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Product } from './product.entity';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
@@ -11,7 +11,8 @@ export class Image extends BaseEntity {
   path: string;
 
   @Field(() => String)
-  @Column()
+  @Column({ length: 16 })
+  @Index()
   productId: string;
 
   @Field(() => Product)

@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Order } from './order.entity';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
@@ -9,10 +9,12 @@ import { Details } from 'src/modules/poductDetails/entity/productDetails.entity'
 export class OrderItem extends BaseEntity {
   @Field(() => String)
   @Column({ length: 26 })
+  @Index()
   orderId: string;
 
   @Field(() => String)
   @Column({ length: 26 })
+  @Index()
   detailsId: string;
 
   @Field(() => Int)

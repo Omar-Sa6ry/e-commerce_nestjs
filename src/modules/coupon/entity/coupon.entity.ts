@@ -3,7 +3,14 @@ import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { TypeCoupon } from 'src/common/constant/enum.constant';
 import { Category } from 'src/modules/category/entity/category.entity';
 import { Order } from 'src/modules/order/entities/order.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 
 @Entity()
 @ObjectType()
@@ -18,6 +25,7 @@ export class Coupon extends BaseEntity {
 
   @Field(() => Float)
   @Column({ type: 'decimal', precision: 5, scale: 2 })
+  @Index()
   discount: number;
 
   @Field(() => TypeCoupon)
@@ -26,10 +34,12 @@ export class Coupon extends BaseEntity {
 
   @Field(() => Boolean)
   @Column({ default: true })
+  @Index()
   isActive: boolean;
 
   @Field(() => Date)
   @Column({ type: 'timestamp' })
+  @Index()
   expiryDate: Date;
 
   @Field(() => Category)

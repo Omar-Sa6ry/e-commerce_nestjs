@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  Index,
+} from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Size } from 'src/common/constant/enum.constant';
 import { Product } from 'src/modules/product/entities/product.entity';
@@ -12,6 +19,7 @@ import { Color } from 'src/modules/color/entity/color.entity';
 export class Details extends BaseEntity {
   @Field()
   @Column({ length: 26 })
+  @Index()
   colorId: string;
 
   @Field(() => Int)
@@ -27,7 +35,8 @@ export class Details extends BaseEntity {
   size?: Size;
 
   @Field(() => String)
-  @Column()
+  @Column({ length: 26 })
+  @Index()
   productId: string;
 
   @Field(() => Product)

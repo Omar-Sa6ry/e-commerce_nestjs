@@ -3,16 +3,16 @@ import { Cart } from './cart.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
 import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity()
 @ObjectType()
 export class CartItem extends BaseEntity {
   @Field(() => String)
-  @Column()
+  @Column({ length: 26 })
   productId: string;
 
-  @Column()
+  @Column({ length: 26 })
   @Field(() => String)
   detailsId: string;
 
@@ -21,11 +21,12 @@ export class CartItem extends BaseEntity {
   quantity: number;
 
   @Column('numeric', { precision: 10, scale: 2 })
-  @Field(() => Number)
+  @Field(() => Int)
   totalPrice: number;
 
   @Field()
-  @Column()
+  @Column({ length: 26 })
+  @Index()
   cartId: string;
 
   @Field(() => Product)

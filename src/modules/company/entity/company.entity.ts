@@ -3,12 +3,24 @@ import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Address } from 'src/modules/address/entity/address.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
 import { User } from 'src/modules/users/entity/user.entity';
-import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  Index,
+} from 'typeorm';
 
 @Entity()
 @ObjectType()
 export class Company extends BaseEntity {
-  @Column()
+  @Column({ nullable: true })
+  @Field(() => Int)
+  @Index()
+  userId: number;
+
+  @Column({ length: 100 })
   @Field(() => String)
   name: string;
 
@@ -20,12 +32,13 @@ export class Company extends BaseEntity {
   @Field(() => String)
   phone: string;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ length: 100, unique: true})
   @Field(() => String)
   email: string;
 
   @Field(() => String, { nullable: true })
   @Column({ length: 26, nullable: true })
+  @Index()
   addressId?: string;
 
   @Field(() => Address, { nullable: true })
@@ -37,12 +50,11 @@ export class Company extends BaseEntity {
   address: Address;
 
   @Field(() => [Product])
-  @OneToMany(() => Product, (product) => product.company)
+  @OneToMany(() => Product, (product) => product.company, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   products?: Product[];
-
-  @Column({ nullable: true })
-  @Field(() => Int, { nullable: true })
-  userId: number;
 
   @OneToMany(() => User, (user) => user.company, {
     nullable: true,

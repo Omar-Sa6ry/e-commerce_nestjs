@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { ObjectType, Field, Float } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
 import { Category } from 'src/modules/category/entity/category.entity';
@@ -27,10 +34,12 @@ export class Product extends BaseEntity {
 
   @Field(() => String)
   @Column({ length: 26 })
+  @Index()
   categoryId: string;
 
   @Field(() => String)
   @Column({ length: 26 })
+  @Index()
   companyId: string;
 
   @Field(() => String)
@@ -43,7 +52,10 @@ export class Product extends BaseEntity {
   category: Category;
 
   @Field(() => Company, { nullable: true })
-  @ManyToOne(() => Company, (company) => company.products, { nullable: true })
+  @ManyToOne(() => Company, (company) => company.products, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
   @JoinColumn({ name: 'companyId' })
   company: Company;
 
