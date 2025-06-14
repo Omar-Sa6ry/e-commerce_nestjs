@@ -230,6 +230,7 @@ enum PaymentMethod {
 enum PaymentStatus {
   UNPAID
   PAID
+  FAILD
 }
 
 type User {
@@ -538,6 +539,13 @@ type ColorsResponse {
 
 type Query {
   sayHello: String!
+  getAllOrders(page: Int, limit: Int): OrdersResponse!
+  getMyOrders(page: Int, limit: Int): OrdersResponse!
+  getOrderById(id: String!): OrderResponse!
+  searchOrders(userId: String, status: String, startDate: DateTime, endDate: DateTime, page: Float, limit: Float): OrdersResponse!
+  getOrderItems(orderId: String!): OrderItemsResponse!
+  trackOrderStatus(id: String!): TrackOrderStatusResponse!
+  orderStatistics: OrderStatisticsResponse!
   getUserById(id: String!): UserResponse!
   getUserByEmail(email: String!): UserResponse!
   deleteUser: UserResponse!
@@ -565,13 +573,6 @@ type Query {
   findCouponByName(name: String!): CouponResponse!
   findCouponById(id: String!): CouponResponse!
   findAllCoupons(findCouponInput: FindCouponInput, page: Int, limit: Int): CouponsResponse!
-  getAllOrders(page: Int, limit: Int): OrdersResponse!
-  getMyOrders(page: Int, limit: Int): OrdersResponse!
-  getOrderById(id: String!): OrderResponse!
-  searchOrders(userId: String, status: String, startDate: DateTime, endDate: DateTime, page: Float, limit: Float): OrdersResponse!
-  getOrderItems(orderId: String!): OrderItemsResponse!
-  trackOrderStatus(id: String!): TrackOrderStatusResponse!
-  orderStatistics: OrderStatisticsResponse!
 }
 
 input FindProductInput {
@@ -600,17 +601,24 @@ input FindCouponInput {
 }
 
 type Mutation {
+  createOrderFromCart(addressId: String!, paymentMethod: PaymentMethod!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
+  createOrderFromProducts(addressId: String!, paymentMethod: PaymentMethod!, detailsId: String!, quantity: Int!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
+  updateOrderStatus(id: String!, status: OrderStatus!): OrderResponse!
+  updatePaymentStatus(id: String!, status: PaymentStatus!): OrderResponse!
+  cancelOrder(id: String!): OrderResponse!
+  deleteOrder(id: String!): OrderResponse!
+  deleteCompletedOrder: OrderResponse!
+  updateUser(updateUserDto: UpdateUserDto!): UserResponse!
+  UpdateUserRole(email: String!): String!
+  createAddress(createAddressInput: CreateAddressInput!): AddressResponse!
+  updateAddress(addressId: String!, updateAddressInput: UpdateAddressInput!): AddressResponse!
+  deleteAddress(addressId: String!): AddressResponse!
   register(fcmToken: String!, createUserDto: CreateUserDto!, avatar: CreateImagDto): AuthResponse!
   login(fcmToken: String!, loginDto: LoginDto!): AuthResponse!
   forgotPassword: AuthResponse!
   resetPassword(resetPasswordDto: ResetPasswordDto!): UserResponse!
   changePassword(changePasswordDto: ChangePasswordDto!): UserResponse!
   logout: Boolean!
-  updateUser(updateUserDto: UpdateUserDto!): UserResponse!
-  UpdateUserRole(email: String!): String!
-  createAddress(createAddressInput: CreateAddressInput!): AddressResponse!
-  updateAddress(addressId: String!, updateAddressInput: UpdateAddressInput!): AddressResponse!
-  deleteAddress(addressId: String!): AddressResponse!
   createUserAddress(createUserAddressInput: CreateUserAddressInput!): UserAddressResponse!
   updateUserAddress(addressId: String!, updateAddressInput: UpdateAddressInput, updateUserAddressInput: UpdateUserAddressInput): UserAddressResponse!
   deleteUserAddress(userAddressId: String!): UserAddressResponse!
@@ -647,20 +655,14 @@ type Mutation {
   updateCouponActive(id: String!): CouponResponse!
   updateCoupon(updateCouponInput: UpdateCouponInput!): CouponResponse!
   deleteCoupon(id: String!): CouponResponse!
-  createOrderFromCart(addressId: String!, paymentMethod: PaymentMethod!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
-  createOrderFromProducts(addressId: String!, paymentMethod: PaymentMethod!, detailsId: String!, quantity: Int!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
-  updateOrderStatus(id: String!, status: OrderStatus!): OrderResponse!
-  cancelOrder(id: String!): OrderResponse!
-  deleteOrder(id: String!): OrderResponse!
-  deleteCompletedOrder: OrderResponse!
 }
 
-input CreateUserDto {
-  firstName: String!
-  lastName: String!
-  email: String!
-  password: String!
-  phone: String!
+input UpdateUserDto {
+  firstName: String
+  lastName: String
+  avatar: CreateImagDto
+  email: String
+  phone: String
 }
 
 input CreateImagDto {
@@ -671,6 +673,26 @@ input CreateImagDto {
 
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
+
+input CreateAddressInput {
+  locationId: String!
+  street: String!
+  addressType: AddressType
+}
+
+input UpdateAddressInput {
+  locationId: String
+  street: String
+  addressType: AddressType
+}
+
+input CreateUserDto {
+  firstName: String!
+  lastName: String!
+  email: String!
+  password: String!
+  phone: String!
+}
 
 input LoginDto {
   email: String!
@@ -685,26 +707,6 @@ input ResetPasswordDto {
 input ChangePasswordDto {
   password: String!
   newPassword: String!
-}
-
-input UpdateUserDto {
-  firstName: String
-  lastName: String
-  avatar: CreateImagDto
-  email: String
-  phone: String
-}
-
-input CreateAddressInput {
-  locationId: String!
-  street: String!
-  addressType: AddressType
-}
-
-input UpdateAddressInput {
-  locationId: String
-  street: String
-  addressType: AddressType
 }
 
 input CreateUserAddressInput {

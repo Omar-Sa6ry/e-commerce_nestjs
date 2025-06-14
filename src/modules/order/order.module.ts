@@ -5,7 +5,7 @@ import { OrderItem } from './entities/orderItem.entity';
 import { OrderService } from './services/order.service';
 import { OrderResolver } from './order.resolver';
 import { UserModule } from '../users/users.module';
-import { PaymentService } from './services/payment.service';
+import { StripeService } from '../stripe/stripe.service';
 import { Product } from '../product/entities/product.entity';
 import { OrderProcessingService } from './services/orderProcessing.service';
 import { BullModule } from '@nestjs/bullmq';
@@ -33,11 +33,18 @@ import { NotificationService } from 'src/common/queues/notification/notification
   providers: [
     OrderService,
     OrderResolver,
-    PaymentService,
+    StripeService,
     OrderProcessingService,
     OrderProcessor,
     SendEmailService,
     NotificationService,
+  ],
+  exports: [
+    OrderProcessingService,
+    OrderService,
+    OrderProcessor,
+    TypeOrmModule,
+    BullModule,
   ],
 })
 export class OrderModule {}

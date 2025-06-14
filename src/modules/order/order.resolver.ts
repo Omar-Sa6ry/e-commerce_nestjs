@@ -18,6 +18,7 @@ import { OrderItem } from './entities/orderItem.entity';
 import {
   OrderStatus,
   PaymentMethod,
+  PaymentStatus,
   Permission,
   Role,
 } from 'src/common/constant/enum.constant';
@@ -106,6 +107,15 @@ export class OrderResolver {
     @Args('status', { type: () => OrderStatus }) status: OrderStatus,
   ): Promise<OrderResponse> {
     return this.orderService.updateOrderStatus(id, status);
+  }
+
+  @Mutation(() => OrderResponse)
+  @Auth([Role.ADMIN], [Permission.UPDATE_ORDER])
+  updatePaymentStatus(
+    @Args('id') id: string,
+    @Args('status', { type: () => PaymentStatus }) status: PaymentStatus,
+  ): Promise<OrderResponse> {
+    return this.orderService.updatePaymentStatus(id, status);
   }
 
   @Mutation(() => OrderResponse)

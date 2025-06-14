@@ -11,5 +11,7 @@ export interface OrderProcessingJobData {
   singleProduct?: {
     detailsId: string;
     quantity: number;
+    productPrice: number;
+    productName: string;
   };
 }

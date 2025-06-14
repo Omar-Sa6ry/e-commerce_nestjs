@@ -190,6 +190,4 @@ export class OrderProcessingService {
     user.cart.totalPrice = 0;
     await queryRunner.manager.save(user.cart);
   }
-
-
 }

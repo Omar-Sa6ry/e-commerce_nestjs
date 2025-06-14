@@ -7,7 +7,9 @@
   "STRIPE_ERROR": "Stripe error",
   "CANCELED": "Order {id} canceled successfully",
   "NO_ITEMS": "Order has no items",
+  "COMPLETED_ORDER_PAY": "Order {id} completed successfully",
   "PRODUCT_NOT_FOUND": "Product not found",
+  "SEND_URL": "Send url to complete order successfully",
   "UPDATED_STATUS": "Order {id} status updated successfully to {status}",
   "SENT": "we will sent you an email and notification to check your order"
 }

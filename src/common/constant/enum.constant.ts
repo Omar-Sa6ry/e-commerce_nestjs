@@ -18,6 +18,7 @@ export enum OrderStatus {
 export enum PaymentStatus {
   UNPAID = 'unpaid',
   PAID = 'paid',
+  FAILD = 'faild',
 }
 
 export enum PaymentMethod {

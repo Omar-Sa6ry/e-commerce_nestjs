@@ -20,6 +20,7 @@ import { AddressModule } from './modules/address/address.module';
 import { LocationModule } from './modules/location/location.module';
 import { OrderModule } from './modules/order/order.module';
 import { ColorModule } from './modules/color/color.module';
+import { StripeModule } from './modules/stripe/stripe.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ColorModule } from './modules/color/color.module';
     ThrottlerModule,
     TranslationModule,
     PubSubModule,
+    StripeModule,
 
     AuthModule,
     UserModule,

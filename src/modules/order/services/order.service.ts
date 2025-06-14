@@ -6,7 +6,6 @@ import { OrderItemsResponse } from '../dtos/orderItemResponse.dto';
 import { OrderStatisticsResponse } from '../dtos/orderStatistics.dto';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
-import { PaymentService } from './payment.service';
 import { OrderResponse, OrdersResponse } from '../dtos/orderResponse.dto';
 import { CreateOrderResponse } from '../dtos/createOrderResponse.dto';
 import { OrderProcessingService } from './orderProcessing.service';
@@ -15,6 +14,7 @@ import { I18nService } from 'nestjs-i18n';
 import {
   OrderStatus,
   PaymentMethod,
+  PaymentStatus,
   QueuesNames,
 } from '../../../common/constant/enum.constant';
 import {
@@ -28,7 +28,6 @@ export class OrderService {
   constructor(
     private readonly i18n: I18nService,
     private readonly dataSource: DataSource,
-    private readonly paymentService: PaymentService,
     private readonly orderProcessingService: OrderProcessingService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
@@ -64,27 +63,10 @@ export class OrderService {
         cartItems: user.cart.cartItems,
       });
 
-      let paymentData = null;
-      if (paymentMethod === PaymentMethod.STRIPE) {
-        const items = user.cart.cartItems.map((item) => ({
-          name: item.product.name,
-          price: item.product.price,
-          quantity: item.quantity,
-        }));
-
-        paymentData = await this.paymentService.handleStripePayment(
-          userId,
-          user.email,
-          items,
-        );
-      }
-
       await queryRunner.commitTransaction();
 
       return {
-        data: {
-          url: paymentData,
-        },
+        data: null,
         statusCode: 201,
         message: await this.i18n.t('order.SENT'),
       };
@@ -125,32 +107,15 @@ export class OrderService {
         singleProduct: {
           detailsId,
           quantity,
+          productName: details.product.name,
+          productPrice: details.product.price,
         },
       });
-
-      let paymentData = null;
-      if (paymentMethod === PaymentMethod.STRIPE) {
-        const items = [
-          {
-            name: details.product.name,
-            price: details.product.price,
-            quantity,
-          },
-        ];
-
-        paymentData = await this.paymentService.handleStripePayment(
-          userId,
-          email,
-          items,
-        );
-      }
 
       await queryRunner.commitTransaction();
 
       return {
-        data: {
-          url: paymentData,
-        },
+        data: null,
         statusCode: 201,
         message: await this.i18n.t('order.SENT'),
       };
@@ -241,6 +206,26 @@ export class OrderService {
     }
 
     order.orderStatus = status;
+    await this.orderRepository.save(order);
+
+    return {
+      data: order,
+      message: await this.i18n.t('order.UPDATED_STATUS', {
+        args: { id, status },
+      }),
+    };
+  }
+
+  async updatePaymentStatus(
+    id: string,
+    status: PaymentStatus,
+  ): Promise<OrderResponse> {
+    const order = await this.orderRepository.findOne({ where: { id } });
+    if (!order) {
+      throw new NotFoundException(await this.i18n.t('order.NOT_FOUND'));
+    }
+
+    order.paymentStatus = status;
     await this.orderRepository.save(order);
 
     return {
