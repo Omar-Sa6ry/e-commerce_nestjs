@@ -36,6 +36,59 @@ type Category {
   coupon: Coupon!
 }
 
+type UserAddress {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  userId: String!
+  addressId: String!
+  isDefault: Boolean!
+  user: User!
+  address: Address!
+  orders: [Order!]
+}
+
+type Country {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  cities: [City!]!
+}
+
+type City {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  state: String!
+  countryId: String!
+  postalCode: String
+  country: Country!
+  addresses: [Address!]
+}
+
+type Address {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  locationId: String!
+  street: String!
+  addressType: AddressType!
+  city: City!
+  userAddresses: [UserAddress!]
+  company: Company
+}
+
+"""Detailed Address Type in the system"""
+enum AddressType {
+  HOME
+  WORK
+  BILLING
+  SHIPPING
+  OTHER
+}
+
 type Company {
   id: ID!
   createdAt: DateTime!
@@ -44,6 +97,8 @@ type Company {
   website: String!
   phone: String!
   email: String!
+  addressId: String
+  address: Address
   products: [Product!]!
   userId: Int
   employees: [User!]
@@ -140,58 +195,6 @@ type OrderItem {
   price: Float!
   order: Order!
   productDetails: Details!
-}
-
-type Country {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
-  cities: [City!]!
-}
-
-type City {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
-  state: String!
-  countryId: String!
-  postalCode: String
-  country: Country!
-  addresses: [Address!]
-}
-
-type Address {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  locationId: String!
-  street: String!
-  addressType: AddressType!
-  city: City!
-  userAddresses: [UserAddress!]
-}
-
-"""Detailed Address Type in the system"""
-enum AddressType {
-  HOME
-  WORK
-  BILLING
-  SHIPPING
-  OTHER
-}
-
-type UserAddress {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  userId: String!
-  addressId: String!
-  isDefault: Boolean!
-  user: User!
-  address: Address!
-  orders: [Order!]
 }
 
 type Order {
@@ -629,7 +632,7 @@ type Mutation {
   createCountry(createCountryInput: CreateCountryInput!): CountryResponse!
   updateCountry(id: String!, name: String!): CountryResponse!
   deleteCountry(id: String!): CountryResponse!
-  createCompany(createCompanyDto: CreateCompanyDto!, userId: String!): CompanyResponse!
+  createCompany(userId: String!, createCompanyDto: CreateCompanyDto!, createAddressInput: CreateAddressInput): CompanyResponse!
   addEmployee(companyId: String!, userId: String!): CompanyResponse!
   deleteEmployee(companyId: String!, userId: String!): CompanyResponse!
   updateCompany(id: String!, updateCompanyDto: UpdateCompanyDto!): CompanyResponse!

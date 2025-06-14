@@ -1,8 +1,9 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
+import { Address } from 'src/modules/address/entity/address.entity';
 import { Product } from 'src/modules/product/entities/product.entity';
 import { User } from 'src/modules/users/entity/user.entity';
-import { Column, Entity, JoinColumn, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 
 @Entity()
 @ObjectType()
@@ -23,9 +24,17 @@ export class Company extends BaseEntity {
   @Field(() => String)
   email: string;
 
-  // @Field(() => Int)
-  // @OneToOne(() => Address, address => address.id, { onDelete: 'SET NULL' })
-  // addressId: number
+  @Field(() => String, { nullable: true })
+  @Column({ length: 26, nullable: true })
+  addressId?: string;
+
+  @Field(() => Address, { nullable: true })
+  @OneToOne(() => Address, (address) => address.company, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'addressId' })
+  address: Address;
 
   @Field(() => [Product])
   @OneToMany(() => Product, (product) => product.company)

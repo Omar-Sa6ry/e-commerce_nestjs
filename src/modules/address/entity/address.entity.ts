@@ -1,9 +1,17 @@
 import { UserAddress } from '../../userAdress/entity/userAddress.entity';
+import { City } from 'src/modules/location/entities/city.entity';
+import { Company } from 'src/modules/company/entity/company.entity';
 import { AddressType } from 'src/common/constant/enum.constant';
 import { ObjectType, Field } from '@nestjs/graphql';
 import { BaseEntity } from 'src/common/bases/BaseEntity';
-import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from 'typeorm';
-import { City } from 'src/modules/location/entities/city.entity';
+import {
+  Entity,
+  Column,
+  OneToMany,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+} from 'typeorm';
 
 @ObjectType()
 @Entity()
@@ -35,4 +43,11 @@ export class Address extends BaseEntity {
     nullable: true,
   })
   userAddresses?: UserAddress[];
+
+  @Field(() => Company, { nullable: true })
+  @OneToOne(() => Company, (Company) => Company.address, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  company: Company;
 }

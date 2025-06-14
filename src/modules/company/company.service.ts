@@ -14,29 +14,36 @@ import { User } from '../users/entity/user.entity';
 import { Role } from 'src/common/constant/enum.constant';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { UserResponse } from '../users/dto/UserResponse.dto';
+import { AddressService } from '../address/address.service';
+import { CreateAddressInput } from '../address/inputs/createAddress.dto';
+import { Address } from '../address/entity/address.entity';
 
 @Injectable()
 export class CompanyService {
   constructor(
     private readonly i18n: I18nService,
-    // private addressService: AddressService,
+    private addressService: AddressService,
     @InjectRepository(Company) private companyRepository: Repository<Company>,
+    @InjectRepository(Address) private addressRepository: Repository<Address>,
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
   async create(
     createCompanyDto: CreateCompanyDto,
     userId: string,
-    // createAddressInput: CreateAddressInput,
+    createAddressInput?: CreateAddressInput,
   ): Promise<CompanyResponse> {
     const queryRunner =
       this.companyRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const user = await queryRunner.manager.findOne(User, {
+        where: { id: userId },
+      });
       if (!user)
-        throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
+        throw new NotFoundException(await this.i18n.t('user.NOT_FOUND', {args: { id: userId }}));
 
       const exitedCompany = await queryRunner.manager.findOne(Company, {
         where: { email: createCompanyDto.email },
@@ -60,24 +67,27 @@ export class CompanyService {
           }),
         );
 
-      // // Create the address within the transaction
-      // const address = await this.addressService.create(createAddressInput);
+      const company = this.companyRepository.create(createCompanyDto);
 
-      const company = await this.companyRepository.create({
-        ...createCompanyDto,
-        // addressId: address.id,
-      });
+      if (createAddressInput) {
+        const address =
+          await this.addressService.createAddress(createAddressInput);
 
-      user.companyId = company.id;
+        company.addressId = address.data.id;
+        company.address = address.data;
+      }
+
+      const savedCompany = await queryRunner.manager.save(Company, company);
+
+      user.companyId = savedCompany.id;
       user.role = Role.COMPANY;
-      this.userRepository.save(user);
+      await queryRunner.manager.save(User, user);
 
-      await queryRunner.manager.save(company);
       await queryRunner.commitTransaction();
 
       return {
         statusCode: 201,
-        data: company,
+        data: savedCompany,
         message: await this.i18n.t('company.CREATED', {
           args: { name: createCompanyDto.name },
         }),
@@ -269,5 +279,10 @@ export class CompanyService {
         args: { name: user.fullName },
       }),
     };
+  }
+
+  async getAddress(id: string): Promise<Address | null> {
+    const address = await this.addressRepository.findOne({ where: { id } });
+    return address || null;
   }
 }
