@@ -24,6 +24,8 @@ import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { ProductPubsupResponse } from './dtos/product.subscription';
 import { Details } from '../poductDetails/entity/productDetails.entity';
+import { PUB_SUB } from 'src/common/pubsup/pubSub.module';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -31,7 +33,7 @@ export class ProductResolver {
     private readonly redisService: RedisService,
     private readonly productService: ProductService,
     private readonly productDetailsLoader: ProductDetailsLoader,
-    @Inject('PUB_SUB') private readonly pubSub: PubSub<any>,
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
 
   @Mutation(() => ProductResponse)
@@ -85,7 +87,7 @@ export class ProductResolver {
     name: 'productCreated',
   })
   productCreated() {
-    return this.pubSub.asyncIterableIterator('productCreated');
+    return this.pubSub.asyncIterator('productCreated');
   }
 
   @Subscription(() => String, {
@@ -98,6 +100,7 @@ export class ProductResolver {
 
   @ResolveField(() => [Details])
   async details(@Parent() product: Product): Promise<Details[]> {
+    console.log('result');
     return this.productDetailsLoader.load(product.id);
   }
 }

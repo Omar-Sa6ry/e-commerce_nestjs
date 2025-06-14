@@ -7,10 +7,12 @@ import { User } from 'src/modules/users/entity/user.entity';
 import { Image } from './image.entity';
 import { Details } from 'src/modules/poductDetails/entity/productDetails.entity';
 import { CartItem } from 'src/modules/cart/entities/cartItem.enitty';
+import { Expose } from 'class-transformer';
 
 @ObjectType()
 @Entity('product')
 export class Product extends BaseEntity {
+  @Expose()
   @Field()
   @Column({ length: 100, unique: true })
   name: string;

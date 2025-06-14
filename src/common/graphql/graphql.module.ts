@@ -25,6 +25,7 @@ import { HttpExceptionFilter } from '../filter/errorHandling.filter';
         },
         'graphql-ws': true,
       },
+
       formatError: (error) => {
         return {
           message: error.message,

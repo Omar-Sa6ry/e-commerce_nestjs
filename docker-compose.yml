@@ -31,7 +31,7 @@ services:
       - app_network
 
   redis:
-    image: redis:7
+    image: redis:alpine
     container_name: e-commerce-redis
     restart: always
     ports:

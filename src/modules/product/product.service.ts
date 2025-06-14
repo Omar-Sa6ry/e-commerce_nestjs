@@ -27,6 +27,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PUB_SUB } from 'src/common/pubsup/pubSub.module';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 
 @Injectable()
 export class ProductService {
@@ -35,7 +37,7 @@ export class ProductService {
     private dataSource: DataSource,
     private readonly uploadService: UploadService,
     private readonly redisService: RedisService,
-    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
 
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -43,8 +45,6 @@ export class ProductService {
     private readonly pDetailsRepository: Repository<Details>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(Company)
-    private readonly companyRepository: Repository<Company>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Image)
@@ -55,7 +55,8 @@ export class ProductService {
     createProductInput: CreateProductInput,
     userId: string,
   ): Promise<ProductResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
+       console.log('result');
+   const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -146,9 +147,16 @@ export class ProductService {
       };
 
       this.redisService.set(`product:${product.id}`, product);
+    
+      console.log('result');
       await this.pubSub.publish('productCreated', {
-        productCreated: result,
+        productCreated: {
+          statusCode: 201,
+          message: await this.i18n.t('product.CREATED'),
+          data: product,
+        },
       });
+      console.log('result');
 
       return result;
     } catch (err) {
