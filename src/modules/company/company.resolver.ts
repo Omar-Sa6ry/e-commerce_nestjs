@@ -105,7 +105,7 @@ export class CompanyResolver {
   }
 
   @ResolveField(() => [User], { nullable: true })
-  @Auth([Role.ADMIN, Role.MANAGER], [Permission.VIEW_COMPANY])
+  @Auth([Role.ADMIN], [Permission.VIEW_COMPANY])
   async employees(@Parent() company: Company): Promise<User[] | null> {
     return this.companyService.getAllEmployees(company.id);
   }

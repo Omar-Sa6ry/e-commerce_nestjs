@@ -73,7 +73,7 @@ export class AuthResolver {
   }
 
   @Mutation(() => Boolean)
-  @Auth([Role.ADMIN, Role.MANAGER], [Permission.LOGOUT])
+  @Auth([Role.ADMIN], [Permission.LOGOUT])
   async logout(@Context('req') req): Promise<boolean> {
     const token = req.headers.authorization?.replace('Bearer ', '');
 

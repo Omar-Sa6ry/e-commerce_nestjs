@@ -9,7 +9,6 @@ import { RedisModule } from 'src/common/redis/redis.module';
 import { UploadModule } from '../../common/upload/upload.module';
 import { EmailModule } from 'src/common/queues/email/email.module';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
-import { WebSocketModule } from 'src/common/websocket/websocket.module';
 import { JwtModule } from './jwt/jwt.module';
 import { UserAddressModule } from '../userAdress/userAddress.module';
 
@@ -20,7 +19,6 @@ import { UserAddressModule } from '../userAdress/userAddress.module';
     RedisModule,
     UploadModule,
     EmailModule,
-    WebSocketModule,
     JwtModule,
     UserAddressModule,
   ],

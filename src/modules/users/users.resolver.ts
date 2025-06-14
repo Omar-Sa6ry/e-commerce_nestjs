@@ -17,9 +17,7 @@ export class UserResolver {
   ) {}
 
   @Query((returns) => UserResponse)
-  async getUserById(
-    @Args('id') id: string,
-  ): Promise<UserResponse> {
+  async getUserById(@Args('id') id: string): Promise<UserResponse> {
     const userCacheKey = `user:${id}`;
     const cachedUser = await this.redisService.get(userCacheKey);
     if (cachedUser instanceof User) {
@@ -41,7 +39,7 @@ export class UserResolver {
   }
 
   @Mutation((returns) => UserResponse)
-  @Auth([Role.ADMIN, Role.USER, Role.MANAGER], [Permission.UPDATE_USER])
+  @Auth([Role.ADMIN, Role.USER], [Permission.UPDATE_USER])
   async updateUser(
     @Args('updateUserDto') updateUserDto: UpdateUserDto,
     @CurrentUser() user: CurrentUserDto,
@@ -50,13 +48,13 @@ export class UserResolver {
   }
 
   @Query((returns) => UserResponse)
-  @Auth([Role.ADMIN, Role.MANAGER], [Permission.DELETE_USER])
+  @Auth([Role.ADMIN], [Permission.DELETE_USER])
   async deleteUser(@CurrentUser() user: CurrentUserDto): Promise<UserResponse> {
     return await this.usersService.deleteUser(user.id);
   }
 
   @Mutation((returns) => String)
-  @Auth([Role.ADMIN, Role.MANAGER], [Permission.EDIT_USER_ROLE])
+  @Auth([Role.ADMIN], [Permission.EDIT_USER_ROLE])
   async UpdateUserRole(@Args('email') email: string): Promise<UserResponse> {
     return await this.usersService.editUserRole(email);
   }

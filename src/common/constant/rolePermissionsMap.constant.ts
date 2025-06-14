@@ -57,27 +57,6 @@ export const rolePermissionsMap: Record<Role, Permission[]> = {
     Permission.ORDER_STATICTISC,
   ],
 
-  [Role.MANAGER]: [
-    // User
-    Permission.UPDATE_USER,
-    Permission.DELETE_USER,
-    Permission.EDIT_USER_ROLE,
-    Permission.RESET_PASSWORD,
-    Permission.CHANGE_PASSWORD,
-    Permission.LOGOUT,
-
-    // Company
-    Permission.CREATE_COMPANY,
-    Permission.UPDATE_COMPANY,
-    Permission.VIEW_COMPANY,
-
-    // Cart
-    Permission.CREATE_CART,
-    Permission.UPDATE_CART,
-    Permission.DELETE_CART,
-    Permission.VIEW_CART,
-  ],
-
   [Role.USER]: [
     // User
     Permission.UPDATE_USER,

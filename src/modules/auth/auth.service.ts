@@ -21,7 +21,6 @@ import { RedisService } from 'src/common/redis/redis.service';
 import { CreateUserDto } from './inputs/CreateUserData.dto';
 import { UploadService } from '../../common/upload/upload.service';
 import { I18nService } from 'nestjs-i18n';
-import { WebSocketMessageGateway } from 'src/common/websocket/websocket.gateway';
 import { UserInputResponse } from '../users/inputs/User.input';
 import { AuthResponse } from './dto/AuthRes.dto';
 import { CreateAddressInput } from '../address/inputs/createAddress.dto';
@@ -38,7 +37,6 @@ export class AuthService {
     private readonly redisService: RedisService,
     private readonly uploadService: UploadService,
     private readonly sendEmailService: SendEmailService,
-    private readonly websocketGateway: WebSocketMessageGateway,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
@@ -91,8 +89,6 @@ export class AuthService {
       await this.redisService.set(`user:${user.id}`, user);
       await this.redisService.set(`auth:${user.id}`, result);
 
-      this.websocketGateway.broadcast('userCreated', { userId: user.id, user });
-
       this.sendEmailService.sendEmail(
         email,
         'Register in App',
@@ -141,7 +137,7 @@ export class AuthService {
     if (!(user instanceof User))
       throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
 
-    if ([Role.MANAGER, Role.ADMIN].includes(user.role))
+    if ([Role.ADMIN].includes(user.role))
       throw new BadRequestException(await this.i18n.t('user.NOT_ADMIN'));
 
     const token = randomBytes(32).toString('hex');
