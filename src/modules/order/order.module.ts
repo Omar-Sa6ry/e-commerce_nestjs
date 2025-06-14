@@ -24,7 +24,7 @@ import { NotificationService } from 'src/common/queues/notification/notification
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
       },
     }),
-    BullModule.registerQueue({ name: 'ORDER_QUEUE' }),
+    BullModule.registerQueue({ name: QueuesNames.ORDER_PROCESSING }),
     TypeOrmModule.forFeature([Order, Product, OrderItem]),
     EmailModule,
     NotificationModule,

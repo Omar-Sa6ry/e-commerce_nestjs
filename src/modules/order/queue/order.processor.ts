@@ -9,6 +9,7 @@ import { QueuesNames } from 'src/common/constant/enum.constant';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
 import { NotificationService } from 'src/common/queues/notification/notification.service';
 import { BadRequestException } from '@nestjs/common';
+import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 
 @Processor(QueuesNames.ORDER_PROCESSING)
 export class OrderProcessor extends WorkerHost {
@@ -38,10 +39,13 @@ export class OrderProcessor extends WorkerHost {
     await queryRunner.startTransaction();
 
     try {
-      const coupon = await this.orderProcessingService.validateCoupon(
-        queryRunner,
-        couponId,
-      );
+      let coupon: Coupon | null = null;
+      if (couponId) {
+        coupon = await this.orderProcessingService.validateCoupon(
+          queryRunner,
+          couponId,
+        );
+      }
 
       const address = await this.orderProcessingService.validateAddress(
         queryRunner,
@@ -100,9 +104,6 @@ export class OrderProcessor extends WorkerHost {
       );
       await queryRunner.manager.save(order);
 
-      if (cartItems)
-        await this.orderProcessingService.clearUserCart(queryRunner, user);
-
       await queryRunner.commitTransaction();
       this.sendEmailService.sendEmail(
         user.email,
@@ -110,12 +111,11 @@ export class OrderProcessor extends WorkerHost {
         await this.i18n.t('order.CREATED'),
       );
 
-      await this.notificationService.sendNotification(
+      this.notificationService.sendNotification(
         user.fcmToken,
         await this.i18n.t('order.CREATE'),
         await this.i18n.t('order.CREATED'),
       );
-
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

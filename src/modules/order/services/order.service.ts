@@ -23,7 +23,6 @@ import {
   Page,
 } from '../../../common/constant/messages.constant';
 
-
 @Injectable()
 export class OrderService {
   constructor(
@@ -33,7 +32,7 @@ export class OrderService {
     private readonly orderProcessingService: OrderProcessingService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    @InjectQueue('ORDER_QUEUE') private readonly orderQueue: Queue,
+    @InjectQueue(QueuesNames.ORDER_PROCESSING) private orderQueue: Queue,
   ) {}
 
   async createOrderFromCart(
@@ -56,7 +55,7 @@ export class OrderService {
 
       await this.orderProcessingService.validateCart(user);
 
-       this.orderQueue.add(QueuesNames.ORDER_PROCESSING, {
+      this.orderQueue.add(QueuesNames.ORDER_PROCESSING, {
         userId,
         addressId,
         paymentMethod,
