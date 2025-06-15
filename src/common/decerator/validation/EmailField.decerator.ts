@@ -26,7 +26,7 @@ export class IsEmailConstraint implements ValidatorConstraintInterface {
 
 export function EmailField(nullable: boolean = false): PropertyDecorator {
   return applyDecorators(
-    Field(),
+    Field(() => String, { nullable }),
     IsOptional(),
     IsEmail(),
     Validate(IsEmailConstraint),

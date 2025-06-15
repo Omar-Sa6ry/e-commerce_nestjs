@@ -17,5 +17,6 @@
   "INVALID_TOKEN_PAYLOAD": "Invalid token payload",
   "OLD_IS_EQUAL_NEW": "old password is equal to new password",
   "ROLE": "you arenot partner",
-  "INSUFFICIENT_PERMISSIONS": "Insuffuent permission"
+  "INSUFFICIENT_PERMISSIONS": "Insuffuent permission",
+  "LOGISANE_PASSWORD": "you enter same password"
 }

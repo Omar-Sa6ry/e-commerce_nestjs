@@ -29,7 +29,7 @@ import { AddressIdInput } from '../address/inputs/addressId.input';
 import { CouponIdInput } from '../coupon/inputs/coupon.input';
 import { DetailsIdInput } from '../poductDetails/inputs/details.input';
 import { OrderIdInput } from './inputs/order.input';
-import { UserIdInput } from '../users/inputs/userId.input';
+import { UserIdInput } from '../users/inputs/user.input';
 
 @Resolver(() => Order)
 export class OrderResolver {

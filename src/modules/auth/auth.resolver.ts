@@ -1,4 +1,11 @@
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Context,
+  Mutation,
+  Parent,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { User } from '../users/entity/user.entity';
 import { AuthResponse } from './dto/AuthRes.dto';
@@ -16,35 +23,36 @@ import { I18nService } from 'nestjs-i18n';
 import { UserResponse } from '../users/dto/UserResponse.dto';
 import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 import { CreateUserAddressInput } from '../userAdress/inputs/createUserAddress.input';
+import { Cart } from '../cart/entities/cart.entity';
+import { CartService } from '../cart/cart.service';
 
 @Resolver(() => User)
 export class AuthResolver {
   constructor(
     private readonly i18n: I18nService,
     private readonly redisService: RedisService,
-    private authService: AuthService,
+    private readonly authService: AuthService,
+    private readonly cartService: CartService,
   ) {}
 
   @Mutation(() => AuthResponse)
   async register(
     @Args('createUserDto') createUserDto: CreateUserDto,
-    @Args('userAddress', { nullable: true })
-    userAddress?: CreateUserAddressInput,
-    @Args('address', { nullable: true }) address?: CreateAddressInput,
+    // @Args('userAddress', { nullable: true })
+    // userAddress?: CreateUserAddressInput,
+    // @Args('address', { nullable: true }) address?: CreateAddressInput,
     @Args('avatar', { nullable: true }) avatar?: CreateImagDto,
   ): Promise<AuthResponse> {
     return this.authService.register(
       createUserDto,
       avatar,
-      address,
-      userAddress,
+      // address,
+      // userAddress,
     );
   }
 
   @Mutation(() => AuthResponse)
-  async login(
-    @Args('loginDto') loginDto: LoginDto,
-  ): Promise<AuthResponse> {
+  async login(@Args('loginDto') loginDto: LoginDto): Promise<AuthResponse> {
     const userCacheKey = `auth:${loginDto.email}`;
     const cachedUser = await this.redisService.get(userCacheKey);
 
@@ -88,5 +96,10 @@ export class AuthResolver {
     if (!token) throw new Error(await this.i18n.t('user.NO_TOKEN'));
 
     return true;
+  }
+
+  @ResolveField(() => Cart || [])
+  async userAddresses(@Parent() user: User): Promise<Cart | []> {
+    return this.cartService.getUserCartWithItemsForUser(user.id);
   }
 }

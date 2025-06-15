@@ -11,6 +11,7 @@ import { EmailModule } from 'src/common/queues/email/email.module';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
 import { JwtModule } from './jwt/jwt.module';
 import { UserAddressModule } from '../userAdress/userAddress.module';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserAddressModule } from '../userAdress/userAddress.module';
     UploadModule,
     EmailModule,
     JwtModule,
+    CartModule,
     UserAddressModule,
   ],
   providers: [AuthResolver, AuthService, SendEmailService, GenerateToken],

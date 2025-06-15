@@ -11,7 +11,7 @@ export function ValidatePhoneNumber() {
 
 export function PhoneField(nullable: boolean = false): PropertyDecorator {
   return applyDecorators(
-    Field(),
+    Field(() => String, { nullable }),
     IsOptional(),
     Transform(({ value }) => value.replace(/[^\d+]/g, '')),
     Matches(

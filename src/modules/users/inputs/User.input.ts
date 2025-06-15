@@ -1,9 +1,15 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
-import { BaseResponse } from 'src/common/bases/BaseResponse';
-import { User } from 'src/modules/users/entity/user.entity';
+import { InputType } from '@nestjs/graphql';
+import { EmailField } from 'src/common/decerator/validation/EmailField.decerator';
+import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
 
 @InputType()
-export class UserInputResponse extends BaseResponse {
-  @Field(() => User, { nullable: true })
-  data: User;
+export class UserIdInput {
+  @IdField('User')
+  UserId: string;
+}
+
+@InputType()
+export class EmailInput {
+  @EmailField()
+  email: string;
 }

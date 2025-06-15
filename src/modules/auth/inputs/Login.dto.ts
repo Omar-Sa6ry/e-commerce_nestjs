@@ -1,7 +1,7 @@
-import { InputType } from '@nestjs/graphql';
+import { Field, InputType } from '@nestjs/graphql';
+import { IsString } from 'class-validator';
 import { EmailField } from 'src/common/decerator/validation/EmailField.decerator';
 import { PasswordField } from 'src/common/decerator/validation/PasswordField.decerator';
-import { TextField } from 'src/common/decerator/validation/TextField.decerator';
 
 @InputType()
 export class LoginDto {
@@ -11,6 +11,7 @@ export class LoginDto {
   @PasswordField()
   password: string;
 
-  @TextField('fcmToken')
+  @Field()
+  @IsString()
   fcmToken: string;
 }

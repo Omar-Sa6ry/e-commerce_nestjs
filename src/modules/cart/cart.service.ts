@@ -298,6 +298,15 @@ export class CartService {
     return cart;
   }
 
+  async getUserCartWithItemsForUser(userId: string): Promise<Cart | []> {
+    const cart = await this.cartRepository.findOne({
+      where: { userId },
+      relations: ['cartItems'],
+    });
+
+    return cart || [];
+  }
+
   private async getOrCreateUserCart(
     queryRunner: QueryRunner,
     userId: string,

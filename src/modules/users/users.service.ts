@@ -11,7 +11,7 @@ import { UpdateUserDto } from './inputs/UpdateUser.dto';
 import { RedisService } from 'src/common/redis/redis.service';
 import { UploadService } from '../../common/upload/upload.service';
 import { Role } from 'src/common/constant/enum.constant';
-import { UserInputResponse } from './inputs/User.input';
+import { UserResponse } from './dto/UserResponse.dto';
 
 @Injectable()
 export class UserService {
@@ -23,21 +23,24 @@ export class UserService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async findById(id: string): Promise<UserInputResponse> {
+  async findById(id: string): Promise<UserResponse> {
+    const cachedUser = await this.redisService.get(`user:${id}`);
+    if (cachedUser instanceof User) return { data: cachedUser };
+
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
 
     const userCacheKey = `user:${user.id}`;
-    await this.redisService.set(userCacheKey, user);
+    this.redisService.set(userCacheKey, user);
 
     return { data: user };
   }
 
-  async findByEmail(email: string): Promise<UserInputResponse> {
+  async findByEmail(email: string): Promise<UserResponse> {
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
 
-    await this.redisService.set(`user:${user.email}`, user);
+    this.redisService.set(`user:${user.id}`, user);
 
     return { data: user };
   }
@@ -45,7 +48,7 @@ export class UserService {
   async update(
     updateUserDto: UpdateUserDto,
     id: string,
-  ): Promise<UserInputResponse> {
+  ): Promise<UserResponse> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -77,7 +80,7 @@ export class UserService {
       }
 
       await queryRunner.manager.save(user);
-      await this.redisService.set(`user:${user.email}`, user);
+      this.redisService.set(`user:${user.id}`, user);
 
       await queryRunner.commitTransaction();
 
@@ -90,24 +93,27 @@ export class UserService {
     }
   }
 
-  async deleteUser(id: string): Promise<UserInputResponse> {
+  async deleteUser(id: string): Promise<UserResponse> {
     const result = await this.userRepo.findOne({ where: { id } });
     if (!result)
       throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
 
     await this.uploadService.deleteImage(result.avatar);
     await this.userRepo.remove(result);
+    this.redisService.del(`user:${id}`);
 
     return { message: await this.i18n.t('user.DELETED'), data: null };
   }
 
-  async editUserRole(email: string): Promise<UserInputResponse> {
+  async editUserRole(email: string): Promise<UserResponse> {
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user)
       throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
 
     user.role = Role.ADMIN;
     await this.userRepo.save(user);
+
+    this.redisService.set(`user:${user.id}`, user);
 
     return { data: user, message: await this.i18n.t('user.UPDATED') };
   }

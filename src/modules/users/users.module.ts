@@ -7,12 +7,14 @@ import { RedisModule } from 'src/common/redis/redis.module';
 import { UploadService } from '../../common/upload/upload.service';
 import { EmailModule } from 'src/common/queues/email/email.module';
 import { AddressModule } from '../address/address.module';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     EmailModule,
     RedisModule,
+    forwardRef(() => CartModule),
     forwardRef(() => AddressModule),
   ],
   providers: [UserService, UserResolver, UploadService],
