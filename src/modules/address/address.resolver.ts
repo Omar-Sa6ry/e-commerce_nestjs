@@ -14,6 +14,7 @@ import { Permission, Role } from 'src/common/constant/enum.constant';
 import { CreateAddressInput } from './inputs/createAddress.dto';
 import { UpdateAddressInput } from './inputs/updateAddress.input';
 import { UserAddress } from '../userAdress/entity/userAddress.entity';
+import { AddressIdInput } from './inputs/addressId.input';
 
 @Resolver(() => Address)
 export class AddressResolver {
@@ -30,26 +31,29 @@ export class AddressResolver {
   @Query(() => AddressResponse)
   @Auth([Role.USER], [Permission.VIEW_ADDRESS])
   async getAddress(
-    @Args('addressId') addressId: string,
+    @Args('addressId') addressId: AddressIdInput,
   ): Promise<AddressResponse> {
-    return this.addressService.getAddressById(addressId);
+    return this.addressService.getAddressById(addressId.addressId);
   }
 
   @Mutation(() => AddressResponse)
   @Auth([Role.USER], [Permission.UPDATE_ADDRESS])
   async updateAddress(
-    @Args('addressId') addressId: string,
+    @Args('addressId') addressId: AddressIdInput,
     @Args('updateAddressInput') updateAddressInput: UpdateAddressInput,
   ): Promise<AddressResponse> {
-    return this.addressService.updateAddress(addressId, updateAddressInput);
+    return this.addressService.updateAddress(
+      addressId.addressId,
+      updateAddressInput,
+    );
   }
 
   @Mutation(() => AddressResponse)
   @Auth([Role.USER], [Permission.DELETE_ADDRESS])
   async deleteAddress(
-    @Args('addressId') addressId: string,
+    @Args('addressId') addressId: AddressIdInput,
   ): Promise<AddressResponse> {
-    return this.addressService.deleteAddress(addressId);
+    return this.addressService.deleteAddress(addressId.addressId);
   }
 
   @ResolveField(() => [UserAddress])

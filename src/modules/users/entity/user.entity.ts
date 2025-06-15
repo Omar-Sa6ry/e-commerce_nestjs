@@ -36,7 +36,7 @@ export class User extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ length: 255, nullable: true })
-  avatar: string;
+  avatar?: string;
 
   @Field()
   @Column({ unique: true })

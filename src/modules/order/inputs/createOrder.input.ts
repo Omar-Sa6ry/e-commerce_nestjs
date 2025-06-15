@@ -1,10 +1,10 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsArray, IsInt, IsOptional, Min } from 'class-validator';
+import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
 
 @InputType()
 export class CreateOrderItemInput {
-  @Field(() => String)
-  @IsInt()
+  @IdField('Details')
   detailsId: string;
 
   @Field(() => Int)
@@ -15,13 +15,11 @@ export class CreateOrderItemInput {
 
 @InputType()
 export class CreateOrderInput {
-  @Field(() => String)
-  @IsInt()
+  @IdField('UserAddress')
   userAddressId: string;
 
-  @Field(() => String, { nullable: true })
   @IsOptional()
-  @IsInt()
+  @IdField('Coupon')
   couponId?: string;
 
   @Field(() => [CreateOrderItemInput])

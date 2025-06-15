@@ -12,7 +12,6 @@ import { ProductService } from './product.service';
 import { ProductResponse, ProductsResponse } from './dtos/productResponse.dto';
 import { CreateProductInput } from './inputs/createProduct.input';
 import { UpdateProductInput } from './inputs/updateProduct.input';
-import { PubSub } from 'graphql-subscriptions';
 import { Inject } from '@nestjs/common';
 import { Product } from './entities/product.entity';
 import { Permission, Role } from '../../common/constant/enum.constant';
@@ -26,6 +25,7 @@ import { ProductPubsupResponse } from './dtos/product.subscription';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { PUB_SUB } from 'src/common/pubsup/pubSub.module';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { ProductIdInput } from './inputs/product.input';
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -56,7 +56,10 @@ export class ProductResolver {
   }
 
   @Query(() => ProductResponse)
-  async getProductById(@Args('id') id: string): Promise<ProductResponse> {
+  async getProductById(
+    @Args('productId') productId: ProductIdInput,
+  ): Promise<ProductResponse> {
+    const id = productId.id;
     const cachedProduct = await this.redisService.get(`product:${id}`);
 
     if (cachedProduct instanceof Product) {
@@ -78,9 +81,9 @@ export class ProductResolver {
   @Auth([Role.COMPANY], [Permission.DELETE_PRODUCT])
   async deleteProduct(
     @CurrentUser() user: CurrentUserDto,
-    @Args('id') id: string,
+    @Args('productId') productId: ProductIdInput,
   ): Promise<ProductResponse> {
-    return this.productService.remove(id, user.id);
+    return this.productService.remove(productId.id, user.id);
   }
 
   @Subscription(() => ProductPubsupResponse, {
@@ -100,7 +103,6 @@ export class ProductResolver {
 
   @ResolveField(() => [Details])
   async details(@Parent() product: Product): Promise<Details[]> {
-    console.log('result');
     return this.productDetailsLoader.load(product.id);
   }
 }

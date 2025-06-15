@@ -1,43 +1,25 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto';
-import { Transform } from 'class-transformer';
-import { IsEmailConstraint } from 'src/common/constant/validEmail';
-import { CapitalizeWords } from 'src/common/constant/WordsTransform';
-import {
-  IsEmail,
-  IsString,
-  IsPhoneNumber,
-  IsOptional,
-  Validate,
-} from 'class-validator';
+import { EmailField } from 'src/common/decerator/validation/EmailField.decerator';
+import { IsOptional } from 'class-validator';
+import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
+import { PhoneField } from 'src/common/decerator/validation/PhoneField.decerator';
 
 @InputType()
 export class UpdateUserDto {
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => CapitalizeWords(value))
-  firstName: string;
+  @CapitalTextField('First name', 100, true)
+  firstName?: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => CapitalizeWords(value))
-  lastName: string;
+  @CapitalTextField('Last name', 100, true)
+  lastName?: string;
 
-  @Field({ nullable: true })
+  @Field(() => CreateImagDto, { nullable: true })
   @IsOptional()
   avatar?: CreateImagDto;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsEmail()
-  @Validate(IsEmailConstraint)
-  @Transform(({ value }) => value.toLowerCase())
+  @EmailField(true)
   email?: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsPhoneNumber('EG')
+  @PhoneField(true)
   phone?: string;
 }

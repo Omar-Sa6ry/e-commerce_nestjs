@@ -1,10 +1,11 @@
-import { Field, InputType } from '@nestjs/graphql'
+import { InputType } from '@nestjs/graphql';
+import { PasswordField } from 'src/common/decerator/validation/PasswordField.decerator';
 
 @InputType()
 export class ChangePasswordDto {
-  @Field()
-  password: string
+  @PasswordField()
+  password: string;
 
-  @Field()
-  newPassword: string
+  @PasswordField()
+  newPassword: string;
 }

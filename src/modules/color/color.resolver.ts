@@ -1,14 +1,13 @@
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { ColorService } from './color.service';
-import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { Auth } from 'src/common/decerator/auth.decerator';
-import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { Color } from './entity/color.entity';
 import { ColorResponse, ColorsResponse } from './dto/colorResponse.dto';
 import { CreateColorInput } from './inputs/createColor.input';
 import { UpdateColorInput } from './inputs/updateColor.input';
 import { Role, Permission } from 'src/common/constant/enum.constant';
 import { Int } from '@nestjs/graphql';
+import { ColorIdInput, ColorNameInput } from './inputs/color.input';
 
 @Resolver(() => Color)
 export class ColorResolver {
@@ -17,7 +16,6 @@ export class ColorResolver {
   @Mutation(() => ColorResponse)
   @Auth([Role.ADMIN], [Permission.CREATE_COLOR])
   createColor(
-    @CurrentUser() user: CurrentUserDto,
     @Args('createColorInput') createColorInput: CreateColorInput,
   ): Promise<ColorResponse> {
     return this.colorService.create(createColorInput);
@@ -34,14 +32,14 @@ export class ColorResolver {
 
   @Query(() => ColorResponse)
   @Auth([Role.ADMIN, Role.USER], [Permission.VIEW_COLOR])
-  getColorById(@Args('id') id: string): Promise<ColorResponse> {
-    return this.colorService.findById(id);
+  getColorById(@Args('id') id: ColorIdInput): Promise<ColorResponse> {
+    return this.colorService.findById(id.colorId);
   }
 
   @Query(() => ColorResponse)
   @Auth([Role.ADMIN, Role.USER], [Permission.VIEW_COLOR])
-  getColorByName(@Args('name') name: string): Promise<ColorResponse> {
-    return this.colorService.findByName(name);
+  getColorByName(@Args('name') name: ColorNameInput): Promise<ColorResponse> {
+    return this.colorService.findByName(name.name);
   }
 
   @Mutation(() => ColorResponse)
@@ -54,7 +52,7 @@ export class ColorResolver {
 
   @Mutation(() => ColorResponse)
   @Auth([Role.ADMIN], [Permission.DELETE_COLOR])
-  deleteColor(@Args('id') id: string): Promise<ColorResponse> {
-    return this.colorService.remove(id);
+  deleteColor(@Args('id') id: ColorIdInput): Promise<ColorResponse> {
+    return this.colorService.remove(id.colorId);
   }
 }

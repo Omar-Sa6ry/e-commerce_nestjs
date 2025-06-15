@@ -1,16 +1,20 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { FileUpload } from './fileUpload';
-import { IsOptional } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 
 @InputType()
 export class CreateImagDto {
   @IsOptional()
   @Field(() => String, { nullable: true })
+  @IsString()
+  @MaxLength(100)
   name?: string;
 
   @IsOptional()
   @Field(() => String, { nullable: true })
+  @IsString()
+  @MaxLength(100)
   breed?: string;
 
   @IsOptional()

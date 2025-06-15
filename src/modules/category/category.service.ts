@@ -12,7 +12,9 @@ import {
   CategoriesResponse,
   CategoryResponse,
 } from './dto/categoryResponse.dto';
-import { CapitalizeWords } from 'src/common/constant/WordsTransform';
+import { CapitalizeWords } from 'src/common/decerator/WordsTransform.decerator';
+import { CreateCategoryInput } from './inputs/createCategoryr.input';
+import { UpdateCategoryInput } from './inputs/updateColor.input';
 
 @Injectable()
 export class CategoryService {
@@ -22,7 +24,10 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(name: string): Promise<CategoryResponse> {
+  async create(
+    createCategoryInput: CreateCategoryInput,
+  ): Promise<CategoryResponse> {
+    const { name } = createCategoryInput;
     const existedCategory = await this.categoryRepository.findOneBy({ name });
     if (existedCategory)
       throw new BadRequestException(
@@ -77,7 +82,11 @@ export class CategoryService {
     return { data: category };
   }
 
-  async update(id: string, name: string): Promise<CategoryResponse> {
+  async update(
+    id: string,
+    updateCategoryInput: UpdateCategoryInput,
+  ): Promise<CategoryResponse> {
+    const { name } = updateCategoryInput;
     const category = await this.categoryRepository.findOneBy({ id });
 
     const categoryName = await CapitalizeWords(name);

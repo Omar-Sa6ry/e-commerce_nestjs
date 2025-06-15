@@ -6,9 +6,8 @@ import { FindCouponInput } from './inputs/findCoupon.input';
 import { CouponResponse, CouponsResponse } from './dto/couponResponse.dto';
 import { Permission, Role } from '../../common/constant/enum.constant';
 import { Auth } from 'src/common/decerator/auth.decerator';
-import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
-import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { Coupon } from './entity/coupon.entity';
+import { CouponIdInput, CouponNameInput } from './inputs/coupon.input';
 
 @Resolver(() => Coupon)
 export class CouponResolver {
@@ -17,7 +16,6 @@ export class CouponResolver {
   @Mutation(() => CouponResponse)
   @Auth([Role.ADMIN], [Permission.CREATE_COUPON])
   async createCoupon(
-    @CurrentUser() user: CurrentUserDto,
     @Args('createCouponInput') createCouponInput: CreateCouponInput,
   ): Promise<CouponResponse> {
     return this.couponService.create(createCouponInput);
@@ -25,14 +23,16 @@ export class CouponResolver {
 
   @Query(() => CouponResponse)
   @Auth([Role.USER, Role.ADMIN], [Permission.VIEW_COUPON])
-  async findCouponByName(@Args('name') name: string): Promise<CouponResponse> {
-    return this.couponService.findByName(name);
+  async findCouponByName(
+    @Args('name') name: CouponNameInput,
+  ): Promise<CouponResponse> {
+    return this.couponService.findByName(name.name);
   }
 
   @Query(() => CouponResponse)
   @Auth([Role.USER, Role.ADMIN], [Permission.VIEW_COUPON])
-  async findCouponById(@Args('id') id: string): Promise<CouponResponse> {
-    return this.couponService.findById(id);
+  async findCouponById(@Args('id') id: CouponIdInput): Promise<CouponResponse> {
+    return this.couponService.findById(id.couponId);
   }
 
   @Query(() => CouponsResponse)
@@ -48,14 +48,15 @@ export class CouponResolver {
 
   @Mutation(() => CouponResponse)
   @Auth([Role.ADMIN], [Permission.COUPON_ACTIVE])
-  async updateCouponActive(@Args('id') id: string): Promise<CouponResponse> {
-    return this.couponService.changeIsActive(id);
+  async updateCouponActive(
+    @Args('id') id: CouponIdInput,
+  ): Promise<CouponResponse> {
+    return this.couponService.changeIsActive(id.couponId);
   }
 
   @Mutation(() => CouponResponse)
   @Auth([Role.ADMIN], [Permission.UPDATE_COUPON])
   async updateCoupon(
-    @CurrentUser() user: CurrentUserDto,
     @Args('updateCouponInput') updateCouponInput: UpdateCouponInput,
   ): Promise<CouponResponse> {
     return this.couponService.update(updateCouponInput);
@@ -63,10 +64,7 @@ export class CouponResolver {
 
   @Mutation(() => CouponResponse)
   @Auth([Role.ADMIN], [Permission.DELETE_COUPON])
-  async deleteCoupon(
-    @CurrentUser() user: CurrentUserDto,
-    @Args('id') id: string,
-  ): Promise<CouponResponse> {
-    return this.couponService.delete(id);
+  async deleteCoupon(@Args('id') id: CouponIdInput): Promise<CouponResponse> {
+    return this.couponService.delete(id.couponId);
   }
 }

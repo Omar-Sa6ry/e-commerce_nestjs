@@ -14,6 +14,8 @@ import { RedisService } from 'src/common/redis/redis.service';
 import { Auth } from 'src/common/decerator/auth.decerator';
 import { I18nService } from 'nestjs-i18n';
 import { UserResponse } from '../users/dto/UserResponse.dto';
+import { CreateAddressInput } from '../address/inputs/createAddress.dto';
+import { CreateUserAddressInput } from '../userAdress/inputs/createUserAddress.input';
 
 @Resolver(() => User)
 export class AuthResolver {
@@ -25,16 +27,22 @@ export class AuthResolver {
 
   @Mutation(() => AuthResponse)
   async register(
-    @Args('fcmToken') fcmToken: string,
     @Args('createUserDto') createUserDto: CreateUserDto,
+    @Args('userAddress', { nullable: true })
+    userAddress?: CreateUserAddressInput,
+    @Args('address', { nullable: true }) address?: CreateAddressInput,
     @Args('avatar', { nullable: true }) avatar?: CreateImagDto,
   ): Promise<AuthResponse> {
-    return this.authService.register(fcmToken, createUserDto, avatar);
+    return this.authService.register(
+      createUserDto,
+      avatar,
+      address,
+      userAddress,
+    );
   }
 
   @Mutation(() => AuthResponse)
   async login(
-    @Args('fcmToken') fcmToken: string,
     @Args('loginDto') loginDto: LoginDto,
   ): Promise<AuthResponse> {
     const userCacheKey = `auth:${loginDto.email}`;
@@ -44,7 +52,7 @@ export class AuthResolver {
       return { ...cachedUser };
     }
 
-    return this.authService.login(fcmToken, loginDto);
+    return this.authService.login(loginDto);
   }
 
   @Mutation(() => AuthResponse)

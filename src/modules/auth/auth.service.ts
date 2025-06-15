@@ -41,7 +41,6 @@ export class AuthService {
   ) {}
 
   async register(
-    fcmToken: string,
     createUserDto: CreateUserDto,
     avatar?: CreateImagDto,
     address?: CreateAddressInput,
@@ -74,7 +73,6 @@ export class AuthService {
         });
       }
 
-      user.fcmToken = fcmToken;
       await queryRunner.manager.save(user);
 
       const token = await this.generateToken.jwt(user.email, user.id);
@@ -104,8 +102,8 @@ export class AuthService {
     }
   }
 
-  async login(fcmToken: string, loginDto: LoginDto): Promise<AuthResponse> {
-    const { email, password } = loginDto;
+  async login(loginDto: LoginDto): Promise<AuthResponse> {
+    const { email, password, fcmToken } = loginDto;
 
     const user = await this.dataSource
       .getRepository(User)

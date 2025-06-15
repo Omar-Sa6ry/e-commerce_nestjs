@@ -16,12 +16,18 @@ export class UploadService {
     dirUpload: string = 'avatars',
   ): Promise<string> {
     try {
-      const { createReadStream, filename } = await createImageInput.image;
+      if (!createImageInput.image) return null;
+      const uploadedFile = await createImageInput.image;
 
-      if (!createReadStream || typeof createReadStream !== 'function') {
-        throw new HttpException('Invalid file input', HttpStatus.BAD_REQUEST);
+      if (
+        !uploadedFile ||
+        typeof uploadedFile.createReadStream !== 'function' ||
+        !uploadedFile.filename
+      ) {
+        throw new HttpException('Invalid image file', HttpStatus.BAD_REQUEST);
       }
 
+      const { createReadStream, filename } = uploadedFile;
       const stream = createReadStream();
 
       console.log('Uploading image...');
@@ -35,7 +41,6 @@ export class UploadService {
           },
           (error, result) => {
             if (error) {
-              console.error('Cloudinary Upload Error:', error);
               reject(
                 new HttpException(
                   'Image upload failed',
@@ -58,11 +63,12 @@ export class UploadService {
         );
       }
 
-      console.log('Upload successful:', result.secure_url);
       return result.secure_url;
     } catch (error) {
-      console.error('Upload Error:', error);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error?.message || 'Upload failed',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 

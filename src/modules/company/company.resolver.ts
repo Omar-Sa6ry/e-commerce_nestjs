@@ -9,8 +9,8 @@ import {
 } from '@nestjs/graphql';
 import { CompanyService } from './company.service';
 import { Company } from './entity/company.entity';
-import { CreateCompanyDto } from './inputs/createCompany.dto';
-import { UpdateCompanyDto } from './inputs/updateCompany.dto';
+import { CreateCompanyDto } from './inputs/createCompany.input';
+import { UpdateCompanyDto } from './inputs/updateCompany.input';
 import { Permission, Role } from 'src/common/constant/enum.constant';
 import { CompanyResponse, CompanysResponse } from './dto/companyResponse.dto';
 import { Auth } from 'src/common/decerator/auth.decerator';
@@ -20,6 +20,12 @@ import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { UserResponse } from '../users/dto/UserResponse.dto';
 import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 import { Address } from '../address/entity/address.entity';
+import { AddEmployeeInput } from './inputs/addEmployee.input';
+import {
+  CompanyIdInput,
+  CompanyNameInput,
+  CompanyUserIdInput,
+} from './inputs/company.input';
 
 @Resolver(() => Company)
 export class CompanyResolver {
@@ -28,15 +34,14 @@ export class CompanyResolver {
   @Mutation(() => CompanyResponse)
   @Auth([Role.ADMIN], [Permission.CREATE_COMPANY])
   async createCompany(
-    @Args('userId') userId: string,
+    @Args('companyUserIdInput') companyUserIdInput: CompanyUserIdInput,
     @Args('createCompanyDto') createCompanyDto: CreateCompanyDto,
     @Args('createAddressInput', { nullable: true })
     createAddressInput?: CreateAddressInput,
   ): Promise<CompanyResponse> {
-    console.log("minuu")
     return this.companyService.create(
       createCompanyDto,
-      userId,
+      companyUserIdInput.userId,
       createAddressInput,
     );
   }
@@ -45,30 +50,38 @@ export class CompanyResolver {
   @Auth([Role.COMPANY], [Permission.ADD_EMPLOYEE])
   async addEmployee(
     @CurrentUser() user: CurrentUserDto,
-    @Args('companyId') companyId: string,
-    @Args('userId') userId: string,
+    @Args('addEmployeeInput') addEmployeeInput: AddEmployeeInput,
   ): Promise<CompanyResponse> {
-    return this.companyService.addEmployee(companyId, userId, user.id);
+    return this.companyService.addEmployee(
+      addEmployeeInput.companyId,
+      addEmployeeInput.userId,
+      user.id,
+    );
   }
 
   @Mutation(() => CompanyResponse)
   @Auth([Role.COMPANY], [Permission.DELETE_EMPLOYEE])
   async deleteEmployee(
     @CurrentUser() user: CurrentUserDto,
-    @Args('companyId') companyId: string,
-    @Args('userId') userId: string,
+    @Args('addEmployeeInput') addEmployeeInput: AddEmployeeInput,
   ): Promise<CompanyResponse> {
-    return this.companyService.removeEmployee(companyId, userId, user.id);
+    return this.companyService.removeEmployee(
+      addEmployeeInput.companyId,
+      addEmployeeInput.userId,
+      user.id,
+    );
   }
 
   @Query(() => CompanyResponse, { nullable: true })
-  getCompanyById(@Args('id') id: string): Promise<CompanyResponse> {
-    return this.companyService.findById(id);
+  getCompanyById(@Args('id') id: CompanyIdInput): Promise<CompanyResponse> {
+    return this.companyService.findById(id.companyId);
   }
 
   @Query(() => CompanyResponse, { nullable: true })
-  getCompanyByName(@Args('name') name: string): Promise<CompanyResponse> {
-    return this.companyService.find(name);
+  getCompanyByName(
+    @Args('name') name: CompanyNameInput,
+  ): Promise<CompanyResponse> {
+    return this.companyService.find(name.name);
   }
 
   @Query(() => CompanysResponse, { nullable: true })
@@ -77,31 +90,34 @@ export class CompanyResolver {
     @Args('page', { type: () => Int, nullable: true }) page?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
   ): Promise<CompanysResponse> {
-    return this.companyService.findAll();
+    return this.companyService.findAll(page, limit);
   }
 
   @Mutation(() => CompanyResponse)
   @Auth([Role.ADMIN], [Permission.UPDATE_COMPANY])
   async updateCompany(
-    @Args('id') id: string,
     @Args('updateCompanyDto') updateCompanyDto: UpdateCompanyDto,
   ): Promise<CompanyResponse> {
-    return this.companyService.update(id, updateCompanyDto);
+    return this.companyService.update(updateCompanyDto.id, updateCompanyDto);
   }
 
   @Mutation(() => CompanyResponse)
   @Auth([Role.ADMIN], [Permission.DELETE_COMPANY])
-  async deleteCompany(@Args('id') id: string): Promise<CompanyResponse> {
-    return this.companyService.delete(id);
+  async deleteCompany(
+    @Args('id') id: CompanyIdInput,
+  ): Promise<CompanyResponse> {
+    return this.companyService.delete(id.companyId);
   }
 
   @Mutation(() => UserResponse)
   @Auth([Role.ADMIN], [Permission.EDIT_USER_ROLE])
   async editUserRole(
-    @Args('userId') userId: string,
-    @Args('companyId') companyId: string,
+    @Args('addEmployeeInput') addEmployeeInput: AddEmployeeInput,
   ): Promise<UserResponse> {
-    return this.companyService.editUserToCompany(userId, companyId);
+    return this.companyService.editUserToCompany(
+      addEmployeeInput.userId,
+      addEmployeeInput.companyId,
+    );
   }
 
   @ResolveField(() => [User], { nullable: true })

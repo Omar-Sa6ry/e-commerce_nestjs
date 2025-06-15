@@ -1,13 +1,8 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { Transform } from 'class-transformer';
-import { IsString, Length } from 'class-validator';
-import { CapitalizeWords } from 'src/common/constant/WordsTransform';
+import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
 
 @InputType()
 export class CreateCountryInput {
-  @Field()
-  @IsString()
-  @Length(1, 100)
-  @Transform(({ value }) => CapitalizeWords(value))
+  @CapitalTextField('City name', 100)
   name: string;
 }

@@ -6,8 +6,8 @@ import {
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './entity/company.entity';
-import { CreateCompanyDto } from './inputs/createCompany.dto';
-import { UpdateCompanyDto } from './inputs/updateCompany.dto';
+import { CreateCompanyDto } from './inputs/createCompany.input';
+import { UpdateCompanyDto } from './inputs/updateCompany.input';
 import { CompanyResponse, CompanysResponse } from './dto/companyResponse.dto';
 import { I18nService } from 'nestjs-i18n';
 import { User } from '../users/entity/user.entity';
@@ -43,7 +43,9 @@ export class CompanyService {
         where: { id: userId },
       });
       if (!user)
-        throw new NotFoundException(await this.i18n.t('user.NOT_FOUND', {args: { id: userId }}));
+        throw new NotFoundException(
+          await this.i18n.t('user.NOT_FOUND', { args: { id: userId } }),
+        );
 
       const exitedCompany = await queryRunner.manager.findOne(Company, {
         where: { email: createCompanyDto.email },

@@ -5,12 +5,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateColorInput } from './inputs/createColor.input';
 import { UpdateColorInput } from './inputs/updateColor.input';
 import { Color } from './entity/color.entity';
 import { ColorResponse, ColorsResponse } from './dto/colorResponse.dto';
 import { I18nService } from 'nestjs-i18n';
 import { Limit, Page } from 'src/common/constant/messages.constant';
+import { CreateColorInput } from './inputs/createColor.input';
 
 @Injectable()
 export class ColorService {

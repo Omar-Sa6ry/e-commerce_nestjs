@@ -17,11 +17,11 @@ import { Country } from './entities/country.entity';
 import { City } from './entities/city.entity';
 import { CityLoader } from './loaders/city.loader';
 import { CountryLoader } from './loaders/country.loader';
+import { LocationIdInput, LocationNameInput } from './inputs/location.input';
 
 @Resolver(() => City)
 export class CityResolver {
   constructor(
-    private readonly cityLoader: CityLoader,
     private readonly countryLoader: CountryLoader,
     private readonly locationService: LocationService,
   ) {}
@@ -43,30 +43,30 @@ export class CityResolver {
   }
 
   @Query(() => CityResponse)
-  async findCityById(@Args('id') id: string): Promise<CityResponse> {
-    return this.locationService.findCityById(id);
+  async findCityById(@Args('id') id: LocationIdInput): Promise<CityResponse> {
+    return this.locationService.findCityById(id.LocationId);
   }
 
   @Query(() => CitysResponse)
   async findCitiesByCountryId(
-    @Args('countryId') countryId: string,
+    @Args('countryId') countryId: LocationIdInput,
   ): Promise<CitysResponse> {
-    return this.locationService.findCitiesByCountryId(countryId);
+    return this.locationService.findCitiesByCountryId(countryId.LocationId);
   }
 
   @Mutation(() => CityResponse)
   @Auth([Role.ADMIN], [Permission.UPDATE_CITY])
   async updateCity(
-    @Args('id') id: string,
-    @Args('name') name: string,
+    @Args('id') id: LocationIdInput,
+    @Args('name') name: LocationNameInput,
   ): Promise<CityResponse> {
-    return this.locationService.updateCity(id, name);
+    return this.locationService.updateCity(id.LocationId, name.name);
   }
 
   @Mutation(() => CityResponse)
   @Auth([Role.ADMIN], [Permission.DELETE_CITY])
-  async deleteCity(@Args('id') id: string): Promise<CityResponse> {
-    return this.locationService.deleteCity(id);
+  async deleteCity(@Args('id') id: LocationIdInput): Promise<CityResponse> {
+    return this.locationService.deleteCity(id.LocationId);
   }
 
   @ResolveField(() => Country || null)
@@ -99,23 +99,27 @@ export class CountryResolver {
   }
 
   @Query(() => CountryResponse)
-  async findCountryById(@Args('id') id: string): Promise<CountryResponse> {
-    return this.locationService.findCountryById(id);
+  async findCountryById(
+    @Args('id') id: LocationIdInput,
+  ): Promise<CountryResponse> {
+    return this.locationService.findCountryById(id.LocationId);
   }
 
   @Mutation(() => CountryResponse)
   @Auth([Role.ADMIN], [Permission.UPDATE_COUNTRY])
   async updateCountry(
-    @Args('id') id: string,
-    @Args('name') name: string,
+    @Args('id') id: LocationIdInput,
+    @Args('name') name: LocationNameInput,
   ): Promise<CountryResponse> {
-    return this.locationService.updateCountry(id, name);
+    return this.locationService.updateCountry(id.LocationId, name.name);
   }
 
   @Mutation(() => CountryResponse)
   @Auth([Role.ADMIN], [Permission.DELETE_COUNTRY])
-  async deleteCountry(@Args('id') id: string): Promise<CountryResponse> {
-    return this.locationService.deleteCountry(id);
+  async deleteCountry(
+    @Args('id') id: LocationIdInput,
+  ): Promise<CountryResponse> {
+    return this.locationService.deleteCountry(id.LocationId);
   }
 
   @ResolveField(() => City || null)

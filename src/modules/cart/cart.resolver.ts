@@ -5,6 +5,7 @@ import {
   Query,
   ResolveField,
   Parent,
+  Int,
 } from '@nestjs/graphql';
 import { CartService } from './cart.service';
 import { CartItemInput } from './inputs/cartItem.input';
@@ -18,6 +19,8 @@ import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cartItem.enitty';
+import { CartIdInput } from './inputs/cartId.input';
+import { CartItemIdInput } from './inputs/cartItemId.input';
 
 @Resolver(() => Cart)
 export class CartResolver {
@@ -36,19 +39,23 @@ export class CartResolver {
   @Auth([Role.USER], [Permission.VIEW_CART])
   async findCartItems(
     @CurrentUser() user: CurrentUserDto,
-    @Args('cartId') cartId: string,
+    @Args('cartId') cartId: CartIdInput,
   ): Promise<CartItemsResponse> {
-    return this.cartService.findItems(cartId, user.id);
+    return this.cartService.findItems(cartId.cartId, user.id);
   }
 
   @Mutation(() => CartItemResponse)
   @Auth([Role.USER], [Permission.UPDATE_CART])
   async updateCartItemQuantity(
     @CurrentUser() user: CurrentUserDto,
-    @Args('cartItemId') cartItemId: string,
-    @Args('quantity') quantity: number,
+    @Args('cartItemId') cartItemId: CartItemIdInput,
+    @Args('quantity', { type: () => Int }) quantity: number,
   ): Promise<CartItemResponse> {
-    return this.cartService.updateQuantity(user.id, cartItemId, quantity);
+    return this.cartService.updateQuantity(
+      user.id,
+      cartItemId.cartItemId,
+      quantity,
+    );
   }
 
   @Mutation(() => CartResponse)
@@ -63,9 +70,9 @@ export class CartResolver {
   @Auth([Role.USER], [Permission.DELETE_CART])
   async deleteCart(
     @CurrentUser() user: CurrentUserDto,
-    @Args('cartId') cartId: string,
+    @Args('cartId') cartId: CartIdInput,
   ): Promise<CartResponse> {
-    return this.cartService.deleteCart(user.id, cartId);
+    return this.cartService.deleteCart(user.id, cartId.cartId);
   }
 
   @Query(() => TotalCartsResponse)

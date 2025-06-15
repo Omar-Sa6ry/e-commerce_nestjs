@@ -8,6 +8,7 @@ import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { RedisService } from 'src/common/redis/redis.service';
 import { Auth } from 'src/common/decerator/auth.decerator';
 import { UserResponse } from './dto/UserResponse.dto';
+import { EmailInput, UserIdInput } from './inputs/userId.input';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -17,7 +18,11 @@ export class UserResolver {
   ) {}
 
   @Query((returns) => UserResponse)
-  async getUserById(@Args('id') id: string): Promise<UserResponse> {
+  async getUserById(
+    @Args('userId') userId: UserIdInput,
+  ): Promise<UserResponse> {
+    const id = userId.UserId;
+
     const userCacheKey = `user:${id}`;
     const cachedUser = await this.redisService.get(userCacheKey);
     if (cachedUser instanceof User) {
@@ -28,21 +33,23 @@ export class UserResolver {
   }
 
   @Query((returns) => UserResponse)
-  async getUserByEmail(@Args('email') email: string): Promise<UserResponse> {
-    const userCacheKey = `user:${email}`;
+  async getUserByEmail(
+    @Args('email') email: EmailInput,
+  ): Promise<UserResponse> {
+    const userCacheKey = `user:${email.email}`;
     const cachedUser = await this.redisService.get(userCacheKey);
     if (cachedUser instanceof User) {
       return { data: cachedUser };
     }
 
-    return await this.usersService.findByEmail(email);
+    return await this.usersService.findByEmail(email.email);
   }
 
   @Mutation((returns) => UserResponse)
   @Auth([Role.ADMIN, Role.USER], [Permission.UPDATE_USER])
   async updateUser(
-    @Args('updateUserDto') updateUserDto: UpdateUserDto,
     @CurrentUser() user: CurrentUserDto,
+    @Args('updateUserDto') updateUserDto: UpdateUserDto,
   ): Promise<UserResponse> {
     return await this.usersService.update(updateUserDto, user?.id);
   }
@@ -55,7 +62,9 @@ export class UserResolver {
 
   @Mutation((returns) => String)
   @Auth([Role.ADMIN], [Permission.EDIT_USER_ROLE])
-  async UpdateUserRole(@Args('email') email: string): Promise<UserResponse> {
-    return await this.usersService.editUserRole(email);
+  async UpdateUserRole(
+    @Args('email') email: EmailInput,
+  ): Promise<UserResponse> {
+    return await this.usersService.editUserRole(email.email);
   }
 }

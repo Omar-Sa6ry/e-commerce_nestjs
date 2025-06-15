@@ -13,7 +13,7 @@ import { I18nService } from 'nestjs-i18n';
 import { CountryResponse, CountrysResponse } from './dtos/countryResponse.dto';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { CityResponse, CitysResponse } from './dtos/cityResponse.dto copy';
-import { CapitalizeWords } from 'src/common/constant/WordsTransform';
+import { CapitalizeWords } from 'src/common/decerator/WordsTransform.decerator';
 
 @Injectable()
 export class LocationService {

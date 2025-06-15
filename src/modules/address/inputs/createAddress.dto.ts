@@ -1,19 +1,15 @@
 import { AddressType } from 'src/common/constant/enum.constant';
-import { LowwerWords } from 'src/common/constant/WordsTransform';
-import { Transform } from 'class-transformer';
 import { Field, InputType } from '@nestjs/graphql';
-import { IsString, IsEnum, IsOptional, Length } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
+import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
+import { TextField } from 'src/common/decerator/validation/TextField.decerator';
 
 @InputType()
 export class CreateAddressInput {
-  @Field()
-  @IsString()
+  @IdField('Location')
   locationId: string;
 
-  @Field()
-  @IsString()
-  @Length(1, 255)
-  @Transform(({ value }) => LowwerWords(value))
+  @TextField('Street name', 255)
   street: string;
 
   @Field(() => AddressType, { nullable: true })

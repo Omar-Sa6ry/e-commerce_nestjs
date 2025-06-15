@@ -1,14 +1,14 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { IsHexColor, IsNotEmpty, IsString } from 'class-validator';
+import { InputType } from '@nestjs/graphql';
+import { IsHexColor } from 'class-validator';
+import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
+import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
 
 @InputType()
 export class UpdateColorInput {
-  @Field(() => String)
-  @IsString()
+  @IdField('Color')
   id: string;
 
-  @Field()
-  @IsString()
+  @CapitalTextField('Color name', 100)
   @IsHexColor()
   name: string;
 }

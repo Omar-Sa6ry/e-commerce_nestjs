@@ -1,9 +1,8 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsHexColor } from 'class-validator';
+import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
 
 @InputType()
 export class CreateColorInput {
-  @Field()
-  @IsHexColor()
+  @CapitalTextField('Color name', 100)
   name: string;
 }

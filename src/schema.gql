@@ -544,47 +544,95 @@ type Query {
   sayHello: String!
   getAllOrders(page: Int, limit: Int): OrdersResponse!
   getMyOrders(page: Int, limit: Int): OrdersResponse!
-  getOrderById(id: String!): OrderResponse!
-  searchOrders(userId: String, status: String, startDate: DateTime, endDate: DateTime, page: Float, limit: Float): OrdersResponse!
-  getOrderItems(orderId: String!): OrderItemsResponse!
-  trackOrderStatus(id: String!): TrackOrderStatusResponse!
+  getOrderById(id: OrderIdInput!): OrderResponse!
+  searchOrders(userId: UserIdInput, status: String, startDate: DateTime, endDate: DateTime, page: Int, limit: Int): OrdersResponse!
+  getOrderItems(orderId: OrderIdInput!): OrderItemsResponse!
+  trackOrderStatus(id: OrderIdInput!): TrackOrderStatusResponse!
   orderStatistics: OrderStatisticsResponse!
-  getUserById(id: String!): UserResponse!
-  getUserByEmail(email: String!): UserResponse!
+  getUserById(userId: UserIdInput!): UserResponse!
+  getUserByEmail(email: EmailInput!): UserResponse!
   deleteUser: UserResponse!
-  getAddress(addressId: String!): AddressResponse!
+  getAddress(addressId: AddressIdInput!): AddressResponse!
   findAllCities(page: Float = 1, limit: Float = 10): CitysResponse!
-  findCityById(id: String!): CityResponse!
-  findCitiesByCountryId(countryId: String!): CitysResponse!
+  findCityById(id: LocationIdInput!): CityResponse!
+  findCitiesByCountryId(countryId: LocationIdInput!): CitysResponse!
   findAllCountries(page: Float = 1, limit: Float = 10): CountrysResponse!
-  findCountryById(id: String!): CountryResponse!
-  getCompanyById(id: String!): CompanyResponse
-  getCompanyByName(name: String!): CompanyResponse
+  findCountryById(id: LocationIdInput!): CountryResponse!
+  getCompanyById(id: CompanyIdInput!): CompanyResponse
+  getCompanyByName(name: CompanyNameInput!): CompanyResponse
   getAllCompanys(page: Int, limit: Int): CompanysResponse
   getAllCategories(page: Float, limit: Float): CategoriesResponse!
-  getCategoryById(id: String!): CategoryResponse!
-  getCategoryByName(name: String!): CategoryResponse!
+  getCategoryById(id: CategoryIdInput!): CategoryResponse!
+  getCategoryByName(name: CategoryNameInput!): CategoryResponse!
   getAllProducts(findProductInput: FindProductInput, page: Int, limit: Int): ProductsResponse!
-  getProductById(id: String!): ProductResponse!
+  getProductById(productId: ProductIdInput!): ProductResponse!
   getAllColors(page: Int, limit: Int): ColorsResponse!
-  getColorById(id: String!): ColorResponse!
-  getColorByName(name: String!): ColorResponse!
+  getColorById(id: ColorIdInput!): ColorResponse!
+  getColorByName(name: ColorNameInput!): ColorResponse!
   getAllProductDetails(findProductDetailsInput: FindProductDetailsInput, page: Int, limit: Int): ProductDetailsResponse!
-  getProductDetailById(id: String!): ProductDetailResponse!
-  findCartItems(cartId: String!): CartItemsResponse!
+  getProductDetailById(id: DetailsIdInput!): ProductDetailResponse!
+  findCartItems(cartId: CartIdInput!): CartItemsResponse!
   checkTotalCart: TotalCartsResponse!
-  findCouponByName(name: String!): CouponResponse!
-  findCouponById(id: String!): CouponResponse!
+  findCouponByName(name: CouponNameInput!): CouponResponse!
+  findCouponById(id: CouponIdInput!): CouponResponse!
   findAllCoupons(findCouponInput: FindCouponInput, page: Int, limit: Int): CouponsResponse!
+}
+
+input OrderIdInput {
+  id: String!
+}
+
+input UserIdInput {
+  UserId: String!
+}
+
+input EmailInput {
+  email: String!
+}
+
+input AddressIdInput {
+  addressId: String!
+}
+
+input LocationIdInput {
+  LocationId: String!
+}
+
+input CompanyIdInput {
+  companyId: String!
+}
+
+input CompanyNameInput {
+  name: String!
+}
+
+input CategoryIdInput {
+  categoryId: String!
+}
+
+input CategoryNameInput {
+  name: String!
 }
 
 input FindProductInput {
   name: String
   description: String
-  priceMin: Float
-  priceMax: Float
   categoryId: String
   companyId: String
+  priceMin: Float
+  priceMax: Float
+}
+
+input ProductIdInput {
+  id: String!
+}
+
+input ColorIdInput {
+  colorId: String!
+}
+
+input ColorNameInput {
+  name: String!
 }
 
 input FindProductDetailsInput {
@@ -594,78 +642,94 @@ input FindProductDetailsInput {
   productId: String
 }
 
+input DetailsIdInput {
+  id: String!
+}
+
+input CartIdInput {
+  cartId: String!
+}
+
+input CouponNameInput {
+  name: String!
+}
+
+input CouponIdInput {
+  couponId: String!
+}
+
 input FindCouponInput {
   expiryDate: DateTime
   name: String
   categoryId: String
   type: TypeCoupon
-  discount: Float
+  discount: Int
   isActive: Boolean
 }
 
 type Mutation {
-  createOrderFromCart(addressId: String!, paymentMethod: PaymentMethod!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
-  createOrderFromProducts(addressId: String!, paymentMethod: PaymentMethod!, detailsId: String!, quantity: Int!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
-  updateOrderStatus(id: String!, status: OrderStatus!): OrderResponse!
-  updatePaymentStatus(id: String!, status: PaymentStatus!): OrderResponse!
-  cancelOrder(id: String!): OrderResponse!
-  deleteOrder(id: String!): OrderResponse!
+  createOrderFromCart(addressId: AddressIdInput!, paymentMethod: PaymentMethod!, deliveryPrice: Int, couponId: CouponIdInput): CreateOrderResponse!
+  createOrderFromProducts(addressId: AddressIdInput!, paymentMethod: PaymentMethod!, detailsId: DetailsIdInput!, quantity: Int!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
+  updateOrderStatus(id: OrderIdInput!, status: OrderStatus!): OrderResponse!
+  updatePaymentStatus(id: OrderIdInput!, status: PaymentStatus!): OrderResponse!
+  cancelOrder(id: OrderIdInput!): OrderResponse!
+  deleteOrder(id: OrderIdInput!): OrderResponse!
   deleteCompletedOrder: OrderResponse!
   updateUser(updateUserDto: UpdateUserDto!): UserResponse!
-  UpdateUserRole(email: String!): String!
+  UpdateUserRole(email: EmailInput!): String!
   createAddress(createAddressInput: CreateAddressInput!): AddressResponse!
-  updateAddress(addressId: String!, updateAddressInput: UpdateAddressInput!): AddressResponse!
-  deleteAddress(addressId: String!): AddressResponse!
-  register(fcmToken: String!, createUserDto: CreateUserDto!, avatar: CreateImagDto): AuthResponse!
-  login(fcmToken: String!, loginDto: LoginDto!): AuthResponse!
+  updateAddress(addressId: AddressIdInput!, updateAddressInput: UpdateAddressInput!): AddressResponse!
+  deleteAddress(addressId: AddressIdInput!): AddressResponse!
+  register(createUserDto: CreateUserDto!, userAddress: CreateUserAddressInput, address: CreateAddressInput, avatar: CreateImagDto): AuthResponse!
+  login(loginDto: LoginDto!): AuthResponse!
   forgotPassword: AuthResponse!
   resetPassword(resetPasswordDto: ResetPasswordDto!): UserResponse!
   changePassword(changePasswordDto: ChangePasswordDto!): UserResponse!
   logout: Boolean!
   createUserAddress(createUserAddressInput: CreateUserAddressInput!): UserAddressResponse!
-  updateUserAddress(addressId: String!, updateAddressInput: UpdateAddressInput, updateUserAddressInput: UpdateUserAddressInput): UserAddressResponse!
-  deleteUserAddress(userAddressId: String!): UserAddressResponse!
-  setDefaultAddress(userAddressId: String!): UserAddressResponse!
+  updateUserAddress(addressId: AddressIdInput!, updateAddressInput: UpdateAddressInput, updateUserAddressInput: UpdateUserAddressInput): UserAddressResponse!
+  deleteUserAddress(userAddressId: AddressIdInput!): UserAddressResponse!
+  setDefaultAddress(userAddressId: AddressIdInput!): UserAddressResponse!
   createCity(createCityInput: CreateCityInput!): CityResponse!
-  updateCity(id: String!, name: String!): CityResponse!
-  deleteCity(id: String!): CityResponse!
+  updateCity(id: LocationIdInput!, name: LocationNameInput!): CityResponse!
+  deleteCity(id: LocationIdInput!): CityResponse!
   createCountry(createCountryInput: CreateCountryInput!): CountryResponse!
-  updateCountry(id: String!, name: String!): CountryResponse!
-  deleteCountry(id: String!): CountryResponse!
-  createCompany(userId: String!, createCompanyDto: CreateCompanyDto!, createAddressInput: CreateAddressInput): CompanyResponse!
-  addEmployee(companyId: String!, userId: String!): CompanyResponse!
-  deleteEmployee(companyId: String!, userId: String!): CompanyResponse!
-  updateCompany(id: String!, updateCompanyDto: UpdateCompanyDto!): CompanyResponse!
-  deleteCompany(id: String!): CompanyResponse!
-  editUserRole(userId: String!, companyId: String!): UserResponse!
-  createCategory(name: String!): CategoryResponse!
-  updateCategory(id: String!, name: String!): CategoryResponse!
-  deleteCategory(id: String!): CategoryResponse!
+  updateCountry(id: LocationIdInput!, name: LocationNameInput!): CountryResponse!
+  deleteCountry(id: LocationIdInput!): CountryResponse!
+  createCompany(companyUserIdInput: CompanyUserIdInput!, createCompanyDto: CreateCompanyDto!, createAddressInput: CreateAddressInput): CompanyResponse!
+  addEmployee(addEmployeeInput: AddEmployeeInput!): CompanyResponse!
+  deleteEmployee(addEmployeeInput: AddEmployeeInput!): CompanyResponse!
+  updateCompany(updateCompanyDto: UpdateCompanyDto!): CompanyResponse!
+  deleteCompany(id: CompanyIdInput!): CompanyResponse!
+  editUserRole(addEmployeeInput: AddEmployeeInput!): UserResponse!
+  createCategory(name: CreateCategoryInput!): CategoryResponse!
+  updateCategory(id: CategoryIdInput!, name: UpdateCategoryInput!): CategoryResponse!
+  deleteCategory(id: CategoryIdInput!): CategoryResponse!
   createProduct(createProductInput: CreateProductInput!): ProductResponse!
   updateProduct(updateProductInput: UpdateProductInput!): ProductResponse!
-  deleteProduct(id: String!): ProductResponse!
+  deleteProduct(productId: ProductIdInput!): ProductResponse!
   createColor(createColorInput: CreateColorInput!): ColorResponse!
   updateColor(updateColorInput: UpdateColorInput!): ColorResponse!
-  deleteColor(id: String!): ColorResponse!
+  deleteColor(id: ColorIdInput!): ColorResponse!
   createProductDetail(createDetailInput: CreateDetailInput!): ProductDetailResponse!
   updateProductDetail(updateProductDetailsInput: UpdateProductDetailsInput!): ProductDetailResponse!
-  deleteProductDetail(id: String!): ProductDetailResponse!
+  deleteProductDetail(id: DetailsIdInput!): ProductDetailResponse!
   addToCart(cartItemInput: CartItemInput!): CartResponse!
-  updateCartItemQuantity(cartItemId: String!, quantity: Float!): CartItemResponse!
+  updateCartItemQuantity(cartItemId: CartItemIdInput!, quantity: Int!): CartItemResponse!
   deleteCartItems: CartResponse!
-  deleteCart(cartId: String!): CartResponse!
+  deleteCart(cartId: CartIdInput!): CartResponse!
   createCoupon(createCouponInput: CreateCouponInput!): CouponResponse!
-  updateCouponActive(id: String!): CouponResponse!
+  updateCouponActive(id: CouponIdInput!): CouponResponse!
   updateCoupon(updateCouponInput: UpdateCouponInput!): CouponResponse!
-  deleteCoupon(id: String!): CouponResponse!
+  deleteCoupon(id: CouponIdInput!): CouponResponse!
 }
 
 input UpdateUserDto {
   firstName: String
   lastName: String
   avatar: CreateImagDto
-  email: String
-  phone: String
+  email: String!
+  phone: String!
 }
 
 input CreateImagDto {
@@ -690,6 +754,7 @@ input UpdateAddressInput {
 }
 
 input CreateUserDto {
+  fcmToken: String!
   firstName: String!
   lastName: String!
   email: String!
@@ -697,9 +762,15 @@ input CreateUserDto {
   phone: String!
 }
 
+input CreateUserAddressInput {
+  createAddress: CreateAddressInput!
+  isDefault: Boolean
+}
+
 input LoginDto {
   email: String!
   password: String!
+  fcmToken: String!
 }
 
 input ResetPasswordDto {
@@ -712,11 +783,6 @@ input ChangePasswordDto {
   newPassword: String!
 }
 
-input CreateUserAddressInput {
-  createAddress: CreateAddressInput!
-  isDefault: Boolean
-}
-
 input UpdateUserAddressInput {
   createAddress: CreateAddressInput
   isDefault: Boolean
@@ -725,12 +791,20 @@ input UpdateUserAddressInput {
 input CreateCityInput {
   name: String!
   countryId: String!
-  postalCode: String
-  state: String
+  postalCode: String!
+  state: String!
+}
+
+input LocationNameInput {
+  name: String!
 }
 
 input CreateCountryInput {
   name: String!
+}
+
+input CompanyUserIdInput {
+  userId: String!
 }
 
 input CreateCompanyDto {
@@ -740,18 +814,33 @@ input CreateCompanyDto {
   website: String!
 }
 
+input AddEmployeeInput {
+  userId: String!
+  companyId: String!
+}
+
 input UpdateCompanyDto {
   name: String
   email: String
   phone: String
   website: String
+  id: String!
+}
+
+input CreateCategoryInput {
+  name: String!
+}
+
+input UpdateCategoryInput {
+  id: String!
+  name: String!
 }
 
 input CreateProductInput {
+  categoryId: String!
   name: String!
   description: String!
   price: Float!
-  categoryId: String!
   details: [CreateDetailInput!]!
   images: [CreateImagDto!]!
 }
@@ -764,10 +853,10 @@ input CreateDetailInput {
 }
 
 input UpdateProductInput {
+  categoryId: String
   name: String
   description: String
   price: Float
-  categoryId: String
   details: [CreateDetailInput!]
   images: [CreateImagDto!]
   id: String!
@@ -793,7 +882,11 @@ input UpdateProductDetailsInput {
 input CartItemInput {
   productId: String!
   detailsId: String!
-  quantity: Float!
+  quantity: Int!
+}
+
+input CartItemIdInput {
+  cartItemId: String!
 }
 
 input CreateCouponInput {
@@ -801,7 +894,7 @@ input CreateCouponInput {
   name: String!
   categoryId: String!
   type: TypeCoupon!
-  discount: Float!
+  discount: Int!
 }
 
 input UpdateCouponInput {
@@ -809,7 +902,7 @@ input UpdateCouponInput {
   name: String
   categoryId: String
   type: TypeCoupon
-  discount: Float
+  discount: Int
   id: String!
 }
 

@@ -1,20 +1,21 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsOptional, IsInt } from 'class-validator';
+import { IsOptional, IsInt, IsString } from 'class-validator';
 import { Size } from 'src/common/constant/enum.constant';
+import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
 
 @InputType()
 export class CreateDetailInput {
-  @Field()
+  @IdField('Color')
   colorId: string;
 
   @Field(() => Int)
   @IsInt()
   quantity: number;
 
-  @Field(() => Size, { nullable: true })
   @IsOptional()
+  @Field(() => Size, { nullable: true })
   size?: Size;
 
-  @Field({ nullable: true })
+  @IdField('Product', true)
   productId?: string;
 }

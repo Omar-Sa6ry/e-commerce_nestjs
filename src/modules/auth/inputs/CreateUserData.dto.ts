@@ -1,40 +1,26 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { PasswordValidator } from 'src/common/constant/messages.constant';
-import {
-  IsEmail,
-  IsString,
-  IsPhoneNumber,
-  Length,
-  Validate,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
-import { IsEmailConstraint } from 'src/common/constant/validEmail';
-import { CapitalizeWords } from 'src/common/constant/WordsTransform';
+import { InputType } from '@nestjs/graphql';
+import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
+import { EmailField } from 'src/common/decerator/validation/EmailField.decerator';
+import { PasswordField } from 'src/common/decerator/validation/PasswordField.decerator';
+import { PhoneField } from 'src/common/decerator/validation/PhoneField.decerator';
 
 @InputType()
 export class CreateUserDto {
-  @Field()
-  @IsString()
-  @Transform(({ value }) => CapitalizeWords(value))
+  @CapitalTextField('fcmToken')
+  fcmToken: string;
+
+  @CapitalTextField('First name')
   firstName: string;
 
-  @Field()
-  @IsString()
-  @Transform(({ value }) => CapitalizeWords(value))
+  @CapitalTextField('Last name')
   lastName: string;
 
-  @Field()
-  @IsEmail()
-  @Validate(IsEmailConstraint)
-  @Transform(({ value }) => value.toLowerCase())
+  @EmailField()
   email: string;
 
-  @Field()
-  @IsString()
-  @Length(8, 16, { message: PasswordValidator })
+  @PasswordField()
   password: string;
 
-  @Field()
-  @IsPhoneNumber('EG')
+  @PhoneField()
   phone: string;
 }

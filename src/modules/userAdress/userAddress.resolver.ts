@@ -17,6 +17,7 @@ import { UpdateUserAddressInput } from './inputs/updateUserAddress.input';
 import { Address } from '../address/entity/address.entity';
 import { User } from '../users/entity/user.entity';
 import { UpdateAddressInput } from '../address/inputs/updateAddress.input';
+import { AddressIdInput } from '../address/inputs/addressId.input';
 
 @Resolver(() => UserAddress)
 export class UserAddressResolver {
@@ -39,7 +40,7 @@ export class UserAddressResolver {
   @Auth([Role.USER], [Permission.UPDATE_USER_ADDRESS])
   async updateUserAddress(
     @CurrentUser() user: CurrentUserDto,
-    @Args('addressId') addressId: string,
+    @Args('addressId') addressId: AddressIdInput,
     @Args('updateAddressInput', { nullable: true })
     updateAddressInput?: UpdateAddressInput,
     @Args('updateUserAddressInput', { nullable: true })
@@ -47,7 +48,7 @@ export class UserAddressResolver {
   ): Promise<UserAddressResponse> {
     return this.userAddressService.updateUserAddress(
       user.id,
-      addressId,
+      addressId.addressId,
       updateAddressInput,
       updateUserAddressInput,
     );
@@ -57,18 +58,24 @@ export class UserAddressResolver {
   @Auth([Role.USER], [Permission.DELETE_USER_ADDRESS])
   async deleteUserAddress(
     @CurrentUser() user: CurrentUserDto,
-    @Args('userAddressId') userAddressId: string,
+    @Args('userAddressId') userAddressId: AddressIdInput,
   ): Promise<UserAddressResponse> {
-    return this.userAddressService.deleteUserAddress(user.id, userAddressId);
+    return this.userAddressService.deleteUserAddress(
+      user.id,
+      userAddressId.addressId,
+    );
   }
 
   @Mutation(() => UserAddressResponse)
   @Auth([Role.USER], [Permission.UPDATE_USER_ADDRESS])
   async setDefaultAddress(
     @CurrentUser() user: CurrentUserDto,
-    @Args('userAddressId') userAddressId: string,
+    @Args('userAddressId') userAddressId: AddressIdInput,
   ): Promise<UserAddressResponse> {
-    return this.userAddressService.setDefaultAddress(user.id, userAddressId);
+    return this.userAddressService.setDefaultAddress(
+      user.id,
+      userAddressId.addressId,
+    );
   }
 
   @ResolveField(() => Address)

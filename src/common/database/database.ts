@@ -49,8 +49,8 @@ import { User } from 'src/modules/users/entity/user.entity';
           Order,
           OrderItem,
         ],
+        logging: ['error', 'warn', 'query'], // Logs queries in development
         synchronize: true,
-        logging: false,
       }),
     }),
   ],

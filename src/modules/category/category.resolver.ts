@@ -8,6 +8,9 @@ import {
   CategoryResponse,
   CategoriesResponse,
 } from './dto/categoryResponse.dto';
+import { CreateCategoryInput } from './inputs/createCategoryr.input';
+import { CategoryIdInput, CategoryNameInput } from './inputs/category.input';
+import { UpdateCategoryInput } from './inputs/updateColor.input';
 
 @Resolver(() => Category)
 export class CategoryResolver {
@@ -15,7 +18,9 @@ export class CategoryResolver {
 
   @Auth([Role.ADMIN], [Permission.CREATE_CATEGORY])
   @Mutation(() => CategoryResponse)
-  async createCategory(@Args('name') name: string): Promise<CategoryResponse> {
+  async createCategory(
+    @Args('name') name: CreateCategoryInput,
+  ): Promise<CategoryResponse> {
     return this.categoryService.create(name);
   }
 
@@ -28,29 +33,33 @@ export class CategoryResolver {
   }
 
   @Query(() => CategoryResponse)
-  async getCategoryById(@Args('id') id: string): Promise<CategoryResponse> {
-    return this.categoryService.findById(id);
+  async getCategoryById(
+    @Args('id') id: CategoryIdInput,
+  ): Promise<CategoryResponse> {
+    return this.categoryService.findById(id.categoryId);
   }
 
   @Query(() => CategoryResponse)
   async getCategoryByName(
-    @Args('name') name: string,
+    @Args('name') name: CategoryNameInput,
   ): Promise<CategoryResponse> {
-    return this.categoryService.findByName(name);
+    return this.categoryService.findByName(name.name);
   }
 
   @Auth([Role.ADMIN], [Permission.UPDATE_CATEGORY])
   @Mutation(() => CategoryResponse)
   async updateCategory(
-    @Args('id') id: string,
-    @Args('name') name: string,
+    @Args('id') id: CategoryIdInput,
+    @Args('name') name: UpdateCategoryInput,
   ): Promise<CategoryResponse> {
-    return this.categoryService.update(id, name);
+    return this.categoryService.update(id.categoryId, name);
   }
 
   @Auth([Role.ADMIN], [Permission.DELETE_CATEGORY])
   @Mutation(() => CategoryResponse)
-  async deleteCategory(@Args('id') id: string): Promise<CategoryResponse> {
-    return this.categoryService.remove(id);
+  async deleteCategory(
+    @Args('id') id: CategoryIdInput,
+  ): Promise<CategoryResponse> {
+    return this.categoryService.remove(id.categoryId);
   }
 }

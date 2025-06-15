@@ -12,6 +12,7 @@ import { UpdateProductDetailsInput } from './inputs/updateProductDetails.input';
 import { Details } from './entity/productDetails.entity';
 import { Permission, Role } from '../../common/constant/enum.constant';
 import { Auth } from 'src/common/decerator/auth.decerator';
+import { DetailsIdInput } from './inputs/details.input';
 import { FindProductDetailsInput } from './inputs/findProductDetails.input';
 import { Color } from '../color/entity/color.entity';
 import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
@@ -51,8 +52,10 @@ export class ProductDetailsResolver {
   }
 
   @Query(() => ProductDetailResponse)
-  getProductDetailById(@Args('id') id: string): Promise<ProductDetailResponse> {
-    return this.productDetailsService.findOne(id);
+  getProductDetailById(
+    @Args('id') id: DetailsIdInput,
+  ): Promise<ProductDetailResponse> {
+    return this.productDetailsService.findOne(id.id);
   }
 
   @Mutation(() => ProductDetailResponse)
@@ -72,9 +75,9 @@ export class ProductDetailsResolver {
   @Auth([Role.COMPANY], [Permission.DELETE_PRODUCT_DETAILS])
   deleteProductDetail(
     @CurrentUser() user: CurrentUserDto,
-    @Args('id') id: string,
+    @Args('id') id: DetailsIdInput,
   ): Promise<ProductDetailResponse> {
-    return this.productDetailsService.remove(id, user.id);
+    return this.productDetailsService.remove(id.id, user.id);
   }
 
   @ResolveField(() => Product)

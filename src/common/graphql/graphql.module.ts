@@ -4,6 +4,13 @@ import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { HttpExceptionFilter } from '../filter/errorHandling.filter';
+import depthLimit from 'graphql-depth-limit';
+// import {
+//   createComplexityRule as queryComplexity,
+//   fieldExtensionsEstimator,
+//   simpleEstimator,
+// } from 'graphql-query-complexity';
+
 
 @Module({
   imports: [
@@ -14,9 +21,12 @@ import { HttpExceptionFilter } from '../filter/errorHandling.filter';
         request: req,
         language: req.headers['accept-language'] || 'en',
       }),
+
       playground: true,
       uploads: true,
       debug: false,
+
+      // Subscription
       installSubscriptionHandlers: true,
       subscriptions: {
         'subscriptions-transport-ws': {
@@ -25,6 +35,18 @@ import { HttpExceptionFilter } from '../filter/errorHandling.filter';
         },
         'graphql-ws': true,
       },
+
+      // // SQL Injection
+      // validationRules: [
+      //   depthLimit(5),
+      //   queryComplexity({
+      //     estimators: [
+      //       fieldExtensionsEstimator(),
+      //       simpleEstimator({ defaultComplexity: 1 }),
+      //     ],
+      //     maximumComplexity: 1000,
+      //   }),
+      // ],
 
       formatError: (error) => {
         return {
