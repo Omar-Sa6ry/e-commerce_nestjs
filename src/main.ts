@@ -5,21 +5,24 @@ import { DataSource } from 'typeorm';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { I18nValidationException } from 'nestjs-i18n';
 import { AppModule } from './app.module';
-import { GeneralResponseInterceptor } from './common/interceptor/generalResponse.interceptor';
+import { GeneralResponseInterceptor } from './common/interceptors/generalResponse.interceptor';
 import {
   BadRequestException,
   ClassSerializerInterceptor,
   ValidationPipe,
 } from '@nestjs/common';
+import { SqlInjectionInterceptor } from './common/interceptors/sqlInjection.interceptor';
 
 async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule);
     app.enableCors();
     app.useGlobalPipes(new ValidationPipe());
-    app.useGlobalInterceptors(new GeneralResponseInterceptor());
     app.use(graphqlUploadExpress({ maxFileSize: 1000000, maxFiles: 5 }));
     app.useGlobalInterceptors(
+      new ClassSerializerInterceptor(app.get(Reflector)),
+      new SqlInjectionInterceptor(),
+      new GeneralResponseInterceptor(),
       new ClassSerializerInterceptor(app.get(Reflector)),
     );
 
