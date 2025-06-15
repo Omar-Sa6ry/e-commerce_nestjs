@@ -1,6 +1,12 @@
 import { applyDecorators } from '@nestjs/common';
 import { Field } from '@nestjs/graphql';
-import { IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsAlphanumeric,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { CapitalizeWords } from '../WordsTransform.decerator';
 
@@ -16,9 +22,16 @@ export function CapitalTextField(
     Field(() => String, { nullable }),
     IsOptional(),
     IsString({ message }),
+    IsAlphanumeric(),
     Length(min, max, {
       message,
     }),
+    Matches(
+      /^(?!.*(\b(SELECT|INSERT|DELETE|UPDATE|DROP|UNION|EXEC|TRUNCATE|ALTER|CREATE)\b|--|;)).*$/i,
+      {
+        message: `${text} contains forbidden SQL keywords or patterns`,
+      },
+    ),
     Transform(({ value }) => CapitalizeWords(value)),
   );
 }

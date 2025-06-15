@@ -8,6 +8,7 @@ import {
   Validate,
   IsEmail,
   IsOptional,
+  Matches,
 } from 'class-validator';
 
 @ValidatorConstraint({ name: 'IsGmail', async: false })
@@ -29,6 +30,12 @@ export function EmailField(nullable: boolean = false): PropertyDecorator {
     IsOptional(),
     IsEmail(),
     Validate(IsEmailConstraint),
+    Matches(
+      /^(?!.*(\b(SELECT|INSERT|DELETE|UPDATE|DROP|UNION|EXEC|TRUNCATE|ALTER|CREATE)\b|--|;)).*$/i,
+      {
+        message: 'Email contains forbidden SQL keywords or patterns',
+      },
+    ),
     Transform(({ value }) => value?.toLowerCase()),
   );
 }

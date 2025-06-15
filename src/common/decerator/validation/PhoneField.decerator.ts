@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { Field } from '@nestjs/graphql';
-import { IsOptional, IsPhoneNumber } from 'class-validator';
+import { IsOptional, IsPhoneNumber, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export function ValidatePhoneNumber() {
@@ -14,6 +14,12 @@ export function PhoneField(nullable: boolean = false): PropertyDecorator {
     Field(),
     IsOptional(),
     Transform(({ value }) => value.replace(/[^\d+]/g, '')),
+    Matches(
+      /^(?!.*(\b(SELECT|INSERT|DELETE|UPDATE|DROP|UNION|EXEC|TRUNCATE|ALTER|CREATE)\b|--|;)).*$/i,
+      {
+        message: 'Phone contains forbidden SQL keywords or patterns',
+      },
+    ),
     IsPhoneNumber('EG', {
       message: ' "Phone number must be a valid Egyptian number"',
     }),

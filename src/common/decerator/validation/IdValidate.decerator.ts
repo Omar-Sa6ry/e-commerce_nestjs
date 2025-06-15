@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { Field } from '@nestjs/graphql';
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsOptional, IsString, Length, Matches } from 'class-validator';
 
 export function IdField(
   id: string,
@@ -15,5 +15,11 @@ export function IdField(
     Length(26, 26, {
       message,
     }),
+    Matches(
+      /^(?!.*(\b(SELECT|INSERT|DELETE|UPDATE|DROP|UNION|EXEC|TRUNCATE|ALTER|CREATE)\b|--|;)).*$/i,
+      {
+        message: `${id} Id contains forbidden SQL keywords or patterns`,
+      },
+    ),
   );
 }
