@@ -17,22 +17,24 @@ import { Product } from './entities/product.entity';
 import { Permission, Role } from '../../common/constant/enum.constant';
 import { Auth } from 'src/common/decerator/auth.decerator';
 import { FindProductInput } from './inputs/findProduct.input';
-import { RedisService } from 'src/common/redis/redis.service';
-import { ProductDetailsLoader } from '../poductDetails/loader/productDetails.loader';
 import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { ProductPubsupResponse } from './dtos/product.subscription';
-import { Details } from '../poductDetails/entity/productDetails.entity';
 import { PUB_SUB } from 'src/common/pubsup/pubSub.module';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { ProductIdInput } from './inputs/product.input';
+import { ProductDataLoader } from './dataLoader/product.loader';
+import { Category } from '../category/entity/category.entity';
+import { Company } from '../company/entity/company.entity';
+import { Image } from './entities/image.entity';
+import { User } from '../users/entity/user.entity';
+import { Details } from '../poductDetails/entity/productDetails.entity';
 
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
-    private readonly redisService: RedisService,
     private readonly productService: ProductService,
-    private readonly productDetailsLoader: ProductDetailsLoader,
+    private readonly productLoader: ProductDataLoader,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
 
@@ -59,14 +61,7 @@ export class ProductResolver {
   async getProductById(
     @Args('productId') productId: ProductIdInput,
   ): Promise<ProductResponse> {
-    const id = productId.id;
-    const cachedProduct = await this.redisService.get(`product:${id}`);
-
-    if (cachedProduct instanceof Product) {
-      return { data: cachedProduct };
-    }
-
-    return this.productService.findOne(id);
+    return this.productService.findOne(productId.id);
   }
 
   @Mutation(() => ProductResponse)
@@ -98,11 +93,31 @@ export class ProductResolver {
     resolve: (value) => value.productDeleted.id,
   })
   productDeleted() {
-    return this.pubSub.asyncIterableIterator('productDeleted');
+    return this.pubSub.asyncIterator('productDeleted');
   }
 
-  @ResolveField(() => [Details])
+  @ResolveField('category', () => Category)
+  async category(@Parent() product: Product): Promise<Category> {
+    return this.productLoader.batchCategories.load(product.categoryId);
+  }
+
+  @ResolveField('company', () => Company)
+  async company(@Parent() product: Product): Promise<Company> {
+    return this.productLoader.batchCompanies.load(product.companyId);
+  }
+
+  @ResolveField('user', () => User)
+  async user(@Parent() product: Product): Promise<User> {
+    return this.productLoader.batchUsers.load(product.userId);
+  }
+
+  @ResolveField('images', () => [Image])
+  async images(@Parent() product: Product): Promise<Image[]> {
+    return this.productLoader.batchImages.load(product.id);
+  }
+
+  @ResolveField('details', () => [Details])
   async details(@Parent() product: Product): Promise<Details[]> {
-    return this.productDetailsLoader.load(product.id);
+    return this.productLoader.batchDetails.load(product.id);
   }
 }
