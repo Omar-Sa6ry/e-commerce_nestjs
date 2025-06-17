@@ -23,23 +23,23 @@ import {
 @Entity('user')
 export class User extends BaseEntity {
   @Field()
-  @Column({ length: 100 })
-  firstName: string;
+  @Column({ length: 100, nullable: true })
+  firstName?: string;
 
   @Field()
-  @Column({ length: 100 })
-  lastName: string;
+  @Column({ length: 100, nullable: true })
+  lastName?: string;
 
   @Field()
-  @Column({ length: 201 })
-  fullName: string;
+  @Column({ length: 201, nullable: true })
+  fullName?: string;
 
   @Field({ nullable: true })
   @Column({ length: 255, nullable: true })
   avatar?: string;
 
   @Field()
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   phone: string;
 
   @Field()
@@ -48,7 +48,7 @@ export class User extends BaseEntity {
   email: string;
 
   @Exclude()
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Exclude()
@@ -58,6 +58,10 @@ export class User extends BaseEntity {
     default: Role.USER,
   })
   role: Role;
+
+  @Field()
+  @Column({ nullable: true, unique: true })
+  googleId?: string;
 
   @Exclude()
   @Column({ nullable: true })

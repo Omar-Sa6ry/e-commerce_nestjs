@@ -246,6 +246,7 @@ type User {
   avatar: String
   phone: String!
   email: String!
+  googleId: String!
   companyId: String
   company: Company
   products: [Product!]

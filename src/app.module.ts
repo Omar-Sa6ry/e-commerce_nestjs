@@ -21,6 +21,7 @@ import { LocationModule } from './modules/location/location.module';
 import { OrderModule } from './modules/order/order.module';
 import { ColorModule } from './modules/color/color.module';
 import { StripeModule } from './modules/stripe/stripe.module';
+import { OAuthModule } from './common/oauth/oauth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
     ThrottlerModule,
     TranslationModule,
     PubSubModule,
+    OAuthModule,
     StripeModule,
 
     AuthModule,

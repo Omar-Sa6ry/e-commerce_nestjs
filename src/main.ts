@@ -36,6 +36,7 @@ async function bootstrap() {
     );
 
     app.use('/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
+    app.use('/google/callback', bodyParser.raw({ type: 'application/json' }));
     app.use(json());
 
     const dataSource = app.get(DataSource);
