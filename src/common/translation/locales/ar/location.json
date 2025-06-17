@@ -1,0 +1,15 @@
+{
+  "EXISTED_COUNTRY": "الدولة {name} موجودة بالفعل",
+  "CREATED_COUNTRY": "تم إنشاء الدولة {name} بنجاح",
+  "NOT_FOUNDS_COUNTIES": "لم يتم العثور على دول",
+  "NOT_FOUND_COUNTRY": "لم يتم العثور على الدولة {id}",
+  "UPDATED_COUNTRY": "تم تحديث الدولة {id} بنجاح",
+  "DELETED_COUNTRY": "تم حذف الدولة {id} بنجاح",
+
+  "CREATED_CITY": "تم إنشاء المدينة {name} بنجاح",
+  "NOT_FOUND_CITY": "لم يتم العثور على المدينة {id}",
+  "NOT_FOUNDS_CITIES": "لم يتم العثور على مدن",
+  "EXISTED_CITY": "المدينة {name} موجودة بالفعل",
+  "UPDATED_CITY": "تم تحديث المدينة {id} بنجاح",
+  "DELETED_CITY": "تم حذف المدينة {id} بنجاح"
+}
