@@ -24,6 +24,7 @@ This project is a fully-featured **e-commerce backend** API built using **NestJS
 | **Firebase**     | Sending push notifications via FCM |
 | **i18n**         | Multi-language support for all user-visible messages |
 | **JWT**          | Secure authentication |
+| **Passport.js**          | Google OAuth |
 | **SQL Injection Protection** | Custom regex input validators |
 | **SOLID Principles** | Service structure follows SOLID design |
 | **ACID Transactions** | All critical flows (orders, deletion) wrapped in transactions |
@@ -89,6 +90,7 @@ The schema is modular and relational. Some key design choices:
 - Applied **SQL injection protection** using custom regex validators for user inputs
 - Sanitized inputs and enforced data validation across GraphQL DTOs
 - Used JWT with refresh token strategies for secure auth
+- Used Passport.js with Google OAuth
 - Validated Stripe webhook events for secure payment processing
 
 ---
