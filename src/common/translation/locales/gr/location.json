@@ -1,0 +1,15 @@
+{
+  "EXISTED_COUNTRY": "Land {name} existiert bereits",
+  "CREATED_COUNTRY": "Land {name} wurde erfolgreich erstellt",
+  "NOT_FOUNDS_COUNTIES": "Keine Länder gefunden",
+  "NOT_FOUND_COUNTRY": "Land {id} wurde nicht gefunden",
+  "UPDATED_COUNTRY": "Land {id} wurde erfolgreich aktualisiert",
+  "DELETED_COUNTRY": "Land {id} wurde erfolgreich gelöscht",
+
+  "CREATED_CITY": "Stadt {name} wurde erfolgreich erstellt",
+  "NOT_FOUND_CITY": "Stadt {id} wurde nicht gefunden",
+  "NOT_FOUNDS_CITIES": "Keine Städte gefunden",
+  "EXISTED_CITY": "Stadt {name} existiert bereits",
+  "UPDATED_CITY": "Stadt {id} wurde erfolgreich aktualisiert",
+  "DELETED_CITY": "Stadt {id} wurde erfolgreich gelöscht"
+}

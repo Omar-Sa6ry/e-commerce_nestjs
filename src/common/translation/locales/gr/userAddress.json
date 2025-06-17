@@ -1,0 +1,7 @@
+{
+  "NOT_FOUND": "Adresse {id} wurde nicht gefunden",
+  "CREATED": "Adresse erfolgreich erstellt",
+  "UPDATED": "Adresse {id} wurde erfolgreich aktualisiert",
+  "DELETED": "Adresse {id} wurde erfolgreich gelöscht",
+  "SET_DEFAULT": "Adresse {id} wurde erfolgreich als Standard festgelegt"
+}

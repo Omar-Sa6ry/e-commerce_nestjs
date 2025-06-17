@@ -1,0 +1,10 @@
+{
+  "ADDQUANTITY": "Menge erfolgreich hinzugefügt, jetzt gibt es {quantity} Stück dieses Produkts",
+  "EXISTEDCOLOR": "Produktfarbe {color} ist bereits vorhanden",
+  "EXISTEDSIZE": "Produktgröße {size} ist bereits vorhanden",
+  "NOT_FOUNDS": "Keine Produktdetails zum Anzeigen vorhanden",
+  "NOT_FOUND": "Produktdetails {id} wurden nicht gefunden",
+  "UPDATED": "Produktdetails {id} wurden erfolgreich aktualisiert",
+  "NOT_MATCHED": "Produktdetails {id} stimmen nicht überein",
+  "NOT_ENOUGH_STOCK": "Nicht genügend Lagerbestand"
+}

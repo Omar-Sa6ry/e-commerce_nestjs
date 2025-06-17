@@ -1,0 +1,9 @@
+{
+  "EXISTED": "Farbe {name} existiert bereits",
+  "CREATED": "Farbe wurde erfolgreich erstellt",
+  "UPDATED": "Farbe {id} wurde erfolgreich aktualisiert",
+  "DELETED": "Farbe {id} wurde erfolgreich gelöscht",
+  "NOT_FOUND": "Farbe {id} wurde nicht gefunden",
+  "NOT_FOUND_BY_NAME": "Farbe {name} wurde nicht gefunden",
+  "NOT_FOUNDS": "Keine Farben gefunden"
+}

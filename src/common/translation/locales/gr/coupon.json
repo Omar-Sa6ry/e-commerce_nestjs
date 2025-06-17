@@ -1,0 +1,12 @@
+{
+  "EXISTED": "Gutscheincode {name} existiert bereits",
+  "CREATED": "Gutschein wurde erfolgreich erstellt",
+  "UPDATED": "Gutschein {id} wurde erfolgreich aktualisiert",
+  "DELETED": "Gutschein {id} wurde erfolgreich gelöscht",
+  "NOT_FOUND": "Gutschein {id} wurde nicht gefunden",
+  "NOT_FOUND_BY_NAME": "Gutschein {name} wurde nicht gefunden",
+  "NOT_FOUNDS": "Keine Gutscheine gefunden",
+  "ACTIVE": "Gutschein {id} ist {active}",
+  "INVALID_COUPON": "Ungültiger Gutscheincode",
+  "PERCENTAGE": "Der Gutschein muss prozentual sein und der Rabatt muss zwischen 0 und 90 liegen"
+}

@@ -1,0 +1,11 @@
+{
+  "CREATED": "Warenkorb wurde erfolgreich erstellt",
+  "UPDATED": "Warenkorb wurde erfolgreich aktualisiert",
+  "NOT_ENOUGH": "Nicht genügend Menge vorhanden",
+  "EMPTY": "Warenkorb ist leer",
+  "NOT_FOUND": "Warenkorb {id} wurde nicht gefunden",
+  "QUANTITY_UPDATED": "Menge wurde erfolgreich aktualisiert",
+  "DELETED_CART": "Warenkorb {id} wurde erfolgreich gelöscht",
+  "NOT_ENOUGH_STOCK": "Nicht genügend Lagerbestand",
+  "CART_EMPTY": "Warenkorb ist leer"
+}

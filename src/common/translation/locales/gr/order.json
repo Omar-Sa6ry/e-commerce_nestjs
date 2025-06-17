@@ -1,0 +1,15 @@
+{
+  "CREATE": "Bestellung erstellt",
+  "CREATED": "Bestellung wurde erfolgreich erstellt",
+  "DELETED": "Bestellung {id} wurde erfolgreich gelöscht",
+  "NOT_FOUND": "Bestellung {id} wurde nicht gefunden",
+  "NOT_FOUNDS": "Keine Bestellungen gefunden",
+  "STRIPE_ERROR": "Stripe-Fehler",
+  "CANCELED": "Bestellung {id} wurde erfolgreich storniert",
+  "NO_ITEMS": "Bestellung enthält keine Artikel",
+  "COMPLETED_ORDER_PAY": "Bestellung {id} wurde erfolgreich abgeschlossen",
+  "PRODUCT_NOT_FOUND": "Produkt nicht gefunden",
+  "SEND_URL": "URL zum Abschließen der Bestellung wurde erfolgreich gesendet",
+  "UPDATED_STATUS": "Bestellstatus von {id} wurde erfolgreich auf {status} aktualisiert",
+  "SENT": "Wir senden Ihnen eine E-Mail und eine Benachrichtigung, um Ihre Bestellung zu überprüfen"
+}

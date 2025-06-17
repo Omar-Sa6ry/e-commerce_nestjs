@@ -1,0 +1,13 @@
+{
+  "EXISTED": "Unternehmen {email} {name} existiert bereits",
+  "CREATED": "Unternehmen mit dem Namen {name} wurde erfolgreich erstellt",
+  "DELETED": "Unternehmen mit dem Namen {name} wurde erfolgreich gelöscht",
+  "UPDATED": "Unternehmen mit dem Namen {name} wurde erfolgreich aktualisiert",
+  "NOT_FOUND_BY_NAME": "Unternehmen mit dem Namen {name} wurde nicht gefunden",
+  "NOT_FOUND": "Unternehmen mit der ID {id} wurde nicht gefunden",
+  "NOT_FOUNDS": "Keine Unternehmen gefunden",
+  "UPDATE_USER": "Benutzer {name} wurde dem Unternehmen erfolgreich zugewiesen",
+  "ADD_EMPLOYEE": "Mitarbeiter wurde erfolgreich zum Unternehmen {name} hinzugefügt",
+  "NO_EMPLOYEES": "Keine Mitarbeiter im Unternehmen {name}",
+  "NOT_MANAGER": "Sie sind kein Manager"
+}
