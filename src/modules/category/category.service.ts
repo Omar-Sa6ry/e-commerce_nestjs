@@ -15,6 +15,7 @@ import {
 import { CapitalizeWords } from 'src/common/decerator/WordsTransform.decerator';
 import { CreateCategoryInput } from './inputs/createCategoryr.input';
 import { UpdateCategoryInput } from './inputs/updateColor.input';
+import { CategoryFactory } from './factory/ctegory.factory';
 
 @Injectable()
 export class CategoryService {
@@ -28,15 +29,14 @@ export class CategoryService {
     createCategoryInput: CreateCategoryInput,
   ): Promise<CategoryResponse> {
     const { name } = createCategoryInput;
+
     const existedCategory = await this.categoryRepository.findOneBy({ name });
     if (existedCategory)
       throw new BadRequestException(
         await this.i18n.t('category.EXISTED', { args: { name } }),
       );
 
-    const categoryName = await CapitalizeWords(name);
-
-    const category = this.categoryRepository.create({ name: categoryName });
+    const category = await CategoryFactory.create(createCategoryInput);
     await this.categoryRepository.save(category);
 
     return {
@@ -86,17 +86,24 @@ export class CategoryService {
     id: string,
     updateCategoryInput: UpdateCategoryInput,
   ): Promise<CategoryResponse> {
-    const { name } = updateCategoryInput;
     const category = await this.categoryRepository.findOneBy({ id });
 
-    const categoryName = await CapitalizeWords(name);
-    category.name = categoryName;
+    if (!category)
+      throw new NotFoundException(
+        await this.i18n.t('category.NOT_FOUND', { args: { id } }),
+      );
 
-    await this.categoryRepository.save(category);
+    const updatedCategory = await CategoryFactory.update(
+      category,
+      updateCategoryInput,
+    );
+    await this.categoryRepository.save(updatedCategory);
 
     return {
-      data: category,
-      message: await this.i18n.t('category.UPDATED', { args: { name } }),
+      data: updatedCategory,
+      message: await this.i18n.t('category.UPDATED', {
+        args: { name: updatedCategory.name },
+      }),
     };
   }
 

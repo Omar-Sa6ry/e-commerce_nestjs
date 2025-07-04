@@ -4,7 +4,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { DataSource, MoreThan } from 'typeorm';
-import { randomBytes } from 'crypto';
 import { I18nService } from 'nestjs-i18n';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
 import { RedisService } from 'src/common/redis/redis.service';
@@ -18,13 +17,14 @@ import { CreateUserDto } from './inputs/CreateUserData.dto';
 import { AuthResponse } from './dto/AuthRes.dto';
 import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 import { CreateUserAddressInput } from '../userAdress/inputs/createUserAddress.input';
-import { User } from '../users/entity/user.entity';
 import { UserService } from '../users/users.service';
-import { GenerateToken } from './jwt/jwt.service';
-import { HashPassword } from './utils/hashPassword';
-import { UserAddressService } from '../userAdress/userAddress.service';
-import { ComparePassword } from './utils/comparePassword';
 import { UserResponse } from '../users/dto/UserResponse.dto';
+import { HashPassword } from './utils/hashPassword';
+import { ComparePassword } from './utils/comparePassword';
+import { UserAddressService } from '../userAdress/userAddress.service';
+import { GenerateTokenFactory } from './jwt/jwt.service';
+import { PasswordResetLinkBuilder } from './builder/PasswordResetLink.builder';
+import { User } from '../users/entity/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +32,7 @@ export class AuthService {
     private readonly dataSource: DataSource,
     private readonly i18n: I18nService,
     private readonly userService: UserService,
-    private readonly tokenService: GenerateToken,
+    private readonly tokenFactory: GenerateTokenFactory,
     private readonly addressService: UserAddressService,
     private readonly redisService: RedisService,
     private readonly uploadService: UploadService,
@@ -58,7 +58,9 @@ export class AuthService {
         userAddress,
       );
 
-      const token = await this.tokenService.jwt(user.email, user.id);
+      const tokenService = await this.tokenFactory.createTokenGenerator();
+      const token = await tokenService.generate(user.email, user.id);
+
       await queryRunner.commitTransaction();
 
       this.redisService.set(`user:${user.id}`, user);
@@ -86,7 +88,8 @@ export class AuthService {
     const user = await this.validateUser(email, password);
     await this.updateUserFcmToken(user, fcmToken);
 
-    const token = await this.tokenService.jwt(user.email, user.id);
+    const tokenService = await this.tokenFactory.createTokenGenerator();
+    const token = await tokenService.generate(user.email, user.id);
 
     this.redisService.set(`user:${user.id}`, user);
 
@@ -96,7 +99,10 @@ export class AuthService {
   async forgotPassword(email: string): Promise<AuthResponse> {
     const user = await this.validateUserForPasswordReset(email);
 
-    const { token, link } = this.generatePasswordResetToken();
+    const builder = new PasswordResetLinkBuilder();
+    const link = builder.build();
+    const token = builder.getToken();
+
     await this.updateUserResetToken(user, token);
 
     this.emailService.sendEmail(
@@ -181,10 +187,10 @@ export class AuthService {
     const user = await this.validateRoleBasedUser(email, role);
 
     await ComparePassword(password, user.password);
-    const token = await this.tokenService.jwt(user.email, user.id);
+    const tokenService = await this.tokenFactory.createTokenGenerator();
+    const token = await tokenService.generate(user.email, user.id);
 
     await this.updateUserFcmToken(user, fcmToken);
-
     this.redisService.set(`user:${user.id}`, user);
     return { data: { user, token }, message: await this.i18n.t('user.LOGIN') };
   }
@@ -252,12 +258,6 @@ export class AuthService {
       throw new BadRequestException(await this.i18n.t('user.NOT_ADMIN'));
 
     return user;
-  }
-
-  private generatePasswordResetToken(): { token: string; link: string } {
-    const token = randomBytes(32).toString('hex');
-    const link = `http://localhost:3000/grapql/reset-password?token=${token}`;
-    return { token, link };
   }
 
   private async updateUserResetToken(user: User, token: string): Promise<void> {

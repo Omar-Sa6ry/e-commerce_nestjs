@@ -14,6 +14,8 @@ import { CartItem } from './entities/cartItem.enitty';
 import { Product } from '../product/entities/product.entity';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { CartResponse } from './dtos/cartResponse';
+import { CartFactory } from './factories/cart.factory';
+import { CartItemFactory } from './factories/cartItem.factory';
 
 @Injectable()
 export class CartService {
@@ -317,10 +319,7 @@ export class CartService {
     });
 
     if (!cart) {
-      cart = queryRunner.manager.create(Cart, {
-        userId,
-        totalPrice: 0,
-      });
+      cart = CartFactory.create(userId);
       await queryRunner.manager.save(cart);
     }
 
@@ -384,15 +383,10 @@ export class CartService {
     cartItemInput: CartItemInput,
     price: number,
   ): Promise<void> {
-    const newCartItem = queryRunner.manager.create(CartItem, {
-      ...cartItemInput,
-      totalPrice: price * cartItemInput.quantity,
-      cartId: cart.id,
-    });
+    const newCartItem = CartItemFactory.create(cart.id, cartItemInput, price);
     await queryRunner.manager.save(newCartItem);
 
     if (!cart.cartItems) cart.cartItems = [];
-
     cart.cartItems.push(newCartItem);
   }
 

@@ -12,6 +12,8 @@ import { User } from '../users/entity/user.entity';
 import { UpdateUserAddressInput } from './inputs/updateUserAddress.input';
 import { UpdateAddressInput } from '../address/inputs/updateAddress.input';
 import { City } from '../location/entities/city.entity';
+import { UserAddressFactory } from './factories/userAddress.factory';
+import { AddressFactory } from '../address/factories/address.factory';
 
 @Injectable()
 export class UserAddressService {
@@ -19,6 +21,7 @@ export class UserAddressService {
     private readonly i18n: I18nService,
     private readonly addressService: AddressService,
     private readonly dataSource: DataSource,
+
     @InjectRepository(UserAddress)
     private userAddressRepository: Repository<UserAddress>,
     @InjectRepository(City)
@@ -45,20 +48,20 @@ export class UserAddressService {
         }),
       );
     }
+
     try {
-      const address = await queryRunner.manager.create(Address, {
-        ...createUserAddressInput.createAddress,
-      });
+      const address = AddressFactory.create(
+        createUserAddressInput.createAddress,
+      );
       await queryRunner.manager.save(address);
 
-      const userAddress = await queryRunner.manager.create(UserAddress, {
-        ...createUserAddressInput,
+      const userAddress =UserAddressFactory.create(
+        createUserAddressInput,
         userId,
-        addressId: address.id,
         address,
-      });
-
+      );
       await queryRunner.manager.save(userAddress);
+
       await queryRunner.commitTransaction();
 
       if (createUserAddressInput?.isDefault)
@@ -226,12 +229,12 @@ export class UserAddressService {
 
     const existingAddresses = await this.getUserAddresses(userId);
 
-    const userAddress = await this.userAddressRepository.create({
+    const userAddress = UserAddressFactory.create(
+      createUserAddressInput,
       userId,
-      addressId: address.data.id,
-      isDefault:
-        existingAddresses.length === 0 || createUserAddressInput.isDefault,
-    });
+      address.data,
+      existingAddresses.length === 0,
+    );
 
     return userAddress;
   }

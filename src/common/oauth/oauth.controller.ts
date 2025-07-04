@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { OAuthService } from './oauth.service';
-import { GenerateToken } from 'src/modules/auth/jwt/jwt.service';
+import { GenerateTokenFactory } from 'src/modules/auth/jwt/jwt.service';
 import { plainToInstance } from 'class-transformer';
 import { AuthResponse } from 'src/modules/auth/dto/AuthRes.dto';
 
@@ -9,14 +9,16 @@ import { AuthResponse } from 'src/modules/auth/dto/AuthRes.dto';
 export class OAuthController {
   constructor(
     private readonly oauthService: OAuthService,
-    private readonly generateToken: GenerateToken,
+    private readonly tokenFactory: GenerateTokenFactory,
   ) {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: any) {
     const user = await this.oauthService.validateUser(req.user);
-    const token = await this.generateToken.jwt(user.email, user.id);
+
+    const tokenService = await this.tokenFactory.createTokenGenerator();
+    const token = await tokenService.generate(user.email, user.id);
 
     const response = plainToInstance(AuthResponse, {
       statusCode: 201,

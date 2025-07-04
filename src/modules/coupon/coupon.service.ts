@@ -4,6 +4,9 @@ import { Coupon } from './entity/coupon.entity';
 import { CreateCouponInput } from './inputs/createCoupon.input';
 import { I18nService } from 'nestjs-i18n';
 import { CouponResponse, CouponsResponse } from './dto/couponResponse.dto';
+import { TypeCoupon } from 'src/common/constant/enum.constant';
+import { Category } from '../category/entity/category.entity';
+import { CouponFactory } from './factory/coupon.factory';
 import { UpdateCouponInput } from './inputs/updateCoupon.input';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { FindCouponInput } from './inputs/findCoupon.input';
@@ -12,8 +15,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { TypeCoupon } from 'src/common/constant/enum.constant';
-import { Category } from '../category/entity/category.entity';
 
 @Injectable()
 export class CouponService {
@@ -53,7 +54,7 @@ export class CouponService {
 
       await this.checkValid(createCouponInput.discount, createCouponInput.type);
 
-      const coupon = queryRunner.manager.create(Coupon, createCouponInput);
+      const coupon = CouponFactory.create(createCouponInput);
       await queryRunner.manager.save(coupon);
       await queryRunner.commitTransaction();
 

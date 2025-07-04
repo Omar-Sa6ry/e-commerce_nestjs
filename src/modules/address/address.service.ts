@@ -8,6 +8,7 @@ import { AddressResponse } from './dto/addressResponse.dto';
 import { UserAddress } from '../userAdress/entity/userAddress.entity';
 import { UpdateAddressInput } from './inputs/updateAddress.input';
 import { City } from '../location/entities/city.entity';
+import { AddressFactory } from './factories/address.factory';
 
 @Injectable()
 export class AddressService {
@@ -29,14 +30,12 @@ export class AddressService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    const existedLocation = await this.locationRepository.findOne({
-      where: {
-        id: createAddressInput.locationId,
-      },
+    const city = await this.locationRepository.findOne({
+      where: { id: createAddressInput.locationId },
       relations: ['country'],
     });
 
-    if (!existedLocation)
+    if (!city)
       throw new NotFoundException(
         await this.i18n.t('location.NOT_FOUND', {
           args: { id: createAddressInput.locationId },
@@ -44,12 +43,12 @@ export class AddressService {
       );
 
     try {
-      const address = queryRunner.manager.create(Address, createAddressInput);
+      const address = AddressFactory.create(createAddressInput);
       await queryRunner.manager.save(address);
       await queryRunner.commitTransaction();
 
       return {
-        data: { ...address, city: existedLocation } as Address,
+        data: address,
         statusCode: 201,
         message: await this.i18n.t('address.CREATED'),
       };
@@ -94,32 +93,27 @@ export class AddressService {
           await this.i18n.t('address.NOT_FOUND', { args: { id } }),
         );
 
+      let city: City | undefined = undefined;
       if (updateData.locationId) {
-        const location = await this.locationRepository.findOne({
-          where: {
-            id: updateData.locationId,
-          },
+        city = await this.locationRepository.findOne({
+          where: { id: updateData.locationId },
           relations: ['country'],
         });
 
-        if (!location)
+        if (!city)
           throw new NotFoundException(
             await this.i18n.t('location.NOT_FOUND', {
               args: { id: updateData.locationId },
             }),
           );
-
-        address.locationId = location.id;
-        address.city = location;
-        await queryRunner.manager.save(address);
       }
 
-      Object.assign(address, updateData);
-      await queryRunner.manager.save(address);
+      const updated = AddressFactory.update(address, updateData);
+      await queryRunner.manager.save(updated);
       await queryRunner.commitTransaction();
 
       return {
-        data: address,
+        data: updated,
         message: await this.i18n.t('address.UPDATED', { args: { id } }),
       };
     } catch (error) {

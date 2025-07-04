@@ -11,6 +11,7 @@ import { ColorResponse, ColorsResponse } from './dto/colorResponse.dto';
 import { I18nService } from 'nestjs-i18n';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { CreateColorInput } from './inputs/createColor.input';
+import { ColorFactory } from './factories/color.factory';
 
 @Injectable()
 export class ColorService {
@@ -31,7 +32,7 @@ export class ColorService {
         }),
       );
 
-    const color = this.colorRepository.create(createColorInput);
+    const color = ColorFactory.create(createColorInput);
     await this.colorRepository.save(color);
 
     return {
@@ -97,7 +98,7 @@ export class ColorService {
         }),
       );
 
-    Object.assign(color, updateColorInput);
+    ColorFactory.update(color, updateColorInput);
     await this.colorRepository.save(color);
 
     return {

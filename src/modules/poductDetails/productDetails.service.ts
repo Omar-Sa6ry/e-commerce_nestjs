@@ -7,9 +7,10 @@ import { DataSource, FindOptionsWhere, QueryRunner, Repository } from 'typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../product/entities/product.entity';
+import { Color } from '../color/entity/color.entity';
+import { ProductDetailsFactory } from './factory/productDetails.factory';
 import { Details } from './entity/productDetails.entity';
 import { User } from '../users/entity/user.entity';
-import { ProductResponse } from '../product/dtos/productResponse.dto';
 import { CreateDetailInput } from './inputs/createProductDetails.input';
 import { FindProductDetailsInput } from './inputs/findProductDetails.input';
 import { Limit, Page } from 'src/common/constant/messages.constant';
@@ -19,7 +20,6 @@ import {
   ProductDetailResponse,
   ProductDetailsResponse,
 } from './dto/productDetailsResponse.dto';
-import { Color } from '../color/entity/color.entity';
 
 @Injectable()
 export class ProductDetailsService {
@@ -75,7 +75,6 @@ export class ProductDetailsService {
       const newDetail = await this.createNewDetail(
         queryRunner,
         createDetailInput,
-        userId,
       );
 
       await queryRunner.commitTransaction();
@@ -148,12 +147,8 @@ export class ProductDetailsService {
   private async createNewDetail(
     queryRunner: QueryRunner,
     createDetailInput: CreateDetailInput,
-    userId: string,
   ) {
-    const detail = queryRunner.manager.create(this.pDetailsRepository.target, {
-      ...createDetailInput,
-      userId,
-    });
+    const detail = ProductDetailsFactory.create(createDetailInput);
 
     await queryRunner.manager.save(detail);
     return detail;

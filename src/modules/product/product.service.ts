@@ -14,19 +14,24 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { PUB_SUB } from 'src/common/pubsup/pubSub.module';
-import { Product } from './entities/product.entity';
-import { Category } from '../category/entity/category.entity';
-import { User } from '../users/entity/user.entity';
-import { Image } from './entities/image.entity';
-import { Details } from '../poductDetails/entity/productDetails.entity';
-import { ProductResponse, ProductsResponse } from './dtos/productResponse.dto';
-import { CreateProductInput } from './inputs/createProduct.input';
-import { UpdateProductInput } from './inputs/updateProduct.input';
-import { FindProductInput } from './inputs/findProduct.input';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { UploadService } from 'src/common/upload/upload.service';
 import { RedisService } from 'src/common/redis/redis.service';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { ProductFactory } from '../product/factories/product.factory';
+import { ProductDetailsFactory } from '../poductDetails/factory/productDetails.factory';
+import { ImageFactory } from '../product/factories/image.factory';
+import { Product } from '../product/entities/product.entity';
+import { CreateProductInput } from '../product/inputs/createProduct.input';
+import { FindProductInput } from './inputs/findProduct.input';
+import { UpdateProductInput } from './inputs/updateProduct.input';
+import { Category } from '../category/entity/category.entity';
+import { User } from '../users/entity/user.entity';
+import { Image } from '../product/entities/image.entity';
+import {
+  ProductResponse,
+  ProductsResponse,
+} from '../product/dtos/productResponse.dto';
 
 @Injectable()
 export class ProductService {
@@ -36,11 +41,8 @@ export class ProductService {
     private readonly uploadService: UploadService,
     private readonly redisService: RedisService,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
-
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @InjectRepository(Details)
-    private readonly pDetailsRepository: Repository<Details>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User)
@@ -135,7 +137,6 @@ export class ProductService {
     Object.assign(product, updateProductInput);
 
     await this.productRepository.save(product);
-
     this.redisService.set(`product:${product.id}`, product);
 
     return {
@@ -175,8 +176,6 @@ export class ProductService {
       await queryRunner.release();
     }
   }
-
-  // ==================== Private Helper Methods ====================
 
   private async validateCreateProductInput(
     input: CreateProductInput,
@@ -225,30 +224,15 @@ export class ProductService {
     userId: string,
     companyId: string,
   ): Promise<Product> {
-    const product = await queryRunner.manager.create(
-      this.productRepository.target,
-      {
-        name: input.name,
-        description: input.description,
-        price: input.price,
-        categoryId: input.categoryId,
-        companyId,
-        userId,
-      },
-    );
+    const product = ProductFactory.create(input, companyId, userId);
     await queryRunner.manager.save(product);
 
-    const details = await Promise.all(
-      input.details.map((detail) =>
-        queryRunner.manager.create(this.pDetailsRepository.target, {
-          ...detail,
-          productId: product.id,
-        }),
-      ),
+    const details = input.details.map((detail) =>
+      ProductDetailsFactory.create({ ...detail, productId: product.id }),
     );
     await queryRunner.manager.save(details);
 
-    this.createProductImages(queryRunner, input.images, product.id);
+    await this.createProductImages(queryRunner, input.images, product.id);
 
     return product;
   }
@@ -264,13 +248,7 @@ export class ProductService {
           { image: imageInput.image },
           'products',
         );
-        const imageEntity = queryRunner.manager.create(
-          this.imageRepository.target,
-          {
-            path: imageUrl,
-            productId,
-          },
-        );
+        const imageEntity = ImageFactory.create(imageUrl, productId);
         await queryRunner.manager.save(imageEntity);
       }),
     );
@@ -389,7 +367,7 @@ export class ProductService {
   }
 
   private async handlePostDeletionTasks(id: string): Promise<void> {
-    Promise.all([
+    await Promise.all([
       this.redisService.del(`product:${id}`),
       this.pubSub.publish('productDeleted', { productDeleted: { id } }),
     ]);

@@ -1,14 +1,22 @@
-import { Injectable } from '@nestjs/common'
-import { JwtService } from '@nestjs/jwt'
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
-export class GenerateToken {
-  constructor (private jwtService: JwtService) {}
+export class GenerateTokenFactory {
+  constructor(private readonly jwtService: JwtService) {}
 
-  async jwt (email: string, id: string): Promise<string> {
-    const payload = { email, id }
-    return await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_SECRET,
-    })
+  createTokenGenerator(): TokenGenerator {
+    return new TokenGenerator(this.jwtService, process.env.JWT_SECRET);
+  }
+}
+
+export class TokenGenerator {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly secret: string,
+  ) {}
+
+  async generate(email: string, id: string): Promise<string> {
+    return this.jwtService.signAsync({ email, id }, { secret: this.secret });
   }
 }

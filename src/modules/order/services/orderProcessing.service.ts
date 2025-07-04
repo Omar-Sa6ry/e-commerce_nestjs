@@ -4,25 +4,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
-import { QueryRunner, Repository } from 'typeorm';
+import { QueryRunner } from 'typeorm';
 import { Coupon } from '../../coupon/entity/coupon.entity';
 import { User } from '../../users/entity/user.entity';
 import { UserAddress } from '../../userAdress/entity/userAddress.entity';
 import { Details } from '../../poductDetails/entity/productDetails.entity';
 import { TypeCoupon } from '../../../common/constant/enum.constant';
 import { CartItem } from '../../cart/entities/cartItem.enitty';
-import { OrderItem } from '../entities/orderItem.entity';
-import { Product } from '../../product/entities/product.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from 'src/modules/cart/entities/cart.entity';
+import { OrderItemFactory } from '../factory.ts/order.factory';
 
 @Injectable()
 export class OrderProcessingService {
-  constructor(
-    private readonly i18n: I18nService,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
-  ) {}
+  constructor(private readonly i18n: I18nService) {}
 
   async validateCoupon(
     queryRunner: QueryRunner,
@@ -125,12 +119,12 @@ export class OrderProcessingService {
       productDetails.quantity -= cartItem.quantity;
       await queryRunner.manager.save(productDetails);
 
-      const orderItem = await queryRunner.manager.create(OrderItem, {
+      const orderItem = OrderItemFactory.create(
         orderId,
-        detailsId: cartItem.details.id,
-        quantity: cartItem.quantity,
-        price: cartItem.product.price,
-      });
+        cartItem.details.id,
+        cartItem.quantity,
+        cartItem.product.price,
+      );
       await queryRunner.manager.save(orderItem);
     }
 
@@ -164,12 +158,12 @@ export class OrderProcessingService {
     productDetails.quantity -= quantity;
     await queryRunner.manager.save(productDetails);
 
-    const orderItem = await queryRunner.manager.create(OrderItem, {
+    const orderItem = OrderItemFactory.create(
       orderId,
       detailsId,
       quantity,
-      price: productDetails.product.price,
-    });
+      productDetails.product.price,
+    );
     await queryRunner.manager.save(orderItem);
 
     return totalPrice + delevaryPrice;

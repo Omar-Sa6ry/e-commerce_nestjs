@@ -1,3 +1,4 @@
+import { UserFactory } from './factory/user.factory';
 import {
   Injectable,
   NotFoundException,
@@ -66,17 +67,19 @@ export class UserService {
           throw new BadRequestException(await this.i18n.t('user.EMAIL_USED'));
       }
 
-      Object.assign(user, updateUserDto);
-
       if (updateUserDto.avatar) {
         const oldPath = user.avatar;
         const filename = await this.uploadService.uploadImage(
           updateUserDto.avatar,
         );
         if (typeof filename === 'string') {
-          user.avatar = filename;
           await this.uploadService.deleteImage(oldPath);
+          UserFactory.update(user, updateUserDto, filename);
+        } else {
+          UserFactory.update(user, updateUserDto);
         }
+      } else {
+        UserFactory.update(user, updateUserDto);
       }
 
       await queryRunner.manager.save(user);

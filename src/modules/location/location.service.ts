@@ -14,6 +14,8 @@ import { CountryResponse, CountrysResponse } from './dtos/countryResponse.dto';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { CityResponse, CitysResponse } from './dtos/cityResponse.dto copy';
 import { CapitalizeWords } from 'src/common/decerator/WordsTransform.decerator';
+import { CityFactory } from './factories/city.factory';
+import { CountryFactory } from './factories/country.factory';
 
 @Injectable()
 export class LocationService {
@@ -41,7 +43,7 @@ export class LocationService {
         }),
       );
 
-    const country = this.countryRepository.create(createCountryInput);
+    const country = CountryFactory.create(createCountryInput);
     await this.countryRepository.save(country);
 
     return {
@@ -148,10 +150,11 @@ export class LocationService {
         }),
       );
 
-    const city = this.cityRepository.create({
-      ...createCityInput,
+    const city = CityFactory.create(
+      createCityInput,
+      createCityInput.countryId,
       country,
-    });
+    );
     await this.cityRepository.save(city);
 
     return {
