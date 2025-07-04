@@ -1,127 +1,99 @@
-# 🛒 E-Commerce Backend (Built with NestJS + GraphQL)
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
-This project is a fully-featured **e-commerce backend** API built using **NestJS**, **GraphQL**, **PostgreSQL**, and **TypeORM**, following clean architecture principles and performance best practices. It supports product management, order handling, coupon logic, payments, and notifications with robust authentication and role-based access control.
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-> 🌐 ERD Diagram: [View on dbdiagram.io](https://dbdiagram.io/d/e-commerce-67671589fc29fb2b3b0eca7a)
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
----
+## Description
 
-## 🚀 Tech Stack
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-| Tool/Library     | Description |
-|------------------|-------------|
-| **NestJS**       | Backend framework (modular, scalable) |
-| **GraphQL (Apollo)** | Flexible API for queries/mutations/subscriptions |
-| **PostgreSQL**   | Relational database |
-| **TypeORM**      | Database ORM with decorators & relations |
-| **Redis**        | Used for caching products & sessions |
-| **BullMQ + Queue** | Used to handle background jobs like orders, emails, notifications |
-| **DataLoader**   | Batching GraphQL N+1 queries |
-| **PubSub**       | Realtime GraphQL subscriptions (e.g., product deleted) |
-| **Cloudinary**   | Image uploading and hosting |
-| **Stripe**       | Payment integration with webhook handling |
-| **Nodemailer**   | Sending confirmation emails |
-| **Firebase**     | Sending push notifications via FCM |
-| **i18n**         | Multi-language support for all user-visible messages |
-| **JWT**          | Secure authentication |
-| **Passport.js**          | Google OAuth |
-| **SQL Injection Protection** | Custom regex input validators |
-| **SOLID Principles** | Service structure follows SOLID design |
-| **ACID Transactions** | All critical flows (orders, deletion) wrapped in transactions |
-
----
-
-## 📦 Features
-
-- **User Roles**: `user`, `admin`, `company` (via `UserRole` enum)
-- **Full Auth System**: register, login, reset password, protected routes
-- **Products Management**:
-  - Image uploads (Cloudinary)
-  - Multi-size/color support (`productDetails`)
-  - GraphQL filtering, pagination
-  - Caching via Redis
-- **Cart System**: Add, remove, quantity management
-- **Orders**:
-  - Apply coupons (`fixed`, `percentage`)
-  - Checkout with Stripe
-  - Confirmation email + notification
-  - Payment status tracking
-- **Real-time Updates**:
-  - Product deletion broadcast via GraphQL subscription
-- **Admin Features**:
-  - Manage categories, coupons, companies
-- **User Address System**:
-  - Default address per user
-- **Notification System**:
-  - Email via Nodemailer
-  - Push notifications via Firebase FCM
-  - Scheduled alerts via Queues (e.g. order shipped)
-
----
-
-## 📊 Database Schema
-
-The schema is modular and relational. Some key design choices:
-
-- **Enums** used for `Size`, `UserRole`, `OrderStatus`, `CouponType`, `PaymentStatus`
-- **Relations** include:
-  - One-to-many between users and products
-  - Many-to-one from `productDetails` to `product` and `Color`
-  - Many-to-many (via `userAddress`) between users and addresses
-  - Orders and their items with pricing per variant
-
-🔗 [ERD Diagram](https://dbdiagram.io/d/e-commerce-67671589fc29fb2b3b0eca7a)
-
----
-
-## ⚙️ Performance & Architecture
-
-- Implemented **Redis caching** to reduce DB hits for product fetches
-- Used **DataLoader** to batch and cache related entity queries in GraphQL resolvers
-- Leveraged **PubSub** for real-time UI updates (e.g., `productDeleted`)
-- All sensitive operations wrapped in **TypeORM transactions**
-- Decoupled slow operations (PDF generation, emails, notifications) using **BullMQ queues**
-- Designed with **SOLID principles** to ensure service modularity and testability
-
----
-
-## 🛡️ Security
-
-- Applied **SQL injection protection** using custom regex validators for user inputs
-- Sanitized inputs and enforced data validation across GraphQL DTOs
-- Used JWT with refresh token strategies for secure auth
-- Used Passport.js with Google OAuth
-- Validated Stripe webhook events for secure payment processing
-
----
-
-## 📚 What I Learned
-
-✅ First-time implementation of:
-
-- SQL Injection protections and real-world test cases  
-- Redis-based caching in GraphQL  
-- Background job queues (BullMQ) for transactional email and push notifications  
-- Realtime GraphQL subscriptions  
-- Applying **ACID** transactions on order and deletion logic  
-- Advanced **SOLID** principle usage across services  
-- Deep understanding of DTO validation, guards, and decorators in NestJS  
-- Improved GraphQL resolver structure with `@ResolveField` and DataLoader
-
----
-
-
-## ✅ Installation
+## Project setup
 
 ```bash
-# Clone
-git clone https://github.com/your-username/e-commerce.git
-cd e-commerce
+$ npm install
+```
 
-# Install dependencies
-npm install
+## Compile and run the project
 
-# Create .env and configure PostgreSQL, Redis, Cloudinary, Stripe, Firebase
+```bash
+# development
+$ npm run start
 
-# Run app
-npm run start:dev
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
+```
+
+## Run tests
+
+```bash
+# unit tests
+$ npm run test
+
+# e2e tests
+$ npm run test:e2e
+
+# test coverage
+$ npm run test:cov
+```
+
+## Deployment
+
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+
+```bash
+$ npm install -g mau
+$ mau deploy
+```
+
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+
+## Resources
+
+Check out a few resources that may come in handy when working with NestJS:
+
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
