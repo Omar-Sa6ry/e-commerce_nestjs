@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    container_name: e-commerce
+    container_name: e-commerce-project
     restart: always
     ports:
       - "4002:4002"
@@ -12,6 +12,15 @@ services:
       - redis
     env_file:
       - .env
+    networks:
+      - app_network
+
+  redis:
+    image: redis:alpine
+    container_name: e-commerce-redis
+    restart: always
+    ports:
+      - "6379:6379"
     networks:
       - app_network
 
@@ -30,17 +39,8 @@ services:
     networks:
       - app_network
 
-  redis:
-    image: redis:alpine
-    container_name: e-commerce-redis
-    restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - app_network
+volumes:
+  postgres_data:
 
 networks:
   app_network:
-
-volumes:
-  postgres_data:
