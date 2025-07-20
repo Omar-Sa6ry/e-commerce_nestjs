@@ -4,9 +4,10 @@ import { CouponService } from './coupon.service';
 import { CouponResolver } from './coupon.resolver';
 import { Coupon } from './entity/coupon.entity';
 import { UserModule } from '../users/users.module';
+import { RedisModule } from 'src/common/redis/redis.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Coupon]), UserModule],
+  imports: [TypeOrmModule.forFeature([Coupon]), RedisModule, UserModule],
   providers: [CouponService, CouponResolver],
   exports: [CouponService],
 })

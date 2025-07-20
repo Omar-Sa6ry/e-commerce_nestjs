@@ -12,7 +12,7 @@ import { CreateCityInput } from './inputs/createCity.input';
 import { CountryResponse, CountrysResponse } from './dtos/countryResponse.dto';
 import { Permission, Role } from '../../common/constant/enum.constant';
 import { Auth } from 'src/common/decerator/auth.decerator';
-import { CityResponse, CitysResponse } from './dtos/cityResponse.dto copy';
+import { CityResponse, CitysResponse } from './dtos/cityResponse.dto';
 import { Country } from './entities/country.entity';
 import { City } from './entities/city.entity';
 import { CityLoader } from './loaders/city.loader';

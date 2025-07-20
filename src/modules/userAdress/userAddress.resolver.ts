@@ -18,10 +18,19 @@ import { Address } from '../address/entity/address.entity';
 import { User } from '../users/entity/user.entity';
 import { UpdateAddressInput } from '../address/inputs/updateAddress.input';
 import { AddressIdInput } from '../address/inputs/addressId.input';
+import { UserAddressFacadeService } from './fascade/userAddress.fascade';
+import { BadRequestException } from '@nestjs/common';
+import {
+  UserAddressAction,
+  UserAddressInput,
+} from './constant/userAddress.constant';
 
 @Resolver(() => UserAddress)
 export class UserAddressResolver {
-  constructor(private readonly userAddressService: UserAddressService) {}
+  constructor(
+    private readonly userAddressService: UserAddressService,
+    private readonly userAddressFascade: UserAddressFacadeService,
+  ) {}
 
   @Mutation(() => UserAddressResponse)
   @Auth([Role.USER], [Permission.CREATE_USER_ADDRESS])
@@ -30,9 +39,10 @@ export class UserAddressResolver {
     @Args('createUserAddressInput')
     createUserAddressInput: CreateUserAddressInput,
   ): Promise<UserAddressResponse> {
-    return this.userAddressService.createUserAddress(
+    return this.userAddressFascade.manageUserAddress(
+      'create' as UserAddressAction,
+      createUserAddressInput as UserAddressInput,
       user.id,
-      createUserAddressInput,
     );
   }
 
@@ -46,11 +56,16 @@ export class UserAddressResolver {
     @Args('updateUserAddressInput', { nullable: true })
     updateUserAddressInput?: UpdateUserAddressInput,
   ): Promise<UserAddressResponse> {
-    return this.userAddressService.updateUserAddress(
+    const input = updateUserAddressInput || updateAddressInput;
+    if (!input) {
+      throw new BadRequestException('No update data provided');
+    }
+
+    return this.userAddressFascade.manageUserAddress(
+      'update',
+      input,
       user.id,
       addressId.addressId,
-      updateAddressInput,
-      updateUserAddressInput,
     );
   }
 
@@ -60,7 +75,8 @@ export class UserAddressResolver {
     @CurrentUser() user: CurrentUserDto,
     @Args('userAddressId') userAddressId: AddressIdInput,
   ): Promise<UserAddressResponse> {
-    return this.userAddressService.deleteUserAddress(
+    return this.userAddressFascade.manageUserAddress(
+      'delete' as UserAddressAction,
       user.id,
       userAddressId.addressId,
     );
@@ -72,7 +88,8 @@ export class UserAddressResolver {
     @CurrentUser() user: CurrentUserDto,
     @Args('userAddressId') userAddressId: AddressIdInput,
   ): Promise<UserAddressResponse> {
-    return this.userAddressService.setDefaultAddress(
+    return this.userAddressFascade.manageUserAddress(
+      'setDefault' as UserAddressAction,
       user.id,
       userAddressId.addressId,
     );

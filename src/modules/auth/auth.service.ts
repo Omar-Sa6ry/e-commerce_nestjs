@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource, MoreThan } from 'typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
@@ -19,15 +15,24 @@ import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 import { CreateUserAddressInput } from '../userAdress/inputs/createUserAddress.input';
 import { UserService } from '../users/users.service';
 import { UserResponse } from '../users/dto/UserResponse.dto';
-import { HashPassword } from './utils/hashPassword';
-import { ComparePassword } from './utils/comparePassword';
 import { UserAddressService } from '../userAdress/userAddress.service';
 import { GenerateTokenFactory } from './jwt/jwt.service';
 import { PasswordResetLinkBuilder } from './builder/PasswordResetLink.builder';
 import { User } from '../users/entity/user.entity';
+import { AuthServiceFacade } from './fascade/AuthService.facade';
+import { IPasswordService } from './interfaces/IPassword.interface';
+import { PasswordServiceAdapter } from './utils/IPasswordService';
+import {
+  PasswordValidator,
+  RoleValidator,
+  ValidatorComposite,
+} from './composite/validator.composite';
 
 @Injectable()
 export class AuthService {
+  private passwordService: IPasswordService;
+  private authFacade: AuthServiceFacade;
+
   constructor(
     private readonly dataSource: DataSource,
     private readonly i18n: I18nService,
@@ -37,7 +42,16 @@ export class AuthService {
     private readonly redisService: RedisService,
     private readonly uploadService: UploadService,
     private readonly emailService: SendEmailService,
-  ) {}
+  ) {
+    this.passwordService = new PasswordServiceAdapter();
+    this.authFacade = new AuthServiceFacade(
+      this.i18n,
+      userService,
+      tokenFactory,
+      this.passwordService,
+      redisService,
+    );
+  }
 
   async register(
     createUserDto: CreateUserDto,
@@ -84,14 +98,10 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<AuthResponse> {
     const { email, password, fcmToken } = loginDto;
+    const { user, token } = await this.authFacade.authenticate(email, password);
 
-    const user = await this.validateUser(email, password);
-    await this.updateUserFcmToken(user, fcmToken);
-
-    const tokenService = await this.tokenFactory.createTokenGenerator();
-    const token = await tokenService.generate(user.email, user.id);
-
-    this.redisService.set(`user:${user.id}`, user);
+    user.fcmToken = fcmToken;
+    await this.dataSource.getRepository(User).save(user);
 
     return { data: { user, token }, message: await this.i18n.t('user.LOGIN') };
   }
@@ -125,7 +135,9 @@ export class AuthService {
         queryRunner,
         resetPasswordDto.token,
       );
-      user.password = await HashPassword(resetPasswordDto.password);
+      user.password = await this.passwordService.hash(
+        resetPasswordDto.password,
+      );
       await queryRunner.manager.save(user);
 
       await queryRunner.commitTransaction();
@@ -162,7 +174,9 @@ export class AuthService {
         changePasswordDto.password,
       );
 
-      user.password = await HashPassword(changePasswordDto.newPassword);
+      user.password = await this.passwordService.hash(
+        changePasswordDto.newPassword,
+      );
       await queryRunner.manager.save(user);
 
       await queryRunner.commitTransaction();
@@ -184,18 +198,29 @@ export class AuthService {
     role: Role,
   ): Promise<AuthResponse> {
     const { email, password } = loginDto;
-    const user = await this.validateRoleBasedUser(email, role);
+    const user = await this.userService.findByEmail(email);
 
-    await ComparePassword(password, user.password);
+    const validator = new ValidatorComposite();
+    validator.add(
+      new PasswordValidator(this.i18n, this.passwordService, password),
+    );
+    validator.add(new RoleValidator(this.i18n, role));
+    await validator.validate(user.data);
+
     const tokenService = await this.tokenFactory.createTokenGenerator();
-    const token = await tokenService.generate(user.email, user.id);
+    const token = await tokenService.generate(user.data.email, user.data.id);
 
-    await this.updateUserFcmToken(user, fcmToken);
-    this.redisService.set(`user:${user.id}`, user);
-    return { data: { user, token }, message: await this.i18n.t('user.LOGIN') };
+    user.data.fcmToken = fcmToken;
+    await this.dataSource.getRepository(User).save(user.data);
+
+    this.redisService.set(`user:${user.data.id}`, user);
+    return {
+      data: { user: user.data, token },
+      message: await this.i18n.t('user.LOGIN'),
+    };
   }
 
-  //====================================== Private helper methods=====================
+  // ====================== Private helper methods =====================
 
   private async createUser(
     queryRunner: any,
@@ -204,7 +229,7 @@ export class AuthService {
     address?: CreateAddressInput,
     userAddress?: CreateUserAddressInput,
   ): Promise<User> {
-    const password = await HashPassword(createUserDto.password);
+    const password = await this.passwordService.hash(createUserDto.password);
     const user = queryRunner.manager.create(User, {
       ...createUserDto,
       password,
@@ -229,35 +254,13 @@ export class AuthService {
     return typeof filename === 'string' ? filename : '';
   }
 
-  private async validateUser(email: string, password: string): Promise<User> {
-    const user = await this.dataSource
-      .getRepository(User)
-      .findOne({ where: { email } });
-    if (!user)
-      throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
-
-    await ComparePassword(password, user.password);
-    return user;
-  }
-
-  private async updateUserFcmToken(
-    user: User,
-    fcmToken: string,
-  ): Promise<void> {
-    user.fcmToken = fcmToken;
-    await this.dataSource.getRepository(User).save(user);
-  }
-
   private async validateUserForPasswordReset(email: string): Promise<User> {
-    const user = await (await this.userService.findByEmail(email))?.data;
-    if (!(user instanceof User)) {
-      throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
-    }
+    const user = await this.userService.findByEmail(email);
 
-    if ([Role.ADMIN].includes(user.role))
+    if ([Role.ADMIN].includes(user.data.role))
       throw new BadRequestException(await this.i18n.t('user.NOT_ADMIN'));
 
-    return user;
+    return user.data;
   }
 
   private async updateUserResetToken(user: User, token: string): Promise<void> {
@@ -286,30 +289,17 @@ export class AuthService {
     id: string,
     currentPassword: string,
   ): Promise<User> {
-    const user = await (await this.userService.findById(id))?.data;
+    const user = await this.userService.findById(id);
     if (!user)
       throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
 
-    const isMatch = await ComparePassword(currentPassword, user.password);
+    const isMatch = await this.passwordService.compare(
+      currentPassword,
+      user.data.password,
+    );
     if (!isMatch)
       throw new BadRequestException(await this.i18n.t('user.OLD_IS_EQUAL_NEW'));
 
-    return user;
-  }
-
-  private async validateRoleBasedUser(
-    email: string,
-    role: Role,
-  ): Promise<User> {
-    const user = await this.userService.findByEmail(email);
-    if (!(user instanceof User)) {
-      throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
-    }
-
-    if (user.role !== role) {
-      throw new UnauthorizedException(await this.i18n.t('user.NOT_ADMIN'));
-    }
-
-    return user;
+    return user.data;
   }
 }

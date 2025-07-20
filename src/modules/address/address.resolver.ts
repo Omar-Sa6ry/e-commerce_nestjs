@@ -6,7 +6,6 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { AddressService } from './address.service';
 import { Address } from './entity/address.entity';
 import { AddressResponse } from './dto/addressResponse.dto';
 import { Auth } from 'src/common/decerator/auth.decerator';
@@ -15,17 +14,26 @@ import { CreateAddressInput } from './inputs/createAddress.dto';
 import { UpdateAddressInput } from './inputs/updateAddress.input';
 import { UserAddress } from '../userAdress/entity/userAddress.entity';
 import { AddressIdInput } from './inputs/addressId.input';
+import { AddressAction } from './constant/address.constant';
+import { AddressFacadeService } from './fascade/address.fascade';
+import { AddressService } from './address.service';
 
 @Resolver(() => Address)
 export class AddressResolver {
-  constructor(private readonly addressService: AddressService) {}
+  constructor(
+    private readonly addressService: AddressService,
+    private readonly addressFacadeService: AddressFacadeService,
+  ) {}
 
   @Mutation(() => AddressResponse)
   @Auth([Role.USER], [Permission.CREATE_ADDRESS])
   async createAddress(
     @Args('createAddressInput') createAddressInput: CreateAddressInput,
   ): Promise<AddressResponse> {
-    return this.addressService.createAddress(createAddressInput);
+    return this.addressFacadeService.manageAddress(
+      AddressAction.CREATE,
+      createAddressInput,
+    );
   }
 
   @Query(() => AddressResponse)
@@ -33,7 +41,10 @@ export class AddressResolver {
   async getAddress(
     @Args('addressId') addressId: AddressIdInput,
   ): Promise<AddressResponse> {
-    return this.addressService.getAddressById(addressId.addressId);
+    return this.addressFacadeService.manageAddress(
+      AddressAction.GET_BY_ID,
+      addressId.addressId,
+    );
   }
 
   @Mutation(() => AddressResponse)
@@ -53,7 +64,10 @@ export class AddressResolver {
   async deleteAddress(
     @Args('addressId') addressId: AddressIdInput,
   ): Promise<AddressResponse> {
-    return this.addressService.deleteAddress(addressId.addressId);
+    return this.addressFacadeService.manageAddress(
+      AddressAction.DELETE,
+      addressId.addressId,
+    );
   }
 
   @ResolveField(() => [UserAddress])

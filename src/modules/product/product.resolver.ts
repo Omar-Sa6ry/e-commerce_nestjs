@@ -29,10 +29,13 @@ import { Company } from '../company/entity/company.entity';
 import { Image } from './entities/image.entity';
 import { User } from '../users/entity/user.entity';
 import { Details } from '../poductDetails/entity/productDetails.entity';
+import { ProductFacadeService } from './fascade/product.fascade';
+import { ProductAction } from './constant/product.constant';
 
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
+    private readonly productFacade: ProductFacadeService,
     private readonly productService: ProductService,
     private readonly productLoader: ProductDataLoader,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
@@ -44,7 +47,11 @@ export class ProductResolver {
     @CurrentUser() user: CurrentUserDto,
     @Args('createProductInput') createProductInput: CreateProductInput,
   ): Promise<ProductResponse> {
-    return this.productService.create(createProductInput, user.id);
+    return this.productFacade.manageProduct(
+      'create' as ProductAction,
+      createProductInput,
+      user.id,
+    );
   }
 
   @Query(() => ProductsResponse)
@@ -69,7 +76,10 @@ export class ProductResolver {
   async updateProduct(
     @Args('updateProductInput') updateProductInput: UpdateProductInput,
   ): Promise<ProductResponse> {
-    return this.productService.update(updateProductInput);
+    return this.productFacade.manageProduct(
+      'update' as ProductAction,
+      updateProductInput,
+    );
   }
 
   @Mutation(() => ProductResponse)
@@ -78,7 +88,11 @@ export class ProductResolver {
     @CurrentUser() user: CurrentUserDto,
     @Args('productId') productId: ProductIdInput,
   ): Promise<ProductResponse> {
-    return this.productService.remove(productId.id, user.id);
+    return this.productFacade.manageProduct(
+      'delete' as ProductAction,
+      productId,
+      user.id,
+    );
   }
 
   @Subscription(() => ProductPubsupResponse, {

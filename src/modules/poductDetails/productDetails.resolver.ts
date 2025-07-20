@@ -15,6 +15,7 @@ import { Auth } from 'src/common/decerator/auth.decerator';
 import { DetailsIdInput } from './inputs/details.input';
 import { FindProductDetailsInput } from './inputs/findProductDetails.input';
 import { Color } from '../color/entity/color.entity';
+import { ProductDetailsProxy } from './proxy/productDetails.proxy';
 import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { Product } from '../product/entities/product.entity';
@@ -26,7 +27,10 @@ import {
 
 @Resolver(() => Details)
 export class ProductDetailsResolver {
-  constructor(private readonly productDetailsService: ProductDetailsService) {}
+  constructor(
+    private readonly proxy: ProductDetailsProxy,
+    private readonly productDetailsService: ProductDetailsService,
+  ) {}
 
   @Mutation(() => ProductDetailResponse)
   @Auth([Role.COMPANY], [Permission.CREATE_PRODUCT_DETAILS])
@@ -55,7 +59,7 @@ export class ProductDetailsResolver {
   getProductDetailById(
     @Args('id') id: DetailsIdInput,
   ): Promise<ProductDetailResponse> {
-    return this.productDetailsService.findOne(id.id);
+    return this.proxy.findOne(id.id);
   }
 
   @Mutation(() => ProductDetailResponse)
@@ -82,7 +86,7 @@ export class ProductDetailsResolver {
 
   @ResolveField(() => Product)
   product(@Parent() detail: Details): Promise<Product> {
-    return this.productDetailsService.getProductForDetail(detail.id);
+    return this.proxy.getProductForDetail(detail.id);
   }
 
   @ResolveField(() => Product)

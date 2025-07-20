@@ -10,16 +10,28 @@ import { Cart } from './entities/cart.entity';
 import { CartItemResponse, CartItemsResponse } from './dtos/cartItem.dto';
 import { CartItemInput } from './inputs/cartItem.input';
 import { TotalCartsResponse } from './dtos/totalCarts.dto';
+import { CartRepositoryProxy } from './proxy/Cart.proxy';
 import { CartItem } from './entities/cartItem.enitty';
 import { Product } from '../product/entities/product.entity';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { CartResponse } from './dtos/cartResponse';
 import { CartFactory } from './factories/cart.factory';
 import { CartItemFactory } from './factories/cartItem.factory';
+import { IProductValidator } from './interfaces/ProductValidator.interface';
+import { CartCalculationDecorator } from './decerator/cartCaluclate.decerator';
+import { ProductValidatorAdapter } from './adapter/productValidator.adapter';
+import {
+  CartExistsValidator,
+  CartOwnershipValidator,
+  CartValidatorComposite,
+} from './composite/cart.composite';
 
 @Injectable()
 export class CartService {
   private readonly MAX_QUANTITY = 100;
+  private productValidator: IProductValidator;
+  private cartRepositoryProxy: CartRepositoryProxy;
+  private calculationDecorator: CartCalculationDecorator;
 
   constructor(
     private readonly dataSource: DataSource,
@@ -32,7 +44,15 @@ export class CartService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Details)
     private readonly detailsRepository: Repository<Details>,
-  ) {}
+  ) {
+    this.productValidator = new ProductValidatorAdapter(
+      productRepository,
+      detailsRepository,
+      i18n,
+    );
+    this.cartRepositoryProxy = new CartRepositoryProxy(cartRepository);
+    this.calculationDecorator = new CartCalculationDecorator();
+  }
 
   // ========== PUBLIC METHODS ==========
 
@@ -48,7 +68,7 @@ export class CartService {
       const { productId, detailsId, quantity } = cartItemInput;
       this.validateQuantity(quantity);
 
-      const { product, detail } = await this.validateProductAndDetails(
+      const { product, detail } = await this.productValidator.validate(
         productId,
         detailsId,
       );
@@ -82,10 +102,13 @@ export class CartService {
         );
       }
 
-      await this.recalculateCartTotal(queryRunner, userCart);
+      await this.calculationDecorator.recalculateWithLogging(
+        queryRunner,
+        userCart,
+      );
       await queryRunner.commitTransaction();
 
-      userCart = await this.getFullCart(userId);
+      userCart = await this.cartRepositoryProxy.findOneFullCart({ userId });
       return {
         data: userCart,
         statusCode: existingItem ? 200 : 201,
@@ -113,11 +136,18 @@ export class CartService {
     try {
       this.validateQuantity(quantity);
 
-      const userCart = await this.getUserCartWithItems(userId);
+      const userCart = await this.cartRepositoryProxy.findOneWithItems({
+        userId,
+      });
+
+      const validator = new CartValidatorComposite();
+      validator.add(new CartExistsValidator(this.i18n));
+      validator.add(new CartOwnershipValidator(this.i18n, userId));
+      await validator.validate(userCart);
+
       const cartItem = userCart.cartItems.find(
         (item) => item.id === cartItemId,
       );
-
       if (!cartItem)
         throw new NotFoundException(
           await this.i18n.t('cart.ITEM_NOT_FOUND', {
@@ -178,7 +208,15 @@ export class CartService {
     await queryRunner.startTransaction();
 
     try {
-      const userCart = await this.getUserCartWithItems(userId);
+      const userCart = await this.cartRepositoryProxy.findOneWithItems({
+        userId,
+      });
+
+      const validator = new CartValidatorComposite();
+      validator.add(new CartExistsValidator(this.i18n));
+      validator.add(new CartOwnershipValidator(this.i18n, userId));
+      await validator.validate(userCart);
+
       await queryRunner.manager.remove(CartItem, userCart.cartItems);
       userCart.totalPrice = 0;
       await queryRunner.manager.save(userCart);
@@ -204,7 +242,9 @@ export class CartService {
 
     if (carts.length === 0) {
       throw new NotFoundException(
-        await this.i18n.t('cart.NOT_FOUND', { args: { id: userId } }),
+        await this.i18n.t('cart.NOT_FOUND', {
+          args: { id: userId },
+        }),
       );
     }
 
@@ -226,7 +266,9 @@ export class CartService {
 
     if (!cart || cart.userId !== userId)
       throw new NotFoundException(
-        await this.i18n.t('cart.NOT_FOUND', { args: { id: cartId } }),
+        await this.i18n.t('cart.NOT_FOUND', {
+          args: { id: cartId },
+        }),
       );
 
     const items = await this.cartItemRepository.find({
@@ -247,8 +289,10 @@ export class CartService {
         relations: ['cartItems'],
       });
 
-      if (!cart)
-        throw new NotFoundException(await this.i18n.t('cart.NOT_FOUND'));
+      const validator = new CartValidatorComposite();
+      validator.add(new CartExistsValidator(this.i18n));
+      validator.add(new CartOwnershipValidator(this.i18n, userId));
+      await validator.validate(cart);
 
       await queryRunner.manager.remove(CartItem, cart.cartItems);
       await queryRunner.manager.remove(Cart, cart);
@@ -270,7 +314,7 @@ export class CartService {
 
   // ========== PRIVATE HELPER METHODS ==========
 
-  private async validateQuantity(quantity: number): Promise<void> {
+  async validateQuantity(quantity: number): Promise<void> {
     if (quantity <= 0)
       throw new BadRequestException(await this.i18n.t('cart.INVALID_QUANTITY'));
 
@@ -283,29 +327,21 @@ export class CartService {
   }
 
   private async getFullCart(userId: string): Promise<Cart> {
-    return this.cartRepository.findOne({
-      where: { userId },
-      relations: ['cartItems', 'cartItems.product', 'cartItems.details'],
-    });
+    return this.cartRepositoryProxy.findOneFullCart({ userId });
   }
 
   private async getUserCartWithItems(userId: string): Promise<Cart> {
-    const cart = await this.cartRepository.findOne({
-      where: { userId },
-      relations: ['cartItems'],
-    });
+    const cart = await this.cartRepositoryProxy.findOneWithItems({ userId });
 
-    if (!cart) throw new NotFoundException(await this.i18n.t('cart.NOT_FOUND'));
+    const validator = new CartValidatorComposite();
+    validator.add(new CartExistsValidator(this.i18n));
+    await validator.validate(cart);
 
     return cart;
   }
 
   async getUserCartWithItemsForUser(userId: string): Promise<Cart | []> {
-    const cart = await this.cartRepository.findOne({
-      where: { userId },
-      relations: ['cartItems'],
-    });
-
+    const cart = await this.cartRepositoryProxy.findOneWithItems({ userId });
     return cart || [];
   }
 
@@ -324,40 +360,6 @@ export class CartService {
     }
 
     return cart;
-  }
-
-  private async validateProductAndDetails(
-    productId: string,
-    detailsId: string,
-  ): Promise<{ product: Product; detail: Details }> {
-    const [product, detail] = await Promise.all([
-      this.productRepository.findOne({ where: { id: productId } }),
-      this.detailsRepository.findOne({
-        where: { id: detailsId },
-        relations: ['product'],
-      }),
-    ]);
-
-    if (!product)
-      throw new NotFoundException(
-        await this.i18n.t('product.NOT_FOUND', { args: { id: productId } }),
-      );
-
-    if (!detail)
-      throw new NotFoundException(
-        await this.i18n.t('productDetails.NOT_FOUND', {
-          args: { id: detailsId },
-        }),
-      );
-
-    if (detail.product.id !== productId)
-      throw new BadRequestException(
-        await this.i18n.t('productDetails.NOT_MATCHED', {
-          args: { id: detail.product.id },
-        }),
-      );
-
-    return { product, detail };
   }
 
   private async updateExistingCartItem(
@@ -388,21 +390,6 @@ export class CartService {
 
     if (!cart.cartItems) cart.cartItems = [];
     cart.cartItems.push(newCartItem);
-  }
-
-  private async recalculateCartTotal(
-    queryRunner: QueryRunner,
-    cart: Cart,
-  ): Promise<void> {
-    const items = await queryRunner.manager.find(CartItem, {
-      where: { cartId: cart.id },
-    });
-
-    cart.totalPrice = items.reduce(
-      (acc, cart) => acc + parseFloat(cart.totalPrice.toString()),
-      0,
-    );
-    await queryRunner.manager.save(cart);
   }
 
   // ========== RESOLVER FIELD ==========

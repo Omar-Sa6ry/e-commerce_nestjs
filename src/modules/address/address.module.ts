@@ -6,13 +6,14 @@ import { UserAddress } from '../userAdress/entity/userAddress.entity';
 import { AddressResolver } from './address.resolver';
 import { UserModule } from '../users/users.module';
 import { City } from '../location/entities/city.entity';
+import { AddressFacadeService } from './fascade/address.fascade';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Address, City, UserAddress]),
     forwardRef(() => UserModule),
   ],
-  providers: [AddressService, AddressResolver],
+  providers: [AddressService, AddressFacadeService, AddressResolver],
   exports: [AddressService, TypeOrmModule],
 })
 export class AddressModule {}

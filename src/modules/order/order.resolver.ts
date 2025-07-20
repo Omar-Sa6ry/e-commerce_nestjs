@@ -18,6 +18,12 @@ import { OrderItem } from './entities/orderItem.entity';
 import { TrackOrderStatusResponse } from './dtos/trackOrder.dto';
 import { OrderItemsResponse } from './dtos/orderItemResponse.dto';
 import { OrderStatisticsResponse } from './dtos/orderStatistics.dto';
+import { AddressIdInput } from '../address/inputs/addressId.input';
+import { CouponIdInput } from '../coupon/inputs/coupon.input';
+import { DetailsIdInput } from '../poductDetails/inputs/details.input';
+import { OrderIdInput } from './inputs/order.input';
+import { UserIdInput } from '../users/inputs/user.input';
+import { OrderFacadeService } from './fascade/order.fascade';
 import {
   OrderStatus,
   PaymentMethod,
@@ -25,15 +31,12 @@ import {
   Permission,
   Role,
 } from 'src/common/constant/enum.constant';
-import { AddressIdInput } from '../address/inputs/addressId.input';
-import { CouponIdInput } from '../coupon/inputs/coupon.input';
-import { DetailsIdInput } from '../poductDetails/inputs/details.input';
-import { OrderIdInput } from './inputs/order.input';
-import { UserIdInput } from '../users/inputs/user.input';
-
 @Resolver(() => Order)
 export class OrderResolver {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly orderFacadeService: OrderFacadeService,
+  ) {}
 
   @Mutation(() => CreateOrderResponse)
   @Auth([Role.USER], [Permission.CREATE_ORDER])
@@ -46,7 +49,7 @@ export class OrderResolver {
     deliveryPrice?: number,
     @Args('couponId', { nullable: true }) couponId?: CouponIdInput,
   ): Promise<CreateOrderResponse> {
-    return this.orderService.createOrderFromCart(
+    return this.orderFacadeService.createOrderFromCart(
       user.id,
       addressId.addressId,
       paymentMethod,
@@ -68,9 +71,8 @@ export class OrderResolver {
     deliveryPrice?: number,
     @Args('couponId', { nullable: true }) couponId?: string,
   ): Promise<CreateOrderResponse> {
-    return this.orderService.createOrderFromProducts(
+    return this.orderFacadeService.createOrderFromProducts(
       user.id,
-      user.email,
       addressId.addressId,
       paymentMethod,
       detailsId.id,

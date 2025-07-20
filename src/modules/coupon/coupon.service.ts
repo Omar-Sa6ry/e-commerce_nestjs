@@ -1,4 +1,5 @@
-import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import { RedisService } from 'src/common/redis/redis.service';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Coupon } from './entity/coupon.entity';
 import { CreateCouponInput } from './inputs/createCoupon.input';
@@ -9,6 +10,9 @@ import { Category } from '../category/entity/category.entity';
 import { CouponFactory } from './factory/coupon.factory';
 import { UpdateCouponInput } from './inputs/updateCoupon.input';
 import { Limit, Page } from 'src/common/constant/messages.constant';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { CouponProxy } from './proxy/coupon.proxy';
+import { CategoryRepositoryProxy } from '../category/proxy/category.proxy';
 import { FindCouponInput } from './inputs/findCoupon.input';
 import {
   BadRequestException,
@@ -18,77 +22,69 @@ import {
 
 @Injectable()
 export class CouponService {
+  private couponProxy: CouponProxy;
+  private categoryProxy: CategoryRepositoryProxy;
+
   constructor(
-    private dataSource: DataSource,
+    private readonly redisService: RedisService,
     private readonly i18n: I18nService,
+    @InjectRepository(Coupon) private categoryRepository: Repository<Category>,
     @InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
-  ) {}
+  ) {
+    this.couponProxy = new CouponProxy(
+      this.redisService,
+      this.i18n,
+      this.couponRepository,
+    );
+    this.categoryProxy = new CategoryRepositoryProxy(this.categoryRepository);
+  }
 
+  @Transactional()
   async create(createCouponInput: CreateCouponInput): Promise<CouponResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const existedCoupon = await this.couponProxy.findByName(
+      createCouponInput.name,
+    );
 
-    try {
-      const existedCoupon = await queryRunner.manager.findOne(Coupon, {
-        where: { name: createCouponInput.name },
-      });
+    if (existedCoupon)
+      throw new BadRequestException(
+        await this.i18n.t('coupon.EXISTED', {
+          args: { name: createCouponInput.name },
+        }),
+      );
 
-      if (existedCoupon)
-        throw new BadRequestException(
-          await this.i18n.t('coupon.EXISTED', {
-            args: { name: createCouponInput.name },
-          }),
-        );
+    const existedCategory = await this.categoryProxy.findOneById(
+      createCouponInput.categoryId,
+    );
 
-      const existedCategory = await queryRunner.manager.findOne(Category, {
-        where: { id: createCouponInput.categoryId },
-      });
+    if (!existedCategory)
+      throw new NotFoundException(
+        await this.i18n.t('category.NOT_FOUND', {
+          args: { id: createCouponInput.categoryId },
+        }),
+      );
 
-      if (!existedCategory)
-        throw new NotFoundException(
-          await this.i18n.t('category.NOT_FOUND', {
-            args: { id: createCouponInput.categoryId },
-          }),
-        );
+    await this.checkValid(createCouponInput.discount, createCouponInput.type);
 
-      await this.checkValid(createCouponInput.discount, createCouponInput.type);
+    const coupon = CouponFactory.create(createCouponInput);
+    await this.couponRepository.save(coupon);
 
-      const coupon = CouponFactory.create(createCouponInput);
-      await queryRunner.manager.save(coupon);
-      await queryRunner.commitTransaction();
-
-      return {
-        data: coupon,
-        statusCode: 201,
-        message: await this.i18n.t('coupon.CREATED'),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    return {
+      data: coupon,
+      statusCode: 201,
+      message: await this.i18n.t('coupon.CREATED'),
+    };
   }
 
   async findByName(name: string): Promise<CouponResponse> {
-    const coupon = await this.couponRepository.findOne({ where: { name } });
-    if (!coupon)
-      throw new NotFoundException(
-        await this.i18n.t('coupon.NOT_FOUND_BY_NAME', { args: { name } }),
-      );
-
-    return { data: coupon };
+    return this.couponProxy.findByName(name);
   }
 
   async findById(id: string): Promise<CouponResponse> {
-    const coupon = await this.couponRepository.findOne({ where: { id } });
-    if (!coupon)
-      throw new NotFoundException(
-        await this.i18n.t('coupon.NOT_FOUNDS', { args: { id } }),
-      );
+    return this.couponProxy.findById(id);
+  }
 
-    return { data: coupon };
+  async findByIdAndActive(id: string): Promise<CouponResponse> {
+    return this.couponProxy.findByIdAndActive(id);
   }
 
   async findAll(
@@ -118,46 +114,34 @@ export class CouponService {
     };
   }
 
+  @Transactional()
   async update(updateCouponInput: UpdateCouponInput): Promise<CouponResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const existedCoupon = await this.couponProxy.findByName(
+      updateCouponInput.name,
+    );
 
-    try {
-      const existingCouponById = await queryRunner.manager.findOne(Coupon, {
-        where: { id: updateCouponInput.id },
-      });
-
-      if (!existingCouponById) {
-        throw new BadRequestException(
-          await this.i18n.t('coupon.NOT_FOUND', {
-            args: { id: updateCouponInput.id },
-          }),
-        );
-      }
-
-      await this.checkValid(
-        updateCouponInput.discount || existingCouponById.discount,
-        updateCouponInput.type || existingCouponById.type,
-      );
-
-      Object.assign(existingCouponById, updateCouponInput);
-      const coupon = await queryRunner.manager.save(existingCouponById);
-
-      await queryRunner.commitTransaction();
-
-      return {
-        data: coupon,
-        message: await this.i18n.t('coupon.UPDATED', {
-          args: { id: coupon.id },
+    if (!existedCoupon) {
+      throw new BadRequestException(
+        await this.i18n.t('coupon.NOT_FOUND', {
+          args: { id: updateCouponInput.id },
         }),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+      );
     }
+
+    await this.checkValid(
+      updateCouponInput.discount || existedCoupon.data.discount,
+      updateCouponInput.type || existedCoupon.data.type,
+    );
+
+    Object.assign(existedCoupon.data, updateCouponInput);
+    const coupon = await this.couponRepository.save(existedCoupon.data);
+
+    return {
+      data: coupon,
+      message: await this.i18n.t('coupon.UPDATED', {
+        args: { id: coupon.id },
+      }),
+    };
   }
 
   async changeIsActive(id: string): Promise<CouponResponse> {
@@ -179,34 +163,21 @@ export class CouponService {
     };
   }
 
+  @Transactional()
   async delete(id: string): Promise<CouponResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const coupon = await this.couponProxy.findById(id);
 
-    try {
-      const coupon = await queryRunner.manager.findOne(Coupon, {
-        where: { id },
-      });
+    if (!coupon)
+      throw new NotFoundException(
+        await this.i18n.t('coupon.NOT_FOUND', { args: { id } }),
+      );
 
-      if (!coupon)
-        throw new NotFoundException(
-          await this.i18n.t('coupon.NOT_FOUND', { args: { id } }),
-        );
+    await this.couponRepository.remove(coupon.data);
 
-      await queryRunner.manager.remove(coupon);
-      await queryRunner.commitTransaction();
-
-      return {
-        data: null,
-        message: await this.i18n.t('coupon.DELETED', { args: { id } }),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    return {
+      data: null,
+      message: await this.i18n.t('coupon.DELETED', { args: { id } }),
+    };
   }
 
   private async checkValid(discount: number, type: TypeCoupon): Promise<void> {

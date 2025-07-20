@@ -12,6 +12,7 @@ import { UploadModule } from 'src/common/upload/upload.module';
 import { Image } from './entities/image.entity';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { ProductDataLoader } from './dataLoader/product.loader';
+import { ProductFacadeService } from './fascade/product.fascade';
 
 @Module({
   imports: [
@@ -21,7 +22,12 @@ import { ProductDataLoader } from './dataLoader/product.loader';
     PubSubModule,
     UploadModule,
   ],
-  providers: [ProductService, ProductResolver, ProductDataLoader],
+  providers: [
+    ProductService,
+    ProductFacadeService,
+    ProductResolver,
+    ProductDataLoader,
+  ],
   exports: [ProductService],
 })
 export class ProductModule {}

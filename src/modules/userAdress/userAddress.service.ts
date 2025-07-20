@@ -1,41 +1,41 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { Address } from '../address/entity/address.entity';
-import { UserAddress } from './entity/userAddress.entity';
-import { CreateAddressInput } from '../address/inputs/createAddress.dto';
-import { CreateUserAddressInput } from './inputs/createUserAddress.input';
 import { I18nService } from 'nestjs-i18n';
-import { UserAddressResponse } from './dto/userAddressResponse.dto';
+import { Repository } from 'typeorm';
 import { AddressService } from '../address/address.service';
-import { User } from '../users/entity/user.entity';
-import { UpdateUserAddressInput } from './inputs/updateUserAddress.input';
-import { UpdateAddressInput } from '../address/inputs/updateAddress.input';
+import { UserAddress } from './entity/userAddress.entity';
 import { City } from '../location/entities/city.entity';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { CreateUserAddressInput } from './inputs/createUserAddress.input';
 import { UserAddressFactory } from './factories/userAddress.factory';
-import { AddressFactory } from '../address/factories/address.factory';
+import { UserAddressResponse } from './dto/userAddressResponse.dto';
+import { UpdateAddressInput } from '../address/inputs/updateAddress.input';
+import { UpdateUserAddressInput } from './inputs/updateUserAddress.input';
+import { Address } from '../address/entity/address.entity';
+import { User } from '../users/entity/user.entity';
+import { UserAddressProxy } from './proxy/userAddress.proxy';
+import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 
 @Injectable()
 export class UserAddressService {
+  private proxy: UserAddressProxy;
+
   constructor(
     private readonly i18n: I18nService,
     private readonly addressService: AddressService,
-    private readonly dataSource: DataSource,
-
     @InjectRepository(UserAddress)
-    private userAddressRepository: Repository<UserAddress>,
+    private readonly userAddressRepository: Repository<UserAddress>,
     @InjectRepository(City)
-    private locationRepository: Repository<City>,
-  ) {}
+    private readonly locationRepository: Repository<City>,
+  ) {
+    this.proxy = new UserAddressProxy(this.i18n, this.userAddressRepository);
+  }
 
+  @Transactional()
   async createUserAddress(
     userId: string,
     createUserAddressInput: CreateUserAddressInput,
   ): Promise<UserAddressResponse> {
-    const queryRunner = await this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     const location = await this.locationRepository.findOne({
       where: { id: createUserAddressInput.createAddress.locationId },
       relations: ['country'],
@@ -49,175 +49,140 @@ export class UserAddressService {
       );
     }
 
-    try {
-      const address = AddressFactory.create(
-        createUserAddressInput.createAddress,
-      );
-      await queryRunner.manager.save(address);
+    const address = await this.addressService.createAddress(
+      createUserAddressInput.createAddress,
+    );
 
-      const userAddress =UserAddressFactory.create(
-        createUserAddressInput,
-        userId,
-        address,
-      );
-      await queryRunner.manager.save(userAddress);
+    const existingAddresses = await this.getUserAddresses(userId);
+    const isDefault =
+      existingAddresses.length === 0 || createUserAddressInput.isDefault;
 
-      await queryRunner.commitTransaction();
+    const userAddress = UserAddressFactory.create(
+      createUserAddressInput,
+      userId,
+      address.data,
+      isDefault,
+    );
 
-      if (createUserAddressInput?.isDefault)
-        await this.setDefaultAddress(userId, userAddress.id);
+    await this.userAddressRepository.save(userAddress);
 
-      return {
-        statusCode: 201,
-        message: await this.i18n.t('address.CREATED'),
-        data: {
-          ...userAddress,
-          address: { ...address, city: location },
-        } as unknown as UserAddress,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+    if (isDefault) {
+      await this.setDefaultAddress(userId, userAddress.id);
     }
+
+    return {
+      statusCode: 201,
+      message: await this.i18n.t('address.CREATED'),
+      data: {
+        ...userAddress,
+        address: { ...address.data, city: location },
+      } as unknown as UserAddress,
+    };
   }
 
+  @Transactional()
   async deleteUserAddress(
     userId: string,
     id: string,
   ): Promise<UserAddressResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const userAddress = await this.userAddressRepository.findOne({
+      where: { id, userId },
+    });
 
-    try {
-      const userAddress = await queryRunner.manager.findOne(UserAddress, {
-        where: { id, userId },
-      });
-
-      if (!userAddress) {
-        throw new NotFoundException(
-          await this.i18n.t('userAddress.NOT_FOUND', {
-            args: { id },
-          }),
-        );
-      }
-
-      await queryRunner.manager.remove(userAddress);
-      await queryRunner.commitTransaction();
-
-      return {
-        data: null,
-        message: await this.i18n.t('userAddress.DELETED', { args: { id } }),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+    if (!userAddress) {
+      throw new NotFoundException(
+        await this.i18n.t('userAddress.NOT_FOUND', { args: { id } }),
+      );
     }
+
+    await this.userAddressRepository.remove(userAddress);
+
+    return {
+      data: null,
+      message: await this.i18n.t('userAddress.DELETED', { args: { id } }),
+    };
   }
 
+  @Transactional()
   async setDefaultAddress(
     userId: string,
     id: string,
   ): Promise<UserAddressResponse> {
-    const queryRunner = await this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const userAddress = await this.userAddressRepository.findOne({
+      where: { userId, id },
+    });
 
-    try {
-      const userAddress = await queryRunner.manager.findOne(UserAddress, {
-        where: { userId, id },
-      });
-
-      if (!userAddress)
-        throw new NotFoundException(await this.i18n.t('userAddress.NOT_FOUND'));
-
-      await queryRunner.manager.update(
-        UserAddress,
-        { userId, isDefault: true },
-        { isDefault: false },
-      );
-
-      userAddress.isDefault = true;
-      await queryRunner.manager.save(userAddress);
-      await queryRunner.commitTransaction();
-
-      return {
-        data: userAddress,
-        message: await this.i18n.t('userAddress.SET_DEFAULT', { args: { id } }),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+    if (!userAddress) {
+      throw new NotFoundException(await this.i18n.t('userAddress.NOT_FOUND'));
     }
+
+    await this.userAddressRepository.update(
+      { userId, isDefault: true },
+      { isDefault: false },
+    );
+
+    userAddress.isDefault = true;
+    await this.userAddressRepository.save(userAddress);
+
+    return {
+      data: userAddress,
+      message: await this.i18n.t('userAddress.SET_DEFAULT', { args: { id } }),
+    };
   }
 
+  @Transactional()
   async updateUserAddress(
     userId: string,
     addressId: string,
     updateAddressDto?: UpdateAddressInput,
     updateUserAddressDto?: UpdateUserAddressInput,
   ): Promise<UserAddressResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const userAddress = await queryRunner.manager.findOne(UserAddress, {
-        where: { userId, id: addressId },
-        relations: ['address'],
-      });
-
-      if (!userAddress) {
-        throw new NotFoundException(
-          await this.i18n.t('userAddress.NOT_FOUND', { args: { addressId } }),
-        );
-      }
-
-      if (updateAddressDto && Object.keys(updateAddressDto).length > 0) {
-        Object.assign(userAddress.address, updateAddressDto);
-        await queryRunner.manager.save(userAddress.address);
-      }
-
-      if (updateUserAddressDto?.isDefault) {
-        await this.setDefaultAddress(userId, addressId);
-      }
-
-      await queryRunner.commitTransaction();
-
-      return {
-        data: userAddress,
-        message: await this.i18n.t('userAddress.UPDATED', {
-          args: { addressId },
-        }),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  async getById(id: string): Promise<UserAddressResponse> {
-    const address = await this.userAddressRepository.findOne({
-      where: { id },
+    const userAddress = await this.userAddressRepository.findOne({
+      where: { userId, id: addressId },
       relations: ['address'],
     });
 
-    if (!address)
+    if (!userAddress) {
       throw new NotFoundException(
-        await this.i18n.t('userAddress.NOT_FOUND', {
-          args: { id },
-        }),
+        await this.i18n.t('userAddress.NOT_FOUND', { args: { addressId } }),
       );
+    }
 
-    return { data: address };
+    if (updateAddressDto) {
+      Object.assign(userAddress.address, updateAddressDto);
+      await this.userAddressRepository.save(userAddress.address);
+    }
+
+    if (updateUserAddressDto?.isDefault) {
+      await this.setDefaultAddress(userId, addressId);
+    }
+
+    return {
+      data: userAddress,
+      message: await this.i18n.t('userAddress.UPDATED', {
+        args: { addressId },
+      }),
+    };
+  }
+
+  async getById(id: string): Promise<UserAddressResponse> {
+    return this.proxy.getById(id);
+  }
+
+  async getUserDefaultAddress(userId: string): Promise<UserAddress | null> {
+    return this.proxy.getUserDefaultAddress(userId);
+  }
+
+  private async getUserAddresses(userId: string): Promise<UserAddress[]> {
+    return this.proxy.getUserAddresses(userId);
+  }
+
+  async getUserByUserAddressId(userAddressId: string): Promise<User> {
+    return this.proxy.getUserByUserAddressId(userAddressId);
+  }
+
+  async getAddressByUserAddressId(userAddressId: string): Promise<Address> {
+    return this.proxy.getAddressByUserAddressId(userAddressId);
   }
 
   async connectAddressToUser(
@@ -237,51 +202,5 @@ export class UserAddressService {
     );
 
     return userAddress;
-  }
-
-  async getUserDefaultAddress(userId: string): Promise<UserAddress | null> {
-    return this.userAddressRepository.findOne({
-      where: { userId, isDefault: true },
-      relations: ['address'],
-    });
-  }
-
-  private async getUserAddresses(userId: string): Promise<UserAddress[]> {
-    return await this.userAddressRepository.find({
-      where: { userId },
-      relations: ['address'],
-    });
-  }
-
-  async getUserByUserAddressId(userAddressId: string): Promise<User> {
-    const userAddress = await this.userAddressRepository.findOne({
-      where: { id: userAddressId },
-      relations: ['user'],
-    });
-
-    if (!userAddress)
-      throw new NotFoundException(
-        await this.i18n.t('userAddress.NOT_FOUND', {
-          args: { id: userAddressId },
-        }),
-      );
-
-    return userAddress.user;
-  }
-
-  async getAddressByUserAddressId(userAddressId: string): Promise<Address> {
-    const userAddress = await this.userAddressRepository.findOne({
-      where: { id: userAddressId },
-      relations: ['address'],
-    });
-
-    if (!userAddress)
-      throw new NotFoundException(
-        await this.i18n.t('userAddress.NOT_FOUND', {
-          args: { id: userAddressId },
-        }),
-      );
-
-    return userAddress.address;
   }
 }

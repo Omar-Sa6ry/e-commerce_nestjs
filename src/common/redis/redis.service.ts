@@ -28,6 +28,11 @@ export class RedisService implements IRedisInterface {
     }
   }
 
+  async update(key: string, value: any, ttl: number = 3600): Promise<void> {
+    await this.del(key);
+    this.set(key, value, ttl);
+  }
+
   // Get a key's value and parse it if it's JSON
   async get<T = any>(key: string): Promise<T | null> {
     try {

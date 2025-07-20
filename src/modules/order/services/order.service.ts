@@ -1,146 +1,46 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { TrackOrderStatusResponse } from '../dtos/trackOrder.dto';
+import { OrderProxy } from '../proxy/order.proxy';
+import { RedisService } from 'src/common/redis/redis.service';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
 import { OrderItemsResponse } from '../dtos/orderItemResponse.dto';
 import { OrderStatisticsResponse } from '../dtos/orderStatistics.dto';
-import { Queue } from 'bullmq';
-import { InjectQueue } from '@nestjs/bullmq';
 import { OrderResponse, OrdersResponse } from '../dtos/orderResponse.dto';
-import { CreateOrderResponse } from '../dtos/createOrderResponse.dto';
-import { OrderProcessingService } from './orderProcessing.service';
 import { Order } from '../entities/order.entity';
 import { I18nService } from 'nestjs-i18n';
+import { Limit, Page } from '../../../common/constant/messages.constant';
 import {
   OrderStatus,
-  PaymentMethod,
   PaymentStatus,
-  QueuesNames,
 } from '../../../common/constant/enum.constant';
-import {
-  DelevaryPrice,
-  Limit,
-  Page,
-} from '../../../common/constant/messages.constant';
 
 @Injectable()
 export class OrderService {
+  private proxy: OrderProxy;
+
   constructor(
     private readonly i18n: I18nService,
-    private readonly dataSource: DataSource,
-    private readonly orderProcessingService: OrderProcessingService,
-    @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
-    @InjectQueue(QueuesNames.ORDER_PROCESSING) private orderQueue: Queue,
-  ) {}
+    private readonly redisService: RedisService,
 
-  async createOrderFromCart(
-    userId: string,
-    addressId: string,
-    paymentMethod: PaymentMethod,
-    delevaryPrice: number = DelevaryPrice,
-    couponId?: string,
-  ): Promise<CreateOrderResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const user = await this.orderProcessingService.validateUser(
-        queryRunner,
-        userId,
-        true,
-      );
-
-      await this.orderProcessingService.validateCart(user);
-
-      this.orderQueue.add(QueuesNames.ORDER_PROCESSING, {
-        userId,
-        addressId,
-        paymentMethod,
-        delevaryPrice,
-        couponId,
-        cartItems: user.cart.cartItems,
-      });
-
-      await queryRunner.commitTransaction();
-
-      return {
-        data: null,
-        statusCode: 201,
-        message: await this.i18n.t('order.SENT'),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  async createOrderFromProducts(
-    userId: string,
-    email: string,
-    addressId: string,
-    paymentMethod: PaymentMethod,
-    detailsId: string,
-    quantity: number,
-    delevaryPrice: number = DelevaryPrice,
-    couponId?: string,
-  ): Promise<CreateOrderResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const details = await this.orderProcessingService.validateProductDetails(
-        queryRunner,
-        detailsId,
-      );
-
-      this.orderQueue.add(QueuesNames.ORDER_PROCESSING, {
-        userId,
-        addressId,
-        paymentMethod,
-        delevaryPrice,
-        couponId,
-        singleProduct: {
-          detailsId,
-          quantity,
-          productName: details.product.name,
-          productPrice: details.product.price,
-        },
-      });
-
-      await queryRunner.commitTransaction();
-
-      return {
-        data: null,
-        statusCode: 201,
-        message: await this.i18n.t('order.SENT'),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    @InjectRepository(Order) private orderRepository: Repository<Order>,
+  ) {
+    this.proxy = new OrderProxy(
+      this.i18n,
+      this.redisService,
+      this.orderRepository,
+    );
   }
 
   async findAllForUser(
     userId: string,
-    page: number = Page,
-    limit: number = Limit,
+    page: number = 1,
+    limit: number = 10,
   ): Promise<OrdersResponse> {
-    const orders = await this.orderRepository.find({
+    const [orders, total] = await this.orderRepository.findAndCount({
       where: { userId },
-      relations: [
-        'orderItems',
-        'orderItems.productDetails',
-        'address',
-        'coupon',
-        'user',
-      ],
+      relations: ['orderItems', 'address', 'coupon'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -150,7 +50,38 @@ export class OrderService {
       throw new NotFoundException(await this.i18n.t('order.NOT_FOUNDS'));
     }
 
-    return { items: orders };
+    return {
+      items: orders,
+      pagination: {
+        totalItems: total,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findById(id: string): Promise<OrderResponse> {
+    return this.proxy.findById(id);
+  }
+
+  @Transactional()
+  async updateOrderStatus(
+    id: string,
+    status: OrderStatus,
+  ): Promise<OrderResponse> {
+    const order = await this.orderRepository.findOne({ where: { id } });
+
+    if (!order) {
+      throw new NotFoundException(await this.i18n.t('order.NOT_FOUND'));
+    }
+
+    order.orderStatus = status;
+    await this.orderRepository.save(order);
+
+    return {
+      data: order,
+      message: await this.i18n.t('order.UPDATED_STATUS', { args: { status } }),
+    };
   }
 
   async findAll(
@@ -177,50 +108,12 @@ export class OrderService {
     return { items: orders };
   }
 
-  async findById(id: string): Promise<OrderResponse> {
-    const order = await this.orderRepository.findOne({
-      where: { id },
-      relations: [
-        'orderItems',
-        'orderItems.productDetails',
-        'address',
-        'coupon',
-        'user',
-      ],
-    });
-
-    if (!order) {
-      throw new NotFoundException(await this.i18n.t('order.NOT_FOUND'));
-    }
-
-    return { data: order };
-  }
-
-  async updateOrderStatus(
-    id: string,
-    status: OrderStatus,
-  ): Promise<OrderResponse> {
-    const order = await this.orderRepository.findOne({ where: { id } });
-    if (!order) {
-      throw new NotFoundException(await this.i18n.t('order.NOT_FOUND'));
-    }
-
-    order.orderStatus = status;
-    await this.orderRepository.save(order);
-
-    return {
-      data: order,
-      message: await this.i18n.t('order.UPDATED_STATUS', {
-        args: { id, status },
-      }),
-    };
-  }
-
+  @Transactional()
   async updatePaymentStatus(
     id: string,
     status: PaymentStatus,
   ): Promise<OrderResponse> {
-    const order = await this.orderRepository.findOne({ where: { id } });
+    const order = (await this.findById(id)!).data;
     if (!order) {
       throw new NotFoundException(await this.i18n.t('order.NOT_FOUND'));
     }
@@ -228,6 +121,9 @@ export class OrderService {
     order.paymentStatus = status;
     await this.orderRepository.save(order);
 
+    const cacheKey = `order:${id}`;
+    this.redisService.set(cacheKey, Order);
+
     return {
       data: order,
       message: await this.i18n.t('order.UPDATED_STATUS', {
@@ -236,6 +132,7 @@ export class OrderService {
     };
   }
 
+  @Transactional()
   async cancelOrder(id: string, userId: string): Promise<OrderResponse> {
     const order = await this.orderRepository.findOne({ where: { id, userId } });
     if (!order) {
@@ -245,6 +142,8 @@ export class OrderService {
     order.orderStatus = OrderStatus.CANCELED;
     await this.orderRepository.save(order);
 
+    const cacheKey = `order:${id}`;
+    this.redisService.set(cacheKey, Order);
     return {
       data: order,
       message: await this.i18n.t('order.CANCELED', {
@@ -253,13 +152,17 @@ export class OrderService {
     };
   }
 
+  @Transactional()
   async deleteAnOrder(id: string): Promise<OrderResponse> {
-    const order = await this.orderRepository.findOne({ where: { id } });
+    const order = await this.findById(id);
     if (!order) {
       throw new NotFoundException(await this.i18n.t('order.NOT_FOUND'));
     }
 
-    await this.orderRepository.remove(order);
+    await this.orderRepository.remove(order.data);
+
+    const cacheKey = `order:${id}`;
+    this.redisService.del(cacheKey);
     return {
       data: null,
       message: await this.i18n.t('order.DELETED', {
@@ -268,6 +171,7 @@ export class OrderService {
     };
   }
 
+  @Transactional()
   async deleteCompleteOrders(): Promise<OrderResponse> {
     const orders = await this.orderRepository.find({
       where: { orderStatus: OrderStatus.COMPLETED },

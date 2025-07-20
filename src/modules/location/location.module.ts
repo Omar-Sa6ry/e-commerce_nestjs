@@ -7,9 +7,10 @@ import { UserModule } from '../users/users.module';
 import { CountryLoader } from './loaders/country.loader';
 import { CityLoader } from './loaders/city.loader';
 import { CityResolver, CountryResolver } from './location.resolver';
+import { RedisModule } from 'src/common/redis/redis.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Country, City]), UserModule],
+  imports: [TypeOrmModule.forFeature([Country, City]), RedisModule, UserModule],
   providers: [
     LocationService,
     CityResolver,

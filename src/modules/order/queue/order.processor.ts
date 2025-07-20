@@ -2,15 +2,22 @@ import { I18nService } from 'nestjs-i18n';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { OrderProcessingService } from '../services/orderProcessing.service';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { OrderProcessingJobData } from '../interface/OrderProcessingJobData.interface';
-import { PaymentMethod, QueuesNames } from 'src/common/constant/enum.constant';
+import {
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+  QueuesNames,
+} from 'src/common/constant/enum.constant';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
 import { NotificationService } from 'src/common/queues/notification/notification.service';
 import { BadRequestException } from '@nestjs/common';
 import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 import { StripeService } from 'src/modules/stripe/stripe.service';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Processor(QueuesNames.ORDER_PROCESSING)
 export class OrderProcessor extends WorkerHost {
@@ -21,10 +28,12 @@ export class OrderProcessor extends WorkerHost {
     private readonly orderProcessingService: OrderProcessingService,
     private readonly sendEmailService: SendEmailService,
     private readonly notificationService: NotificationService,
+    @InjectRepository(Order) private orderRepository: Repository<Order>,
   ) {
     super();
   }
 
+  @Transactional()
   async process(job: Job): Promise<void> {
     const {
       userId,
@@ -43,44 +52,38 @@ export class OrderProcessor extends WorkerHost {
     try {
       let coupon: Coupon | null = null;
       if (couponId) {
-        coupon = await this.orderProcessingService.validateCoupon(
-          queryRunner,
-          couponId,
-        );
+        coupon = await this.orderProcessingService.validateCoupon(couponId);
       }
 
       const address = await this.orderProcessingService.validateAddress(
-        queryRunner,
         userId,
         addressId,
       );
 
       const user = await this.orderProcessingService.validateUser(
-        queryRunner,
         userId,
         !!cartItems,
       );
 
-      const order = await queryRunner.manager.create(Order, {
-        userId,
-        addressId: address.id,
-        couponId: coupon?.id ?? null,
-        paymentMethod,
-      });
-      await queryRunner.manager.save(order);
+      const order = new Order();
+      order.userId = userId;
+      order.address = address;
+      order.paymentMethod = paymentMethod;
+      order.orderStatus = OrderStatus.PENDING;
+      order.paymentStatus = PaymentStatus.UNPAID;
+
+      await this.orderRepository.save(order);
 
       let totalPrice = 0;
 
       if (cartItems) {
         totalPrice = await this.orderProcessingService.processCartItems(
-          queryRunner,
           cartItems,
           order.id,
           delevaryPrice,
         );
       } else if (singleProduct) {
         totalPrice = await this.orderProcessingService.processSingleProduct(
-          queryRunner,
           order.id,
           singleProduct.detailsId,
           singleProduct.quantity,
@@ -162,8 +165,7 @@ export class OrderProcessor extends WorkerHost {
         );
       }
 
-      if (cartItems)
-        await this.orderProcessingService.clearUserCart(queryRunner, user);
+      if (cartItems) await this.orderProcessingService.clearUserCart(user);
 
       await queryRunner.commitTransaction();
     } catch (error) {

@@ -1,11 +1,4 @@
 import {
-  Between,
-  DataSource,
-  FindOptionsWhere,
-  ILike,
-  Repository,
-} from 'typeorm';
-import {
   Inject,
   Injectable,
   NotFoundException,
@@ -14,9 +7,13 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { PUB_SUB } from 'src/common/pubsup/pubSub.module';
+import { Repository } from 'typeorm';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { UploadService } from 'src/common/upload/upload.service';
 import { RedisService } from 'src/common/redis/redis.service';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { ProductProxy } from './proxy/prouct.proxy';
+import { Details } from '../poductDetails/entity/productDetails.entity';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { ProductFactory } from '../product/factories/product.factory';
 import { ProductDetailsFactory } from '../poductDetails/factory/productDetails.factory';
@@ -35,57 +32,54 @@ import {
 
 @Injectable()
 export class ProductService {
+  private proxy: ProductProxy;
+
   constructor(
     private readonly i18n: I18nService,
-    private dataSource: DataSource,
     private readonly uploadService: UploadService,
     private readonly redisService: RedisService,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(Details)
+    private readonly productDetailsRepository: Repository<Details>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
-  ) {}
+  ) {
+    this.proxy = new ProductProxy(
+      this.i18n,
+      this.redisService,
+      this.productRepository,
+    );
+  }
 
+  @Transactional()
   async create(
     createProductInput: CreateProductInput,
     userId: string,
   ): Promise<ProductResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const user = await this.validateCreateProductInput(
+      createProductInput,
+      userId,
+    );
 
-    try {
-      const user = await this.validateCreateProductInput(
-        createProductInput,
-        userId,
-      );
+    const product = await this.createProductWithDetails(
+      createProductInput,
+      userId,
+      user.companyId,
+    );
 
-      const product = await this.createProductWithDetails(
-        queryRunner,
-        createProductInput,
-        userId,
-        user.companyId,
-      );
+    await this.handlePostCreationTasks(product);
 
-      await queryRunner.commitTransaction();
-      await this.handlePostCreationTasks(product);
-
-      return this.buildProductResponse(
-        product,
-        201,
-        await this.i18n.t('product.CREATED'),
-      );
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
-    }
+    return this.buildProductResponse(
+      product,
+      201,
+      await this.i18n.t('product.CREATED'),
+    );
   }
 
   async findAll(
@@ -93,43 +87,14 @@ export class ProductService {
     page: number = Page,
     limit: number = Limit,
   ): Promise<ProductsResponse> {
-    const where = this.buildFindAllWhereClause(findProductInput);
-    const [products, total] = await this.productRepository.findAndCount({
-      where,
-      relations: ['category', 'company', 'user', 'images', 'details'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    if (products.length === 0)
-      throw new NotFoundException(await this.i18n.t('product.NOT_FOUNDS'));
-
-    return this.buildProductsResponse(products, total, page, limit);
+    return this.proxy.findAll(findProductInput, page, limit);
   }
 
   async findOne(id: string): Promise<ProductResponse> {
-    const cachedProduct = await this.redisService.get(`product:${id}`);
-
-    if (typeof cachedProduct === 'string')
-      return { data: JSON.parse(cachedProduct) };
-
-    const product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['category', 'company', 'user', 'images', 'details'],
-    });
-
-    if (!product) {
-      throw new NotFoundException(
-        await this.i18n.t('product.NOT_FOUND', { args: { id } }),
-      );
-    }
-
-    this.redisService.set(`product:${product.id}`, JSON.stringify(product));
-
-    return { data: product };
+    return this.proxy.findOne(id);
   }
 
+  @Transactional()
   async update(
     updateProductInput: UpdateProductInput,
   ): Promise<ProductResponse> {
@@ -137,6 +102,8 @@ export class ProductService {
     Object.assign(product, updateProductInput);
 
     await this.productRepository.save(product);
+
+    this.redisService.del(`product:${product.id}`);
     this.redisService.set(`product:${product.id}`, product);
 
     return {
@@ -147,34 +114,19 @@ export class ProductService {
     };
   }
 
+  @Transactional()
   async remove(id: string, userId: string): Promise<ProductResponse> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const product = await this.validateProductForDeletion(id, userId);
 
-    try {
-      const product = await this.validateProductForDeletion(
-        queryRunner,
-        id,
-        userId,
-      );
+    await this.deleteProductImages(product.id);
 
-      this.deleteProductImages(product.id);
-      await queryRunner.manager.remove(product);
-      await queryRunner.commitTransaction();
+    await this.handlePostDeletionTasks(id);
+    this.redisService.del(`product:${product.id}`);
 
-      await this.handlePostDeletionTasks(id);
-
-      return {
-        data: null,
-        message: await this.i18n.t('product.DELETED', { args: { id } }),
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    return {
+      data: null,
+      message: await this.i18n.t('product.DELETED', { args: { id } }),
+    };
   }
 
   private async validateCreateProductInput(
@@ -219,26 +171,24 @@ export class ProductService {
   }
 
   private async createProductWithDetails(
-    queryRunner: any,
     input: CreateProductInput,
     userId: string,
     companyId: string,
   ): Promise<Product> {
     const product = ProductFactory.create(input, companyId, userId);
-    await queryRunner.manager.save(product);
+    await this.productRepository.manager.save(product);
 
     const details = input.details.map((detail) =>
       ProductDetailsFactory.create({ ...detail, productId: product.id }),
     );
-    await queryRunner.manager.save(details);
+    await this.productDetailsRepository.manager.save(details);
 
-    await this.createProductImages(queryRunner, input.images, product.id);
+    await this.createProductImages(input.images, product.id);
 
     return product;
   }
 
   private async createProductImages(
-    queryRunner: any,
     images: any[],
     productId: string,
   ): Promise<void> {
@@ -249,7 +199,7 @@ export class ProductService {
           'products',
         );
         const imageEntity = ImageFactory.create(imageUrl, productId);
-        await queryRunner.manager.save(imageEntity);
+        await this.imageRepository.save(imageEntity);
       }),
     );
   }
@@ -265,53 +215,6 @@ export class ProductService {
         },
       }),
     ]);
-  }
-
-  private buildFindAllWhereClause(
-    findProductInput?: FindProductInput,
-  ): FindOptionsWhere<Product> {
-    const where: FindOptionsWhere<Product> = {};
-
-    if (findProductInput) {
-      if (findProductInput.name) {
-        where.name = ILike(`%${findProductInput.name.trim()}%`);
-      }
-
-      if (findProductInput.categoryId) {
-        where.category = { id: findProductInput.categoryId };
-      }
-
-      if (findProductInput.companyId) {
-        where.company = { id: findProductInput.companyId };
-      }
-
-      if (
-        typeof findProductInput.priceMin === 'number' ||
-        typeof findProductInput.priceMax === 'number'
-      ) {
-        const min = findProductInput.priceMin ?? 0;
-        const max = findProductInput.priceMax ?? Number.MAX_SAFE_INTEGER;
-        where.price = Between(min, max);
-      }
-    }
-
-    return where;
-  }
-
-  private buildProductsResponse(
-    products: Product[],
-    total: number,
-    page: number,
-    limit: number,
-  ): ProductsResponse {
-    return {
-      items: products,
-      pagination: {
-        totalItems: total,
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
   }
 
   private async validateAndGetProduct(id: string): Promise<Product> {
@@ -330,19 +233,17 @@ export class ProductService {
   }
 
   private async validateProductForDeletion(
-    queryRunner: any,
     id: string,
     userId: string,
   ): Promise<Product> {
-    const product = await queryRunner.manager.findOne(Product, {
+    const product = await this.productRepository.findOne({
       where: { id },
     });
 
-    if (!product) {
+    if (!product)
       throw new NotFoundException(
         await this.i18n.t('product.NOT_FOUND', { args: { id } }),
       );
-    }
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (product.companyId !== user.companyId) {

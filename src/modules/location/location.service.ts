@@ -12,30 +12,43 @@ import { CreateCityInput } from './inputs/createCity.input';
 import { I18nService } from 'nestjs-i18n';
 import { CountryResponse, CountrysResponse } from './dtos/countryResponse.dto';
 import { Limit, Page } from 'src/common/constant/messages.constant';
-import { CityResponse, CitysResponse } from './dtos/cityResponse.dto copy';
+import { CityResponse, CitysResponse } from './dtos/cityResponse.dto';
 import { CapitalizeWords } from 'src/common/decerator/WordsTransform.decerator';
 import { CityFactory } from './factories/city.factory';
 import { CountryFactory } from './factories/country.factory';
+import { LocationProxy } from './proxy/location.proxy';
+import { RedisService } from 'src/common/redis/redis.service';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
 
 @Injectable()
 export class LocationService {
+  private proxy: LocationProxy;
+
   constructor(
     private readonly i18n: I18nService,
-
+    private readonly redisService: RedisService,
     @InjectRepository(Country)
     private readonly countryRepository: Repository<Country>,
     @InjectRepository(City)
     private readonly cityRepository: Repository<City>,
-  ) {}
+  ) {
+    this.proxy = new LocationProxy(
+      this.i18n,
+      this.redisService,
+      this.cityRepository,
+      this.countryRepository,
+    );
+  }
 
   // =================== Country ==========================
 
+  @Transactional()
   async createCountry(
     createCountryInput: CreateCountryInput,
   ): Promise<CountryResponse> {
-    const existingCountry = await this.countryRepository.findOne({
-      where: { name: createCountryInput.name },
-    });
+    const existingCountry = await this.proxy.findCountryByName(
+      createCountryInput.name,
+    );
     if (existingCountry)
       throw new BadRequestException(
         await this.i18n.t('location.EXISTED_COUNTRY', {
@@ -80,22 +93,14 @@ export class LocationService {
   }
 
   async findCountryById(id: string): Promise<CountryResponse> {
-    const country = await this.countryRepository.findOne({ where: { id } });
-    if (!country)
-      throw new NotFoundException(
-        await this.i18n.t('location.NOT_FOUND_COUNTRY'),
-      );
-
-    return { data: country };
+    return this.proxy.findCountryById(id);
   }
 
+  @Transactional()
   async updateCountry(id: string, name: string): Promise<CountryResponse> {
-    const country = await this.countryRepository.findOneBy({ id });
+    const country = await this.proxy.findCountryById(id);
 
-    const existingCountry = await this.countryRepository.findOne({
-      where: { name },
-    });
-
+    const existingCountry = await this.proxy.findCountryByName(name);
     if (existingCountry)
       throw new BadRequestException(
         await this.i18n.t('location.EXISTED_COUNTRY', {
@@ -104,45 +109,47 @@ export class LocationService {
       );
 
     const countryName = await CapitalizeWords(name);
-    country.name = countryName;
+    country.data.name = countryName;
 
-    await this.countryRepository.save(country);
+    await this.countryRepository.save(country.data);
 
     return {
-      data: country,
+      data: country.data,
       message: await this.i18n.t('location.UPDATED_COUNTRY', {
         args: { name },
       }),
     };
   }
 
-  async deleteCountry(id: string): Promise<CountryResponse> {
-    const country = await this.countryRepository.findOneBy({ id });
-
+  @Transactional()
+  async deleteCountry(id: string, queryRunner?: any): Promise<CountryResponse> {
+    const country = await this.proxy.findCountryById(id);
     if (!country)
       throw new NotFoundException(
         await this.i18n.t('location.NOT_FOUND_COUNTRY'),
       );
 
-    await this.countryRepository.remove(country);
+    await this.countryRepository.remove(country.data);
+    this.redisService.del(`country:${country.data.id}`);
 
     return {
       data: null,
       message: await this.i18n.t('location.DELETED_COUNTRY', {
-        args: { name: country.name },
+        args: { name: country.data.name },
       }),
     };
   }
 
   // =================== City ==========================
 
+  @Transactional()
   async createCity(createCityInput: CreateCityInput): Promise<CityResponse> {
     const country = (await this.findCountryById(createCityInput.countryId))
       .data;
 
-    const existingCity = await this.cityRepository.findOne({
-      where: { name: createCityInput.name },
-    });
+    const existingCity = await this.proxy.findCountryByName(
+      createCityInput.name,
+    );
     if (existingCity)
       throw new BadRequestException(
         await this.i18n.t('location.EXISTED_CITY', {
@@ -193,15 +200,50 @@ export class LocationService {
   }
 
   async findCityById(id: string): Promise<CityResponse> {
-    const city = await this.cityRepository.findOne({
-      where: { id },
-      relations: ['country'],
-    });
+    return this.proxy.findCityById(id);
+  }
+
+  @Transactional()
+  async updateCity(id: string, name: string): Promise<CityResponse> {
+    const city = await this.proxy.findCityById(id);
+
+    const existingCity = await this.proxy.findCityByName(name);
+
+    if (existingCity)
+      throw new BadRequestException(
+        await this.i18n.t('location.EXISTED_CITY', {
+          args: { name },
+        }),
+      );
+
+    const cityName = await CapitalizeWords(name);
+    city.data.name = cityName;
+
+    await this.cityRepository.save(city.data);
+
+    return {
+      data: city.data,
+      message: await this.i18n.t('location.UPDATED_CITY', {
+        args: { name },
+      }),
+    };
+  }
+
+  @Transactional()
+  async deleteCity(id: string): Promise<CityResponse> {
+    const city = await this.proxy.findCityById(id);
 
     if (!city)
       throw new NotFoundException(await this.i18n.t('location.NOT_FOUND_CITY'));
 
-    return { data: city };
+    await this.cityRepository.remove(city.data);
+
+    return {
+      data: null,
+      message: await this.i18n.t('location.DELETED_CITY', {
+        args: { name: city.data.name },
+      }),
+    };
   }
 
   async findCitiesByCountryId(countryId: string): Promise<CitysResponse> {
@@ -222,49 +264,6 @@ export class LocationService {
         currentPage: 1,
         totalPages: 1,
       },
-    };
-  }
-
-  async updateCity(id: string, name: string): Promise<CityResponse> {
-    const city = await this.cityRepository.findOneBy({ id });
-
-    const existingCity = await this.cityRepository.findOne({
-      where: { name },
-    });
-
-    if (existingCity)
-      throw new BadRequestException(
-        await this.i18n.t('location.EXISTED_CITY', {
-          args: { name },
-        }),
-      );
-
-    const cityName = await CapitalizeWords(name);
-    city.name = cityName;
-
-    await this.cityRepository.save(city);
-
-    return {
-      data: city,
-      message: await this.i18n.t('location.UPDATED_CITY', {
-        args: { name },
-      }),
-    };
-  }
-
-  async deleteCity(id: string): Promise<CityResponse> {
-    const city = await this.cityRepository.findOneBy({ id });
-
-    if (!city)
-      throw new NotFoundException(await this.i18n.t('location.NOT_FOUND_CITY'));
-
-    await this.cityRepository.remove(city);
-
-    return {
-      data: null,
-      message: await this.i18n.t('location.DELETED_CITY', {
-        args: { name: city.name },
-      }),
     };
   }
 }

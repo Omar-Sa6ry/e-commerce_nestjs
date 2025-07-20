@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './entity/company.entity';
@@ -17,112 +13,109 @@ import { UserResponse } from '../users/dto/UserResponse.dto';
 import { AddressService } from '../address/address.service';
 import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 import { Address } from '../address/entity/address.entity';
+import { ICompanyValidator } from './interfaces/ICompany.interface';
+import { CompanyFacade } from './fascade/company.fascade';
+import { CompanyRepositoryProxy } from './proxy/company.proxy';
+import { CompanyValidatorAdapter } from './adapter/company.adapter';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { AddEmployeeOperation } from './bridge/addEmployee.bridge';
+import { RemoveEmployeeOperation } from './bridge/removeEmployee.bridge';
+import {
+  CompanyExistsValidator,
+  EmployeeExistsValidator,
+  EmployeeValidatorComposite,
+  ManagerValidator,
+} from './composite/employee.composite';
 
 @Injectable()
 export class CompanyService {
+  private validator: ICompanyValidator;
+  private facade: CompanyFacade;
+  private repositoryProxy: CompanyRepositoryProxy;
+  private employeeValidator: EmployeeValidatorComposite;
+
   constructor(
     private readonly i18n: I18nService,
-    private addressService: AddressService,
-    @InjectRepository(Company) private companyRepository: Repository<Company>,
-    @InjectRepository(Address) private addressRepository: Repository<Address>,
-    @InjectRepository(User) private userRepository: Repository<User>,
-  ) {}
+    private readonly addressService: AddressService,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
+    @InjectRepository(Address)
+    private readonly addressRepository: Repository<Address>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+  ) {
+    this.validator = new CompanyValidatorAdapter(companyRepository, i18n);
+    this.facade = new CompanyFacade(
+      this.validator,
+      this.companyRepository,
+      this.addressService,
+    );
+    this.repositoryProxy = new CompanyRepositoryProxy(companyRepository);
 
+    this.employeeValidator = new EmployeeValidatorComposite();
+    this.employeeValidator.add(new EmployeeExistsValidator(i18n));
+    this.employeeValidator.add(new CompanyExistsValidator(i18n));
+    this.employeeValidator.add(new ManagerValidator(i18n));
+  }
+
+  @Transactional()
   async create(
     createCompanyDto: CreateCompanyDto,
     userId: string,
     createAddressInput?: CreateAddressInput,
+    queryRunner?: any,
   ): Promise<CompanyResponse> {
-    const queryRunner =
-      this.companyRepository.manager.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     try {
       const user = await queryRunner.manager.findOne(User, {
         where: { id: userId },
       });
-      if (!user)
+      if (!user) {
         throw new NotFoundException(
           await this.i18n.t('user.NOT_FOUND', { args: { id: userId } }),
         );
-
-      const exitedCompany = await queryRunner.manager.findOne(Company, {
-        where: { email: createCompanyDto.email },
-      });
-
-      if (exitedCompany)
-        throw new BadRequestException(
-          await this.i18n.t('company.EXISTED', {
-            args: { email: createCompanyDto.email },
-          }),
-        );
-
-      const exitedCompanyByName = await queryRunner.manager.findOne(Company, {
-        where: { name: createCompanyDto.name },
-      });
-
-      if (exitedCompanyByName)
-        throw new BadRequestException(
-          await this.i18n.t('company.EXISTED', {
-            args: { name: createCompanyDto.name },
-          }),
-        );
-
-      const company = this.companyRepository.create(createCompanyDto);
-
-      if (createAddressInput) {
-        const address =
-          await this.addressService.createAddress(createAddressInput);
-
-        company.addressId = address.data.id;
-        company.address = address.data;
       }
 
-      const savedCompany = await queryRunner.manager.save(Company, company);
+      const company = await this.facade.createCompany(
+        createCompanyDto,
+        createAddressInput,
+      );
 
-      user.companyId = savedCompany.id;
+      user.companyId = company.id;
       user.role = Role.COMPANY;
       await queryRunner.manager.save(User, user);
 
-      await queryRunner.commitTransaction();
-
       return {
         statusCode: 201,
-        data: savedCompany,
+        data: company,
         message: await this.i18n.t('company.CREATED', {
           args: { name: createCompanyDto.name },
         }),
       };
     } catch (error) {
-      await queryRunner.rollbackTransaction();
       throw error;
-    } finally {
-      await queryRunner.release();
     }
   }
 
   async find(name: string): Promise<CompanyResponse> {
-    const company = await this.companyRepository.findOne({ where: { name } });
-    if (!company)
+    const company = await this.repositoryProxy.findOneByName(name);
+    if (!company) {
       throw new NotFoundException(
         await this.i18n.t('company.NOT_FOUND_BY_NAME', {
           args: { name },
         }),
       );
-
+    }
     return { data: company };
   }
 
   async findById(id: string): Promise<CompanyResponse> {
-    const company = await this.companyRepository.findOne({ where: { id } });
-    if (!company)
+    const company = await this.repositoryProxy.findOneById(id);
+    if (!company) {
       throw new NotFoundException(
         await this.i18n.t('company.NOT_FOUND', {
           args: { id },
         }),
       );
-
+    }
     return { data: company };
   }
 
@@ -130,123 +123,54 @@ export class CompanyService {
     page: number = Page,
     limit: number = Limit,
   ): Promise<CompanysResponse> {
-    const companys = await this.companyRepository.find({
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-    if (companys.length > 0) return { items: companys };
+    const companies = await this.repositoryProxy.findAllPaginated(page, limit);
+    if (companies.length > 0) return { items: companies };
 
     throw new NotFoundException(await this.i18n.t('company.NOT_FOUNDS'));
   }
 
   async addEmployee(id: string, userId: string, managerId: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
-
     const company = await this.companyRepository.findOne({ where: { id } });
-    if (!company)
-      throw new NotFoundException(
-        await this.i18n.t('company.NOT_FOUND', {
-          args: { id },
-        }),
-      );
 
-    if (user.companyId === managerId)
-      throw new NotFoundException(
-        await this.i18n.t('company.NOT_MANAGER', {
-          args: { id },
-        }),
-      );
+    await this.employeeValidator.validate(user, company, managerId);
 
-    user.companyId = company.id;
-    user.role = Role.COMPANY;
-    await this.userRepository.save(user);
-
-    return {
-      data: company,
-      message: await this.i18n.t('company.ADD_EMPLOYEE', {
-        args: { name: company.name },
-      }),
-    };
+    const operation = new AddEmployeeOperation(this.userRepository, this.i18n);
+    return operation.execute(user, company);
   }
 
   async removeEmployee(id: string, userId: string, managerId: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
-
     const company = await this.companyRepository.findOne({ where: { id } });
-    if (!company)
-      throw new NotFoundException(
-        await this.i18n.t('company.NOT_FOUND', {
-          args: { id },
-        }),
-      );
 
-    if (user.companyId === managerId)
-      throw new NotFoundException(
-        await this.i18n.t('company.NOT_MANAGER', {
-          args: { id },
-        }),
-      );
+    await this.employeeValidator.validate(user, company, managerId);
 
-    user.companyId = null;
-    user.role = Role.USER;
-    await this.userRepository.save(user);
-
-    return {
-      data: company,
-      message: await this.i18n.t('company.REMOVE_EMPLOYEE', {
-        args: { name: company.name },
-      }),
-    };
+    const operation = new RemoveEmployeeOperation(
+      this.userRepository,
+      this.i18n,
+    );
+    return operation.execute(user, company);
   }
 
   async getAllEmployees(id: string): Promise<User[]> {
-    const users = await this.userRepository.find({
+    return this.userRepository.find({
       where: { companyId: id },
     });
-
-    return users;
   }
 
   async update(
     id: string,
     updateCompanyDto: UpdateCompanyDto,
   ): Promise<CompanyResponse> {
-    // const { addressId } = updateCompanyDto;
-    const existingCompanyById = await this.companyRepository.findOne({
-      where: { id },
-    });
-    if (!existingCompanyById)
-      throw new NotFoundException(
-        await this.i18n.t('company.NOT_FOUND', {
-          args: { id },
-        }),
-      );
-
-    // if (!addressId) {
-    //   throw new BadRequestException(AddressRequire);
-    // }
-
-    Object.assign(existingCompanyById, updateCompanyDto);
-    await this.companyRepository.save(existingCompanyById);
-
+    const company = await this.facade.updateCompany(id, updateCompanyDto);
     return {
-      data: existingCompanyById,
+      data: company,
       message: await this.i18n.t('company.UPDATED', { args: { id } }),
     };
   }
 
   async delete(id: string): Promise<CompanyResponse> {
-    const company = await this.companyRepository.findOne({ where: { id } });
-    if (!company)
-      throw new NotFoundException(
-        await this.i18n.t('company.NOT_FOUND', {
-          args: { id },
-        }),
-      );
-
+    const company = await this.validator.validateExists(id);
     await this.companyRepository.remove(company);
     return {
       data: null,
@@ -256,20 +180,13 @@ export class CompanyService {
 
   async editUserToCompany(
     userId: string,
-    componyId: string,
+    companyId: string,
   ): Promise<UserResponse> {
-    const company = await this.companyRepository.findOne({
-      where: { id: componyId },
-    });
-    if (!company)
-      throw new NotFoundException(
-        await this.i18n.t('company.NOT_FOUND', {
-          args: { componyId },
-        }),
-      );
-
+    const company = await this.validator.validateExists(companyId);
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
+    if (!user) {
+      throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
+    }
 
     user.role = Role.COMPANY;
     user.companyId = company.id;
@@ -284,7 +201,6 @@ export class CompanyService {
   }
 
   async getAddress(id: string): Promise<Address | null> {
-    const address = await this.addressRepository.findOne({ where: { id } });
-    return address || null;
+    return this.addressRepository.findOne({ where: { id } });
   }
 }

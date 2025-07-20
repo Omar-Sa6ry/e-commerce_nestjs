@@ -8,6 +8,7 @@ import { UploadService } from '../../common/upload/upload.service';
 import { EmailModule } from 'src/common/queues/email/email.module';
 import { AddressModule } from '../address/address.module';
 import { CartModule } from '../cart/cart.module';
+import { UserFacadeService } from './fascade/user.fascade';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { CartModule } from '../cart/cart.module';
     forwardRef(() => CartModule),
     forwardRef(() => AddressModule),
   ],
-  providers: [UserService, UserResolver, UploadService],
+  providers: [UserService, UserResolver, UserFacadeService, UploadService],
   exports: [UserService, TypeOrmModule],
 })
 export class UserModule {}

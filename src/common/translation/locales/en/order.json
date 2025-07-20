@@ -11,5 +11,6 @@
   "PRODUCT_NOT_FOUND": "Product not found",
   "SEND_URL": "Send url to complete order successfully",
   "UPDATED_STATUS": "Order {id} status updated successfully to {status}",
+  "INVALID_ORDER_TYPE": "Invalid order type",
   "SENT": "we will sent you an email and notification to check your order"
 }

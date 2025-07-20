@@ -8,15 +8,28 @@ import { UserModule } from '../users/users.module';
 import { ProductDetailsResolver } from './productDetails.resolver';
 import { ProductDetailsService } from './productDetails.service';
 import { Color } from '../color/entity/color.entity';
+import { ProductDetailsFacade } from './fascade/productDetails.facade';
+import { ProductDetailsProxy } from './proxy/productDetails.proxy';
+import { RedisModule } from 'src/common/redis/redis.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Details, Color, Product, User]),
-
+    RedisModule,
     ProductModule,
     UserModule,
   ],
-  providers: [ProductDetailsResolver, ProductDetailsService],
-  exports: [ProductDetailsService, TypeOrmModule.forFeature([Details])],
+  providers: [
+    ProductDetailsResolver,
+    ProductDetailsFacade,
+    ProductDetailsProxy,
+    ProductDetailsService,
+  ],
+  exports: [
+    ProductDetailsService,
+    ProductDetailsFacade,
+    ProductDetailsProxy,
+    TypeOrmModule.forFeature([Details]),
+  ],
 })
 export class ProductDetailsModule {}

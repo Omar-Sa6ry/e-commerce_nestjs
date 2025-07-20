@@ -15,9 +15,25 @@ import { EmailModule } from 'src/common/queues/email/email.module';
 import { OrderProcessor } from './queue/order.processor';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
 import { NotificationService } from 'src/common/queues/notification/notification.service';
+import { RedisModule } from 'src/common/redis/redis.module';
+import { OrderFacadeService } from './fascade/order.fascade';
+import { CouponModule } from '../coupon/coupon.module';
+import { Details } from '../poductDetails/entity/productDetails.entity';
+import { Cart } from '../cart/entities/cart.entity';
+import { CartItem } from '../cart/entities/cartItem.enitty';
+import { UserAddress } from '../userAdress/entity/userAddress.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([
+      Order,
+      Details,
+      Cart,
+      CartItem,
+      Product,
+      OrderItem,
+      UserAddress,
+    ]),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || '127.0.0.1',
@@ -25,16 +41,18 @@ import { NotificationService } from 'src/common/queues/notification/notification
       },
     }),
     BullModule.registerQueue({ name: QueuesNames.ORDER_PROCESSING }),
-    TypeOrmModule.forFeature([Order, Product, OrderItem]),
     EmailModule,
+    RedisModule,
     NotificationModule,
     UserModule,
+    CouponModule,
   ],
   providers: [
     OrderService,
     OrderResolver,
     StripeService,
     OrderProcessingService,
+    OrderFacadeService,
     OrderProcessor,
     SendEmailService,
     NotificationService,
@@ -42,9 +60,11 @@ import { NotificationService } from 'src/common/queues/notification/notification
   exports: [
     OrderProcessingService,
     OrderService,
+    OrderFacadeService,
     OrderProcessor,
     TypeOrmModule,
     BullModule,
+    RedisModule,
   ],
 })
 export class OrderModule {}

@@ -556,6 +556,9 @@ type Query {
   findCartItems(cartId: CartIdInput!): CartItemsResponse!
   checkTotalCart: TotalCartsResponse!
   getAddress(addressId: AddressIdInput!): AddressResponse!
+  findCouponByName(name: CouponNameInput!): CouponResponse!
+  findCouponById(id: CouponIdInput!): CouponResponse!
+  findAllCoupons(findCouponInput: FindCouponInput, page: Int, limit: Int): CouponsResponse!
   findAllCities(page: Float = 1, limit: Float = 10): CitysResponse!
   findCityById(id: LocationIdInput!): CityResponse!
   findCitiesByCountryId(countryId: LocationIdInput!): CitysResponse!
@@ -574,9 +577,6 @@ type Query {
   getColorByName(name: ColorNameInput!): ColorResponse!
   getAllProductDetails(findProductDetailsInput: FindProductDetailsInput, page: Int, limit: Int): ProductDetailsResponse!
   getProductDetailById(id: DetailsIdInput!): ProductDetailResponse!
-  findCouponByName(name: CouponNameInput!): CouponResponse!
-  findCouponById(id: CouponIdInput!): CouponResponse!
-  findAllCoupons(findCouponInput: FindCouponInput, page: Int, limit: Int): CouponsResponse!
 }
 
 input OrderIdInput {
@@ -597,6 +597,23 @@ input CartIdInput {
 
 input AddressIdInput {
   addressId: String!
+}
+
+input CouponNameInput {
+  name: String!
+}
+
+input CouponIdInput {
+  couponId: String!
+}
+
+input FindCouponInput {
+  expiryDate: DateTime
+  name: String
+  categoryId: String
+  type: TypeCoupon
+  discount: Int
+  isActive: Boolean
 }
 
 input LocationIdInput {
@@ -651,23 +668,6 @@ input DetailsIdInput {
   id: String!
 }
 
-input CouponNameInput {
-  name: String!
-}
-
-input CouponIdInput {
-  couponId: String!
-}
-
-input FindCouponInput {
-  expiryDate: DateTime
-  name: String
-  categoryId: String
-  type: TypeCoupon
-  discount: Int
-  isActive: Boolean
-}
-
 type Mutation {
   createOrderFromCart(addressId: AddressIdInput!, paymentMethod: PaymentMethod!, deliveryPrice: Int, couponId: CouponIdInput): CreateOrderResponse!
   createOrderFromProducts(addressId: AddressIdInput!, paymentMethod: PaymentMethod!, detailsId: DetailsIdInput!, quantity: Int!, deliveryPrice: Int, couponId: String): CreateOrderResponse!
@@ -685,6 +685,10 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): AddressResponse!
   updateAddress(addressId: AddressIdInput!, updateAddressInput: UpdateAddressInput!): AddressResponse!
   deleteAddress(addressId: AddressIdInput!): AddressResponse!
+  createCoupon(createCouponInput: CreateCouponInput!): CouponResponse!
+  updateCouponActive(id: CouponIdInput!): CouponResponse!
+  updateCoupon(updateCouponInput: UpdateCouponInput!): CouponResponse!
+  deleteCoupon(id: CouponIdInput!): CouponResponse!
   register(createUserDto: CreateUserDto!, avatar: CreateImagDto): AuthResponse!
   login(loginDto: LoginDto!): AuthResponse!
   forgotPassword: AuthResponse!
@@ -719,10 +723,6 @@ type Mutation {
   createProductDetail(createDetailInput: CreateDetailInput!): ProductDetailResponse!
   updateProductDetail(updateProductDetailsInput: UpdateProductDetailsInput!): ProductDetailResponse!
   deleteProductDetail(id: DetailsIdInput!): ProductDetailResponse!
-  createCoupon(createCouponInput: CreateCouponInput!): CouponResponse!
-  updateCouponActive(id: CouponIdInput!): CouponResponse!
-  updateCoupon(updateCouponInput: UpdateCouponInput!): CouponResponse!
-  deleteCoupon(id: CouponIdInput!): CouponResponse!
 }
 
 input UpdateUserDto {
@@ -762,6 +762,23 @@ input UpdateAddressInput {
   locationId: String
   street: String
   addressType: AddressType
+}
+
+input CreateCouponInput {
+  expiryDate: DateTime!
+  name: String!
+  categoryId: String!
+  type: TypeCoupon!
+  discount: Int!
+}
+
+input UpdateCouponInput {
+  expiryDate: DateTime
+  name: String
+  categoryId: String
+  type: TypeCoupon
+  discount: Int
+  id: String!
 }
 
 input CreateUserDto {
@@ -887,23 +904,6 @@ input UpdateProductDetailsInput {
   quantity: Int
   size: Size
   productId: String
-  id: String!
-}
-
-input CreateCouponInput {
-  expiryDate: DateTime!
-  name: String!
-  categoryId: String!
-  type: TypeCoupon!
-  discount: Int!
-}
-
-input UpdateCouponInput {
-  expiryDate: DateTime
-  name: String
-  categoryId: String
-  type: TypeCoupon
-  discount: Int
   id: String!
 }
 
