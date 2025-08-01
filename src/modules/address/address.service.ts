@@ -49,7 +49,7 @@ export class AddressService {
       );
     }
 
-    const address = AddressFactory.create(createAddressInput);
+    const address = AddressFactory.execute('create', createAddressInput);
     await this.addressRepository.save(address);
 
     return {
@@ -95,7 +95,7 @@ export class AddressService {
       }
     }
 
-    const updated = AddressFactory.update(address, updateData);
+    const updated = AddressFactory.execute('update', address, updateData);
     await this.addressRepository.save(updated);
 
     return {

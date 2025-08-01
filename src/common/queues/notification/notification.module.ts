@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 import { BullModule } from '@nestjs/bullmq'
 import { NotificationService } from './notification.service'
-import { NotificationProcessor } from './notification.processor'
+import { NotificationProcessor } from './processor/notification.processor'
 import { firebaseAdminProvider } from './config/firebaseAdminProvider'
 
 @Module({

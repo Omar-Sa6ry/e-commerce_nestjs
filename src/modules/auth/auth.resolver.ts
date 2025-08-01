@@ -25,6 +25,7 @@ import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 import { CreateUserAddressInput } from '../userAdress/inputs/createUserAddress.input';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartService } from '../cart/cart.service';
+import { AuthServiceFacade } from './fascade/AuthService.facade';
 
 @Resolver(() => User)
 export class AuthResolver {
@@ -33,21 +34,22 @@ export class AuthResolver {
     private readonly redisService: RedisService,
     private readonly authService: AuthService,
     private readonly cartService: CartService,
+    private readonly authFacade: AuthServiceFacade,
   ) {}
 
   @Mutation(() => AuthResponse)
   async register(
     @Args('createUserDto') createUserDto: CreateUserDto,
-    // @Args('userAddress', { nullable: true })
-    // userAddress?: CreateUserAddressInput,
-    // @Args('address', { nullable: true }) address?: CreateAddressInput,
+    @Args('userAddress', { nullable: true })
+    userAddress?: CreateUserAddressInput,
+    @Args('address', { nullable: true }) address?: CreateAddressInput,
     @Args('avatar', { nullable: true }) avatar?: CreateImagDto,
   ): Promise<AuthResponse> {
-    return this.authService.register(
+    return this.authFacade.register(
       createUserDto,
       avatar,
-      // address,
-      // userAddress,
+      address,
+      userAddress,
     );
   }
 
@@ -60,7 +62,7 @@ export class AuthResolver {
       return { ...cachedUser };
     }
 
-    return this.authService.login(loginDto);
+    return this.authFacade.login(loginDto);
   }
 
   @Mutation(() => AuthResponse)

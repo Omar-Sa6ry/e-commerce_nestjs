@@ -4,10 +4,9 @@ import { CreateUserAddressInput } from '../inputs/createUserAddress.input';
 import { UpdateUserAddressInput } from '../inputs/updateUserAddress.input';
 import { UpdateAddressInput } from '../../address/inputs/updateAddress.input';
 import { UserAddressService } from '../userAddress.service';
-import {
-  UserAddressAction,
-  UserAddressInput,
-} from '../constant/userAddress.constant';
+import { UserAddressAction } from '../constant/userAddress.constant';
+import { UpdateUserAddressCommand } from '../commands/updateUserAddress.command';
+import { CreateUserAddressCommand } from '../commands/createUserAddress.command';
 
 @Injectable()
 export class UserAddressFacadeService {
@@ -15,39 +14,37 @@ export class UserAddressFacadeService {
 
   async manageUserAddress(
     action: UserAddressAction,
-    input: UserAddressInput,
+    input: any,
     userId?: string,
     addressId?: string,
   ): Promise<UserAddressResponse> {
     switch (action) {
       case 'create':
-        return this.userAddressService.createUserAddress(
+        const createCommand = new CreateUserAddressCommand(
+          this.userAddressService,
           userId!,
           input as CreateUserAddressInput,
         );
-      case 'getById':
-        return this.userAddressService.getById(input as string);
+        return createCommand.execute();
+
+
       case 'update':
-        if (typeof input === 'string' || input instanceof String) {
+        if (typeof input === 'string') {
           throw new BadRequestException('Invalid input for update operation');
         }
 
-        if ('isDefault' in input) {
-          // This is UpdateUserAddressInput
-          return this.userAddressService.updateUserAddress(
-            userId!,
-            addressId!,
-            undefined,
-            input as UpdateUserAddressInput,
-          );
-        } else {
-          // This is UpdateAddressInput
-          return this.userAddressService.updateUserAddress(
-            userId!,
-            addressId!,
-            input as UpdateAddressInput,
-          );
-        }
+        const updateCommand = new UpdateUserAddressCommand(
+          this.userAddressService,
+          userId!,
+          addressId!,
+          'isDefault' in input ? undefined : (input as UpdateAddressInput),
+          'isDefault' in input ? (input as UpdateUserAddressInput) : undefined,
+        );
+        return updateCommand.execute();
+
+      case 'getById':
+        return this.userAddressService.getById(input as string);
+
       case 'delete':
         return this.userAddressService.deleteUserAddress(
           userId!,

@@ -1,4 +1,4 @@
-export interface IPasswordService {
-  hash(password: string): Promise<string>;
-  compare(plain: string, hashed: string): Promise<boolean>;
+export interface IPasswordStrategy {
+  compare(plainText: string, hash: string): Promise<boolean>;
+  hash(plainText: string): Promise<string>;
 }

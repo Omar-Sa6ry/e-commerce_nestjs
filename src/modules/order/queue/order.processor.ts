@@ -4,13 +4,7 @@ import { Job } from 'bullmq';
 import { OrderProcessingService } from '../services/orderProcessing.service';
 import { DataSource, Repository } from 'typeorm';
 import { Order } from '../entities/order.entity';
-import { OrderProcessingJobData } from '../interface/OrderProcessingJobData.interface';
-import {
-  OrderStatus,
-  PaymentMethod,
-  PaymentStatus,
-  QueuesNames,
-} from 'src/common/constant/enum.constant';
+import { OrderProcessingJobData } from '../interfaces/IOrderProcessingJobData.interface';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
 import { NotificationService } from 'src/common/queues/notification/notification.service';
 import { BadRequestException } from '@nestjs/common';
@@ -18,19 +12,48 @@ import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 import { StripeService } from 'src/modules/stripe/stripe.service';
 import { Transactional } from 'src/common/decerator/transactional.decerator';
 import { InjectRepository } from '@nestjs/typeorm';
+import { IOrderObserver } from '../interfaces/IOrderObserver.interface';
+import { IPaymentStrategy } from '../interfaces/IPaymentStrategy.interface';
+import { StripePaymentStrategy } from '../strategy/order.strategy';
+import {
+  EmailNotificationObserver,
+  PushNotificationObserver,
+} from '../observer/order.observer';
+import {
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+  QueuesNames,
+} from 'src/common/constant/enum.constant';
 
 @Processor(QueuesNames.ORDER_PROCESSING)
 export class OrderProcessor extends WorkerHost {
+  private observers: IOrderObserver[] = [];
+  private paymentStrategies: Record<PaymentMethod.STRIPE, IPaymentStrategy>;
+
   constructor(
     private readonly i18n: I18nService,
     private readonly dataSource: DataSource,
-    private readonly StripeService: StripeService,
+    private readonly stripeService: StripeService,
     private readonly orderProcessingService: OrderProcessingService,
     private readonly sendEmailService: SendEmailService,
     private readonly notificationService: NotificationService,
     @InjectRepository(Order) private orderRepository: Repository<Order>,
   ) {
     super();
+    this.paymentStrategies = {
+      [PaymentMethod.STRIPE]: new StripePaymentStrategy(stripeService),
+    };
+    this.observers.push(
+      new EmailNotificationObserver(sendEmailService),
+      new PushNotificationObserver(notificationService),
+    );
+  }
+
+  private async notifyObservers(order: Order, message: string): Promise<void> {
+    await Promise.all(
+      this.observers.map((observer) => observer.notify(order, message)),
+    );
   }
 
   @Transactional()
@@ -107,62 +130,35 @@ export class OrderProcessor extends WorkerHost {
       );
       await queryRunner.manager.save(order);
 
-      this.sendEmailService.sendEmail(
-        user.email,
-        await this.i18n.t('order.CREATE'),
-        await this.i18n.t('order.CREATED'),
-      );
-
-      this.notificationService.sendNotification(
-        user.fcmToken,
-        await this.i18n.t('order.CREATE'),
-        await this.i18n.t('order.CREATED'),
-      );
+      await this.notifyObservers(order, await this.i18n.t('order.CREATED'));
 
       let paymentData: string | null = null;
 
-      if (paymentMethod === PaymentMethod.STRIPE) {
-        if (singleProduct) {
-          const items = [
-            {
-              name: singleProduct.productName,
-              price: singleProduct.productPrice,
-              quantity: singleProduct.quantity,
-            },
-          ];
+      if (this.paymentStrategies[paymentMethod]) {
+        const items = cartItems
+          ? user.cart.cartItems.map((item) => ({
+              name: item.product.name,
+              price: item.product.price,
+              quantity: item.quantity,
+            }))
+          : [
+              {
+                name: singleProduct.productName,
+                price: singleProduct.productPrice,
+                quantity: singleProduct.quantity,
+              },
+            ];
 
-          paymentData = await this.StripeService.handleStripePayment(
-            userId,
-            order.id,
-            user.email,
-            items,
-          );
-        } else if (cartItems) {
-          const items = user.cart.cartItems.map((item) => ({
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-          }));
+        paymentData = await this.paymentStrategies[
+          paymentMethod
+        ].processPayment(userId, order.id, user.email, items);
 
-          paymentData = await this.StripeService.handleStripePayment(
-            userId,
-            order.id,
-            user.email,
-            items,
+        if (paymentData) {
+          await this.notifyObservers(
+            order,
+            await this.i18n.t('order.SEND_URL'),
           );
         }
-
-        this.sendEmailService.sendEmail(
-          user.email,
-          await this.i18n.t('order.SEND_URL'),
-          paymentData,
-        );
-
-        this.notificationService.sendNotification(
-          user.fcmToken,
-          await this.i18n.t('order.SEND_URL'),
-          paymentData,
-        );
       }
 
       if (cartItems) await this.orderProcessingService.clearUserCart(user);

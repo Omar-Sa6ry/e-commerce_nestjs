@@ -3,7 +3,7 @@ import { I18nService } from 'nestjs-i18n';
 import { Role } from 'src/common/constant/enum.constant';
 import { User } from 'src/modules/users/entity/user.entity';
 import { IValidator } from '../interfaces/IValidator.interface';
-import { PasswordServiceAdapter } from '../utils/IPasswordService';
+import { PasswordServiceAdapter } from '../adapter/password.adapter';
 
 export class PasswordValidator implements IValidator {
   constructor(

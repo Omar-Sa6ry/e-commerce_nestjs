@@ -8,15 +8,21 @@ import { CountryLoader } from './loaders/country.loader';
 import { CityLoader } from './loaders/city.loader';
 import { CityResolver, CountryResolver } from './location.resolver';
 import { RedisModule } from 'src/common/redis/redis.module';
+import { CountryExistsValidator } from './chains/country.chain';
+import { CityExistsValidator } from './chains/city.chain';
+import { BasicLocationFactory } from './strategy/location.strategy';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Country, City]), RedisModule, UserModule],
   providers: [
     LocationService,
-    CityResolver,
-    CountryResolver,
+    CountryExistsValidator,
+    CityExistsValidator,
     CountryLoader,
     CityLoader,
+    CityResolver,
+    CountryResolver,
+    { provide: 'LocationFactory', useClass: BasicLocationFactory },
   ],
   exports: [LocationService],
 })

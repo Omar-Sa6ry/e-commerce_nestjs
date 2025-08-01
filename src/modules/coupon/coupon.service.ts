@@ -1,24 +1,25 @@
-import { RedisService } from 'src/common/redis/redis.service';
-import { FindOptionsWhere, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Coupon } from './entity/coupon.entity';
-import { CreateCouponInput } from './inputs/createCoupon.input';
-import { I18nService } from 'nestjs-i18n';
-import { CouponResponse, CouponsResponse } from './dto/couponResponse.dto';
-import { TypeCoupon } from 'src/common/constant/enum.constant';
-import { Category } from '../category/entity/category.entity';
-import { CouponFactory } from './factory/coupon.factory';
-import { UpdateCouponInput } from './inputs/updateCoupon.input';
-import { Limit, Page } from 'src/common/constant/messages.constant';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
-import { CouponProxy } from './proxy/coupon.proxy';
-import { CategoryRepositoryProxy } from '../category/proxy/category.proxy';
-import { FindCouponInput } from './inputs/findCoupon.input';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { Coupon } from './entity/coupon.entity';
+import { CreateCouponInput } from './inputs/createCoupon.input';
+import { CouponResponse, CouponsResponse } from './dto/couponResponse.dto';
+import { I18nService } from 'nestjs-i18n';
+import { CouponFactory } from './factory/coupon.factory';
+import { CouponProxy } from './proxy/coupon.proxy';
+import { CategoryRepositoryProxy } from '../category/proxy/category.proxy';
+import { RedisService } from 'src/common/redis/redis.service';
+import { CouponValidationContext } from './strategy/coupon.strategy';
+import { Category } from '../category/entity/category.entity';
+import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { TypeCoupon } from 'src/common/constant/enum.constant';
+import { UpdateCouponInput } from './inputs/updateCoupon.input';
+import { FindCouponInput } from './inputs/findCoupon.input';
+import { Limit, Page } from 'src/common/constant/messages.constant';
 
 @Injectable()
 export class CouponService {
@@ -26,10 +27,12 @@ export class CouponService {
   private categoryProxy: CategoryRepositoryProxy;
 
   constructor(
-    private readonly redisService: RedisService,
     private readonly i18n: I18nService,
-    @InjectRepository(Coupon) private categoryRepository: Repository<Category>,
+    private readonly redisService: RedisService,
+    private readonly validationContext: CouponValidationContext,
     @InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
   ) {
     this.couponProxy = new CouponProxy(
       this.redisService,
@@ -44,26 +47,30 @@ export class CouponService {
     const existedCoupon = await this.couponProxy.findByName(
       createCouponInput.name,
     );
-
-    if (existedCoupon)
+    if (existedCoupon) {
       throw new BadRequestException(
         await this.i18n.t('coupon.EXISTED', {
           args: { name: createCouponInput.name },
         }),
       );
+    }
 
     const existedCategory = await this.categoryProxy.findOneById(
       createCouponInput.categoryId,
     );
-
-    if (!existedCategory)
+    if (!existedCategory) {
       throw new NotFoundException(
         await this.i18n.t('category.NOT_FOUND', {
           args: { id: createCouponInput.categoryId },
         }),
       );
+    }
 
-    await this.checkValid(createCouponInput.discount, createCouponInput.type);
+    await this.validationContext.validate(
+      createCouponInput.type,
+      createCouponInput.discount,
+      this.i18n,
+    );
 
     const coupon = CouponFactory.create(createCouponInput);
     await this.couponRepository.save(coupon);
@@ -73,6 +80,48 @@ export class CouponService {
       statusCode: 201,
       message: await this.i18n.t('coupon.CREATED'),
     };
+  }
+
+  @Transactional()
+  async changeIsActive(id: string): Promise<CouponResponse> {
+    const coupon = await this.couponRepository.findOne({ where: { id } });
+    if (!coupon) {
+      throw new NotFoundException(
+        await this.i18n.t('coupon.NOT_FOUND', { args: { id } }),
+      );
+    }
+
+    coupon.isActive = !coupon.isActive;
+    await this.couponRepository.save(coupon);
+
+    return {
+      data: coupon,
+      message: await this.i18n.t('coupon.ACTIVE', {
+        args: { id, active: coupon.isActive },
+      }),
+    };
+  }
+
+  @Transactional()
+  async delete(id: string): Promise<CouponResponse> {
+    const coupon = await this.couponProxy.findById(id);
+
+    if (!coupon)
+      throw new NotFoundException(
+        await this.i18n.t('coupon.NOT_FOUND', { args: { id } }),
+      );
+
+    await this.couponRepository.remove(coupon.data);
+
+    return {
+      data: null,
+      message: await this.i18n.t('coupon.DELETED', { args: { id } }),
+    };
+  }
+
+  private async checkValid(discount: number, type: TypeCoupon): Promise<void> {
+    if (discount > 90 && type === TypeCoupon.PERCENTAGE)
+      throw new BadRequestException(await this.i18n.t('coupon.PERCENTAGE'));
   }
 
   async findByName(name: string): Promise<CouponResponse> {
@@ -128,9 +177,20 @@ export class CouponService {
       );
     }
 
-    await this.checkValid(
-      updateCouponInput.discount || existedCoupon.data.discount,
-      updateCouponInput.type || existedCoupon.data.type,
+    const existedCategory = await this.categoryProxy.findOneById(
+      updateCouponInput.categoryId,
+    );
+    if (!existedCategory) {
+      throw new NotFoundException(
+        await this.i18n.t('category.NOT_FOUND', {
+          args: { id: updateCouponInput.categoryId },
+        }),
+      );
+    }
+    await this.validationContext.validate(
+      updateCouponInput.type,
+      updateCouponInput.discount,
+      this.i18n,
     );
 
     Object.assign(existedCoupon.data, updateCouponInput);
@@ -142,46 +202,5 @@ export class CouponService {
         args: { id: coupon.id },
       }),
     };
-  }
-
-  async changeIsActive(id: string): Promise<CouponResponse> {
-    const coupon = await this.couponRepository.findOne({ where: { id } });
-
-    if (!coupon)
-      throw new NotFoundException(
-        await this.i18n.t('coupon.NOT_FOUND', { args: { id } }),
-      );
-
-    coupon.isActive = !coupon.isActive;
-    await this.couponRepository.save(coupon);
-
-    return {
-      data: coupon,
-      message: await this.i18n.t('coupon.ACTIVE', {
-        args: { id, active: !coupon.isActive },
-      }),
-    };
-  }
-
-  @Transactional()
-  async delete(id: string): Promise<CouponResponse> {
-    const coupon = await this.couponProxy.findById(id);
-
-    if (!coupon)
-      throw new NotFoundException(
-        await this.i18n.t('coupon.NOT_FOUND', { args: { id } }),
-      );
-
-    await this.couponRepository.remove(coupon.data);
-
-    return {
-      data: null,
-      message: await this.i18n.t('coupon.DELETED', { args: { id } }),
-    };
-  }
-
-  private async checkValid(discount: number, type: TypeCoupon): Promise<void> {
-    if (discount > 90 && type === TypeCoupon.PERCENTAGE)
-      throw new BadRequestException(await this.i18n.t('coupon.PERCENTAGE'));
   }
 }

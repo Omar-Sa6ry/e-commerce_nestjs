@@ -60,9 +60,7 @@ export class CartResolver {
 
   @Mutation(() => CartResponse)
   @Auth([Role.USER], [Permission.UPDATE_CART])
-  async deleteCartItems(
-    @CurrentUser() user: CurrentUserDto,
-  ): Promise<CartResponse> {
+  async emptyCart(@CurrentUser() user: CurrentUserDto): Promise<CartResponse> {
     return this.cartService.deleteCartItems(user.id);
   }
 
@@ -77,14 +75,14 @@ export class CartResolver {
 
   @Query(() => TotalCartsResponse)
   @Auth([Role.USER], [Permission.VIEW_CART])
-  async checkTotalCart(
+  async getCartTotal(
     @CurrentUser() user: CurrentUserDto,
   ): Promise<TotalCartsResponse> {
     return this.cartService.checkTotalCart(user.id);
   }
 
   @ResolveField(() => [CartItem])
-  async cartItems(@Parent() cart: Cart): Promise<CartItem[]> {
+  async items(@Parent() cart: Cart): Promise<CartItem[]> {
     return this.cartService.getCartItemsByCartId(cart.id);
   }
 }

@@ -120,6 +120,7 @@ type Cart {
   totalPrice: Float!
   userId: String!
   cartItems: [CartItem!]
+  items: [CartItem!]!
 }
 
 type CartItem {
@@ -554,7 +555,7 @@ type Query {
   getUserByEmail(email: EmailInput!): UserResponse!
   deleteUser: UserResponse!
   findCartItems(cartId: CartIdInput!): CartItemsResponse!
-  checkTotalCart: TotalCartsResponse!
+  getCartTotal: TotalCartsResponse!
   getAddress(addressId: AddressIdInput!): AddressResponse!
   findCouponByName(name: CouponNameInput!): CouponResponse!
   findCouponById(id: CouponIdInput!): CouponResponse!
@@ -680,7 +681,7 @@ type Mutation {
   UpdateUserRole(email: EmailInput!): String!
   addToCart(cartItemInput: CartItemInput!): CartResponse!
   updateCartItemQuantity(cartItemId: CartItemIdInput!, quantity: Int!): CartItemResponse!
-  deleteCartItems: CartResponse!
+  emptyCart: CartResponse!
   deleteCart(cartId: CartIdInput!): CartResponse!
   createAddress(createAddressInput: CreateAddressInput!): AddressResponse!
   updateAddress(addressId: AddressIdInput!, updateAddressInput: UpdateAddressInput!): AddressResponse!
@@ -689,7 +690,7 @@ type Mutation {
   updateCouponActive(id: CouponIdInput!): CouponResponse!
   updateCoupon(updateCouponInput: UpdateCouponInput!): CouponResponse!
   deleteCoupon(id: CouponIdInput!): CouponResponse!
-  register(createUserDto: CreateUserDto!, avatar: CreateImagDto): AuthResponse!
+  register(createUserDto: CreateUserDto!, userAddress: CreateUserAddressInput, address: CreateAddressInput, avatar: CreateImagDto): AuthResponse!
   login(loginDto: LoginDto!): AuthResponse!
   forgotPassword: AuthResponse!
   resetPassword(resetPasswordDto: ResetPasswordDto!): UserResponse!
@@ -790,6 +791,11 @@ input CreateUserDto {
   phone: String!
 }
 
+input CreateUserAddressInput {
+  createAddress: CreateAddressInput!
+  isDefault: Boolean
+}
+
 input LoginDto {
   email: String!
   password: String!
@@ -804,11 +810,6 @@ input ResetPasswordDto {
 input ChangePasswordDto {
   password: String!
   newPassword: String!
-}
-
-input CreateUserAddressInput {
-  createAddress: CreateAddressInput!
-  isDefault: Boolean
 }
 
 input UpdateUserAddressInput {

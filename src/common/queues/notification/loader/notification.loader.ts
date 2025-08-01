@@ -5,24 +5,31 @@ import { NotificationService } from '../notification.service';
 import { User } from 'src/modules/users/entity/user.entity';
 
 @Injectable()
-export class NotificationLoader {
+export class NotificationLoaderService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly notificationService: NotificationService,
   ) {}
 
-  async sendNotifications(userIds: string[], title: string, body: string) {
+  async sendToUsers(
+    userIds: string[],
+    title: string,
+    body: string,
+  ): Promise<void> {
     if (!userIds.length) return;
 
     const users = await this.userRepo.findByIds(userIds);
+    const notifications = users
+      .filter((user) => user.fcmToken)
+      .map((user) => ({
+        fcmToken: user.fcmToken,
+        title,
+        body,
+      }));
 
-    const notifications = users.map((user) => ({
-      fcmToken: user.fcmToken,
-      title,
-      body,
-    }));
-
-    this.notificationService.sendNotifications(notifications);
+    if (notifications.length) {
+      await this.notificationService.sendNotifications(notifications);
+    }
   }
 }

@@ -32,6 +32,33 @@ export class UserAddressService {
   }
 
   @Transactional()
+  async setDefaultAddress(
+    userId: string,
+    id: string,
+  ): Promise<UserAddressResponse> {
+    const userAddress = await this.userAddressRepository.findOne({
+      where: { userId, id },
+    });
+
+    if (!userAddress) {
+      throw new NotFoundException(await this.i18n.t('userAddress.NOT_FOUND'));
+    }
+
+    await this.userAddressRepository.update(
+      { userId, isDefault: true },
+      { isDefault: false },
+    );
+
+    userAddress.isDefault = true;
+    await this.userAddressRepository.save(userAddress);
+
+    return {
+      data: userAddress,
+      message: await this.i18n.t('userAddress.SET_DEFAULT', { args: { id } }),
+    };
+  }
+
+  @Transactional()
   async createUserAddress(
     userId: string,
     createUserAddressInput: CreateUserAddressInput,
@@ -100,33 +127,6 @@ export class UserAddressService {
     return {
       data: null,
       message: await this.i18n.t('userAddress.DELETED', { args: { id } }),
-    };
-  }
-
-  @Transactional()
-  async setDefaultAddress(
-    userId: string,
-    id: string,
-  ): Promise<UserAddressResponse> {
-    const userAddress = await this.userAddressRepository.findOne({
-      where: { userId, id },
-    });
-
-    if (!userAddress) {
-      throw new NotFoundException(await this.i18n.t('userAddress.NOT_FOUND'));
-    }
-
-    await this.userAddressRepository.update(
-      { userId, isDefault: true },
-      { isDefault: false },
-    );
-
-    userAddress.isDefault = true;
-    await this.userAddressRepository.save(userAddress);
-
-    return {
-      data: userAddress,
-      message: await this.i18n.t('userAddress.SET_DEFAULT', { args: { id } }),
     };
   }
 

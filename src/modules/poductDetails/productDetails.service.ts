@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { FindOptionsWhere, QueryRunner, Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../product/entities/product.entity';
@@ -13,19 +13,25 @@ import { Details } from './entity/productDetails.entity';
 import { User } from '../users/entity/user.entity';
 import { Transactional } from 'src/common/decerator/transactional.decerator';
 import { CreateDetailInput } from './inputs/createProductDetails.input';
-import {
-  ProductDetailResponse,
-  ProductDetailsResponse,
-} from './dto/productDetailsResponse.dto';
 import { FindProductDetailsInput } from './inputs/findProductDetails.input';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { UpdateProductDetailsInput } from './inputs/updateProductDetails.input';
 import { Size } from 'src/common/constant/enum.constant';
+import { ProductDetailsProxy } from './proxy/productDetails.proxy';
+import { IValidationStrategy } from './interfaces/IValidationStrategy.interface';
+import {
+  ColorValidationStrategy,
+  ProductValidationStrategy,
+  UserValidationStrategy,
+} from './strategy/details.strategy';
+import {
+  ProductDetailResponse,
+  ProductDetailsResponse,
+} from './dto/productDetailsResponse.dto';
 
 @Injectable()
 export class ProductDetailsService {
-  
-    constructor(
+  constructor(
     private readonly i18n: I18nService,
     @InjectRepository(Color)
     private readonly colorRepository: Repository<Color>,
@@ -35,14 +41,49 @@ export class ProductDetailsService {
     private readonly productDetailsRepository: Repository<Details>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly productDetailsProxy: ProductDetailsProxy,
   ) {}
+
+  private async runValidations(
+    productId: string,
+    colorId: string,
+    userId: string,
+  ): Promise<[Product, User]> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+    });
+
+    const strategies: IValidationStrategy[] = [
+      new ProductValidationStrategy(
+        this.productRepository,
+        this.i18n,
+        productId,
+      ),
+      new ColorValidationStrategy(this.colorRepository, this.i18n, colorId),
+      new UserValidationStrategy(
+        this.userRepository,
+        this.i18n,
+        userId,
+        product.companyId,
+      ),
+    ];
+
+    for (const strategy of strategies) {
+      await strategy.validate();
+    }
+
+    return [
+      product,
+      await this.userRepository.findOne({ where: { id: userId } }),
+    ];
+  }
 
   @Transactional()
   async add(
     createDetailInput: CreateDetailInput,
     userId: string,
   ): Promise<ProductDetailResponse> {
-    await this.validateProductAndUser(
+    await this.runValidations(
       createDetailInput.productId,
       createDetailInput.colorId,
       userId,
@@ -55,7 +96,7 @@ export class ProductDetailsService {
         existingDetail,
         createDetailInput.quantity,
       );
-
+      await this.productDetailsProxy.invalidateCache(updatedDetail.id);
       return this.buildSuccessResponse(
         updatedDetail,
         'productDetails.ADDQUANTITY',
@@ -64,7 +105,6 @@ export class ProductDetailsService {
     }
 
     const newDetail = await this.createNewDetail(createDetailInput);
-
     return this.buildSuccessResponse(newDetail, 'product.CREATED');
   }
 
@@ -105,17 +145,14 @@ export class ProductDetailsService {
     };
   }
 
-
-
   @Transactional()
   async update(
     updateProductInput: UpdateProductDetailsInput,
     userId: string,
-    queryRunner?: QueryRunner,
   ): Promise<ProductDetailResponse> {
     const detail = await this.findDetail(updateProductInput.id);
 
-    await this.validateProductAndUser(
+    await this.runValidations(
       updateProductInput.productId,
       updateProductInput.colorId ? updateProductInput.colorId : detail.colorId,
       userId,
@@ -131,6 +168,7 @@ export class ProductDetailsService {
       await this.validateAndUpdateSize(detail, updateProductInput.size);
 
     await this.productDetailsRepository.save(detail);
+    await this.productDetailsProxy.invalidateCache(detail.id);
 
     return {
       data: detail,
@@ -141,12 +179,8 @@ export class ProductDetailsService {
   }
 
   @Transactional()
-  async remove(
-    id: string,
-    userId: string,
-  ): Promise<ProductDetailResponse> {
-
-    const detail = await this.productDetailsRepository.findOne( {
+  async remove(id: string, userId: string): Promise<ProductDetailResponse> {
+    const detail = await this.productDetailsRepository.findOne({
       where: { id },
       relations: ['product'],
     });
@@ -156,21 +190,15 @@ export class ProductDetailsService {
         await this.i18n.t('productDetails.NOT_FOUND', { args: { id } }),
       );
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (detail.product.companyId !== user.companyId)
-      throw new BadRequestException(
-        await this.i18n.t('product.NOT_PERMISSION', { args: { id } }),
-      );
-
+    await this.runValidations(detail.productId, detail.colorId, userId);
     await this.productDetailsRepository.remove(detail);
+    await this.productDetailsProxy.invalidateCache(detail.id);
 
     return {
       data: null,
       message: await this.i18n.t('product.DELETED', { args: { id } }),
     };
   }
-
-
 
   async findColorsFromDetailsId(detailId: string): Promise<Color> {
     const detail = await this.productDetailsRepository.findOne({
@@ -189,40 +217,6 @@ export class ProductDetailsService {
     return detail.color;
   }
 
-  private async validateProductAndUser(
-    productId: string,
-    colorId: string,
-    userId: string,
-  ) {
-    const [product, color, user] = await Promise.all([
-      this.productRepository.findOne({ where: { id: productId } }),
-      this.colorRepository.findOne({ where: { id: colorId } }),
-      this.userRepository.findOne({ where: { id: userId } }),
-    ]);
-
-    if (!product)
-      throw new NotFoundException(
-        await this.i18n.t('product.NOT_FOUND', { args: { id: productId } }),
-      );
-
-    if (!color)
-      throw new NotFoundException(
-        await this.i18n.t('color.NOT_FOUND', { args: { id: productId } }),
-      );
-
-    if (!user) throw new NotFoundException(await this.i18n.t('user.NOT_FOUND'));
-
-    if (user.companyId !== product.companyId) {
-      throw new BadRequestException(
-        await this.i18n.t('product.NOT_PERMISSION', {
-          args: { id: productId },
-        }),
-      );
-    }
-
-    return [product, user] as const;
-  }
-
   private async findExistingDetail(createDetailInput: CreateDetailInput) {
     const allDetails = await this.productDetailsRepository.find({
       where: { productId: createDetailInput.productId },
@@ -235,18 +229,13 @@ export class ProductDetailsService {
     );
   }
 
-  private async updateDetailQuantity(
-    detail: Details,
-    quantityToAdd: number,
-  ) {
+  private async updateDetailQuantity(detail: Details, quantityToAdd: number) {
     detail.quantity += quantityToAdd;
     await this.productDetailsRepository.save(detail);
     return detail;
   }
 
-  private async createNewDetail(
-    createDetailInput: CreateDetailInput,
-  ) {
+  private async createNewDetail(createDetailInput: CreateDetailInput) {
     const detail = ProductDetailsFactory.create(createDetailInput);
     await this.productDetailsRepository.save(detail);
     return detail;

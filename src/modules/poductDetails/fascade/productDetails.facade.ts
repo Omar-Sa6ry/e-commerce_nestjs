@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { CreateDetailInput } from '../inputs/createProductDetails.input';
-import { ProductDetailResponse } from '../dto/productDetailsResponse.dto';
-import { UpdateProductDetailsInput } from '../inputs/updateProductDetails.input';
-import { ProductDetailsService } from '../productDetails.service';
+import { Injectable } from "@nestjs/common";
+import { ProductDetailsService } from "../productDetails.service";
+import { CreateDetailInput } from "../inputs/createProductDetails.input";
+import { ProductDetailResponse } from "../dto/productDetailsResponse.dto";
+import { UpdateProductDetailsInput } from "../inputs/updateProductDetails.input";
+import { IProductDetailsCommand } from "../interfaces/IProductDetailsCommand.interface";
+import { CreateDetailCommand, DeleteDetailCommand, UpdateDetailCommand } from "../command/details.command";
 
 @Injectable()
 export class ProductDetailsFacade {
@@ -13,21 +15,35 @@ export class ProductDetailsFacade {
     input: CreateDetailInput | UpdateProductDetailsInput | string,
     userId: string,
   ): Promise<ProductDetailResponse> {
+    let command: IProductDetailsCommand
+
+
     switch (action) {
       case 'create':
-        return this.productDetailsService.add(
+        command = new CreateDetailCommand(
+          this.productDetailsService,
           input as CreateDetailInput,
           userId,
         );
+        break;
       case 'update':
-        return this.productDetailsService.update(
+        command = new UpdateDetailCommand(
+          this.productDetailsService,
           input as UpdateProductDetailsInput,
           userId,
         );
+        break;
       case 'delete':
-        return this.productDetailsService.remove(input as string, userId);
+        command = new DeleteDetailCommand(
+          this.productDetailsService,
+          input as string,
+          userId,
+        );
+        break;
       default:
         throw new Error('Invalid action');
     }
+
+    return command.execute();
   }
 }

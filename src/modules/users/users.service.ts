@@ -1,24 +1,23 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { UserFactory } from './factory/user.factory';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { User } from './entity/user.entity';
 import { UpdateUserDto } from './inputs/UpdateUser.dto';
 import { RedisService } from 'src/common/redis/redis.service';
 import { UploadService } from '../../common/upload/upload.service';
-import { Role } from 'src/common/constant/enum.constant';
 import { UserResponse } from './dto/UserResponse.dto';
 import { UserProxy } from './proxy/user.proxy';
 import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { IUserObserver } from './interfaces/IUserObserver.interface';
+import { CacheObserver } from './observer/user.observer';
+import { UserRoleContext } from './state/user.state';
 
 @Injectable()
 export class UserService {
   private proxy: UserProxy;
+  private observers: IUserObserver[] = [];
 
   constructor(
     private readonly i18n: I18nService,
@@ -27,6 +26,7 @@ export class UserService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {
     this.proxy = new UserProxy(this.i18n, this.redisService, this.userRepo);
+    this.observers.push(new CacheObserver(this.redisService));
   }
 
   async findById(id: string): Promise<UserResponse> {
@@ -42,7 +42,7 @@ export class UserService {
     updateUserDto: UpdateUserDto,
     id: string,
   ): Promise<UserResponse> {
-    const user = (await this.proxy.findById(id)!)?.data;
+    const user = (await this.proxy.findById(id))?.data;
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existingUser = await this.userRepo.findOne({
@@ -69,9 +69,7 @@ export class UserService {
     }
 
     await this.userRepo.save(user);
-
-    this.redisService.update(`user:${id}`, user);
-    this.redisService.update(`user:email:${user.email}`, user);
+    await this.notifyUpdate(user);
 
     return { data: user };
   }
@@ -84,9 +82,7 @@ export class UserService {
 
     await this.uploadService.deleteImage(user.avatar);
     await this.userRepo.remove(user);
-
-    this.redisService.del(`user:${id}`);
-    this.redisService.del(`user:email:${user.email}`);
+    await this.notifyDelete(user.id, user.email);
 
     return { message: await this.i18n.t('user.DELETED'), data: null };
   }
@@ -97,12 +93,19 @@ export class UserService {
     if (!user)
       throw new BadRequestException(await this.i18n.t('user.EMAIL_WRONG'));
 
-    user.role = Role.ADMIN;
+    const roleContext = new UserRoleContext(user);
+    await roleContext.promote(user);
     await this.userRepo.save(user);
-
-    this.redisService.update(`user:${user.id}`, user);
-    this.redisService.update(`user:email:${email}`, user);
+    await this.notifyUpdate(user);
 
     return { data: user, message: await this.i18n.t('user.UPDATED') };
+  }
+
+  private async notifyUpdate(user: User): Promise<void> {
+    await Promise.all(this.observers.map((o) => o.onUserUpdate(user)));
+  }
+
+  private async notifyDelete(userId: string, email: string): Promise<void> {
+    await Promise.all(this.observers.map((o) => o.onUserDelete(userId, email)));
   }
 }

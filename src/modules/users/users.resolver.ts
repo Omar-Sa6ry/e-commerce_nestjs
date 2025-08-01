@@ -1,4 +1,3 @@
-import { UserAction } from './constant/user.constant';
 import {
   Args,
   Mutation,
@@ -14,6 +13,7 @@ import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
 import { Auth } from 'src/common/decerator/auth.decerator';
 import { UserResponse } from './dto/UserResponse.dto';
+import { UserAction } from './constant/user.constant';
 import { EmailInput, UserIdInput } from './inputs/user.input';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartService } from '../cart/cart.service';

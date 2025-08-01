@@ -7,13 +7,26 @@ import { CartItem } from './entities/cartItem.enitty';
 import { Product } from '../product/entities/product.entity';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { UserModule } from '../users/users.module';
+import { DefaultCalculationStrategy } from './strategy/cart.strategy';
+import { ProductValidatorAdapter } from './adapter/productValidator.adapter';
+import { CartRepositoryProxy } from './proxy/Cart.proxy';
+import { CartCalculationDecorator } from './decerator/cartCaluclate.decerator';
+import { CartCommandFactory } from './factories/cartCommand.factory';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Cart, CartItem, Product, Details]),
     forwardRef(() => UserModule),
   ],
-  providers: [CartService, CartResolver],
+  providers: [
+    CartService,
+    CartRepositoryProxy,
+    DefaultCalculationStrategy,
+    CartCalculationDecorator,
+    ProductValidatorAdapter,
+    CartCommandFactory,
+    CartResolver,
+  ],
   exports: [CartService, TypeOrmModule],
 })
 export class CartModule {}

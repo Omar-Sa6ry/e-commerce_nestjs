@@ -12,6 +12,8 @@ import { JwtModule } from './jwt/jwt.module';
 import { UserAddressModule } from '../userAdress/userAddress.module';
 import { CartModule } from '../cart/cart.module';
 import { GenerateTokenFactory } from './jwt/jwt.service';
+import { AuthServiceFacade } from './fascade/AuthService.facade';
+import { PasswordServiceAdapter } from './adapter/password.adapter';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { GenerateTokenFactory } from './jwt/jwt.service';
   providers: [
     AuthResolver,
     AuthService,
+    AuthServiceFacade,
+    PasswordServiceAdapter,
     SendEmailService,
     GenerateTokenFactory,
   ],

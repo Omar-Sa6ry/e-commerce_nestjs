@@ -2,7 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdateUserDto } from '../inputs/UpdateUser.dto';
 import { UserResponse } from '../dto/UserResponse.dto';
 import { UserService } from '../users.service';
+import { IUserCommand } from '../interfaces/IUserCommand.interface';
 import { UserAction } from '../constant/user.constant';
+import {
+  DeleteUserCommand,
+  EditRoleCommand,
+  FindByEmailCommand,
+  FindByIdCommand,
+  UpdateUserCommand,
+} from '../command/user.command';
 
 @Injectable()
 export class UserFacadeService {
@@ -13,19 +21,35 @@ export class UserFacadeService {
     identifier: string | UpdateUserDto,
     id?: string,
   ): Promise<UserResponse> {
+    let command: IUserCommand;
+
     switch (action) {
       case 'findById':
-        return this.userService.findById(identifier as string);
+        command = new FindByIdCommand(this.userService, identifier as string);
+        break;
       case 'findByEmail':
-        return this.userService.findByEmail(identifier as string);
+        command = new FindByEmailCommand(
+          this.userService,
+          identifier as string,
+        );
+        break;
       case 'update':
-        return this.userService.update(identifier as UpdateUserDto, id!);
+        command = new UpdateUserCommand(
+          this.userService,
+          identifier as UpdateUserDto,
+          id!,
+        );
+        break;
       case 'delete':
-        return this.userService.deleteUser(identifier as string);
+        command = new DeleteUserCommand(this.userService, identifier as string);
+        break;
       case 'editRole':
-        return this.userService.editUserRole(identifier as string);
+        command = new EditRoleCommand(this.userService, identifier as string);
+        break;
       default:
         throw new BadRequestException('Invalid action');
     }
+
+    return command.execute();
   }
 }

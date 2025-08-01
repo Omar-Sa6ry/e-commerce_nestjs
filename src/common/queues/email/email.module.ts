@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { EmailProcessor } from './email.processing';
+import { EmailProcessor } from './processor/email.processing';
 import { SendEmailService } from './sendemail.service';
 import { mailerProvider } from './config/mailer.provider';
 

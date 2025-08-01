@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,19 +15,25 @@ import { CountryResponse, CountrysResponse } from './dtos/countryResponse.dto';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { CityResponse, CitysResponse } from './dtos/cityResponse.dto';
 import { CapitalizeWords } from 'src/common/decerator/WordsTransform.decerator';
-import { CityFactory } from './factories/city.factory';
-import { CountryFactory } from './factories/country.factory';
 import { LocationProxy } from './proxy/location.proxy';
 import { RedisService } from 'src/common/redis/redis.service';
 import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { LocationValidator } from './interfaces/ILocationValidator.interface';
+import { LocationFactory } from './interfaces/ILocationFactory';
+import { CountryExistsValidator } from './chains/country.chain';
+import { CityExistsValidator } from './chains/city.chain';
 
 @Injectable()
 export class LocationService {
   private proxy: LocationProxy;
+  private countryValidator: LocationValidator;
+  private cityValidator: LocationValidator;
 
   constructor(
     private readonly i18n: I18nService,
     private readonly redisService: RedisService,
+    @Inject('LocationFactory')
+    private readonly locationFactory: LocationFactory,
     @InjectRepository(Country)
     private readonly countryRepository: Repository<Country>,
     @InjectRepository(City)
@@ -38,35 +45,12 @@ export class LocationService {
       this.cityRepository,
       this.countryRepository,
     );
+
+    this.countryValidator = new CountryExistsValidator();
+    this.cityValidator = new CityExistsValidator();
   }
 
   // =================== Country ==========================
-
-  @Transactional()
-  async createCountry(
-    createCountryInput: CreateCountryInput,
-  ): Promise<CountryResponse> {
-    const existingCountry = await this.proxy.findCountryByName(
-      createCountryInput.name,
-    );
-    if (existingCountry)
-      throw new BadRequestException(
-        await this.i18n.t('location.EXISTED_COUNTRY', {
-          args: { name: createCountryInput.name },
-        }),
-      );
-
-    const country = CountryFactory.create(createCountryInput);
-    await this.countryRepository.save(country);
-
-    return {
-      data: country,
-      statusCode: 201,
-      message: await this.i18n.t('location.CREATED_COUNTRY', {
-        args: { name: createCountryInput.name },
-      }),
-    };
-  }
 
   async findAllCountries(
     page: number = Page,
@@ -97,24 +81,43 @@ export class LocationService {
   }
 
   @Transactional()
-  async updateCountry(id: string, name: string): Promise<CountryResponse> {
-    const country = await this.proxy.findCountryById(id);
+  async createCountry(
+    createCountryInput: CreateCountryInput,
+  ): Promise<CountryResponse> {
+    const country = this.locationFactory.createCountry(createCountryInput);
 
-    const existingCountry = await this.proxy.findCountryByName(name);
-    if (existingCountry)
-      throw new BadRequestException(
-        await this.i18n.t('location.EXISTED_COUNTRY', {
-          args: { name },
-        }),
-      );
+    await this.countryValidator.validate(
+      country,
+      this.i18n,
+      this.countryRepository,
+    );
 
-    const countryName = await CapitalizeWords(name);
-    country.data.name = countryName;
-
-    await this.countryRepository.save(country.data);
+    await this.countryRepository.save(country);
 
     return {
-      data: country.data,
+      data: country,
+      statusCode: 201,
+      message: await this.i18n.t('location.CREATED_COUNTRY', {
+        args: { name: createCountryInput.name },
+      }),
+    };
+  }
+
+  @Transactional()
+  async updateCountry(id: string, name: string): Promise<CountryResponse> {
+    const country = (await this.proxy.findCountryById(id))?.data;
+
+    await this.countryValidator.validate(
+      country,
+      this.i18n,
+      this.countryRepository,
+    );
+
+    country.name = await CapitalizeWords(name);
+    await this.countryRepository.save(country);
+
+    return {
+      data: country,
       message: await this.i18n.t('location.UPDATED_COUNTRY', {
         args: { name },
       }),
@@ -122,20 +125,16 @@ export class LocationService {
   }
 
   @Transactional()
-  async deleteCountry(id: string, queryRunner?: any): Promise<CountryResponse> {
-    const country = await this.proxy.findCountryById(id);
-    if (!country)
-      throw new NotFoundException(
-        await this.i18n.t('location.NOT_FOUND_COUNTRY'),
-      );
+  async deleteCountry(id: string): Promise<CountryResponse> {
+    const country = (await this.proxy.findCountryById(id)).data;
 
-    await this.countryRepository.remove(country.data);
-    this.redisService.del(`country:${country.data.id}`);
+    await this.countryRepository.remove(country);
+    this.redisService.del(`country:${country.id}`);
 
     return {
       data: null,
       message: await this.i18n.t('location.DELETED_COUNTRY', {
-        args: { name: country.data.name },
+        args: { name: country.name },
       }),
     };
   }
@@ -146,22 +145,14 @@ export class LocationService {
   async createCity(createCityInput: CreateCityInput): Promise<CityResponse> {
     const country = (await this.findCountryById(createCityInput.countryId))
       .data;
-
-    const existingCity = await this.proxy.findCountryByName(
-      createCityInput.name,
-    );
-    if (existingCity)
-      throw new BadRequestException(
-        await this.i18n.t('location.EXISTED_CITY', {
-          args: { name: createCityInput.name },
-        }),
-      );
-
-    const city = CityFactory.create(
+    const city = this.locationFactory.createCity(
       createCityInput,
       createCityInput.countryId,
       country,
     );
+
+    await this.cityValidator.validate(city, this.i18n, this.cityRepository);
+
     await this.cityRepository.save(city);
 
     return {

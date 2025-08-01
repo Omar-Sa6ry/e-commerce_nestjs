@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateColorInput } from './inputs/updateColor.input';
@@ -10,39 +7,37 @@ import { ColorResponse, ColorsResponse } from './dto/colorResponse.dto';
 import { I18nService } from 'nestjs-i18n';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { CreateColorInput } from './inputs/createColor.input';
-import { IColorValidator } from './interfaces/IColorValidator.interface';
 import { ColorFacade } from './fascade/color.fascade';
 import { ColorRepositoryProxy } from './proxy/color.proxy';
-import { ColorValidatorAdapter } from './adapter/color.adapter';
 import {
-  ColorExistsValidator,
-  ColorValidatorComposite,
-} from './composite/color.composite';
-import { DeleteColorOperation } from './bridge/deleteColor.bridge';
+  CreateColorCommand,
+  UpdateColorCommand,
+} from './command/color.command';
+import {
+  ColorExistsHandler,
+  ColorExistsHandlerByName,
+} from './chain/color.chain';
 
 @Injectable()
 export class ColorService {
-  private validator: IColorValidator;
-  private facade: ColorFacade;
   private repositoryProxy: ColorRepositoryProxy;
 
   constructor(
     private readonly i18n: I18nService,
     @InjectRepository(Color)
     private readonly colorRepository: Repository<Color>,
+    private readonly facade: ColorFacade,
   ) {
-    this.validator = new ColorValidatorAdapter(colorRepository, i18n);
-    this.facade = new ColorFacade(this.validator, colorRepository);
     this.repositoryProxy = new ColorRepositoryProxy(colorRepository);
   }
 
   async create(createColorInput: CreateColorInput): Promise<ColorResponse> {
-    const color = await this.facade.createColor(createColorInput);
-    return {
-      data: color,
-      statusCode: 201,
-      message: await this.i18n.t('color.CREATED'),
-    };
+    const command = new CreateColorCommand(
+      this.facade,
+      createColorInput,
+      this.i18n,
+    );
+    return command.execute();
   }
 
   async findAll(
@@ -54,9 +49,8 @@ export class ColorService {
       limit,
     );
 
-    if (items.length === 0) {
+    if (items.length === 0)
       throw new NotFoundException(await this.i18n.t('color.NOT_FOUNDS'));
-    }
 
     return {
       items,
@@ -68,38 +62,46 @@ export class ColorService {
     };
   }
 
-  async findById(id: string): Promise<ColorResponse> {
-    const color = await this.repositoryProxy.findOneById(id);
+  async findByName(name: string): Promise<ColorResponse> {
+    const color = await this.repositoryProxy.findOneByName(name);
 
-    const validator = new ColorValidatorComposite();
-    validator.add(new ColorExistsValidator(this.i18n, id));
-    await validator.validate(color);
+    const existsHandler = new ColorExistsHandlerByName(name);
+    await existsHandler.handle(color, this.i18n);
 
     return { data: color };
   }
 
-  async findByName(name: string): Promise<ColorResponse> {
-    const color = await this.repositoryProxy.findOneByName(name);
+  async findById(id: string): Promise<ColorResponse> {
+    const color = await this.repositoryProxy.findOneById(id);
 
-    const validator = new ColorValidatorComposite();
-    validator.add(new ColorExistsValidator(this.i18n, name));
-    await validator.validate(color);
+    const existsHandler = new ColorExistsHandler(id);
+    await existsHandler.handle(color, this.i18n);
 
     return { data: color };
   }
 
   async update(updateColorInput: UpdateColorInput): Promise<ColorResponse> {
-    const color = await this.facade.updateColor(updateColorInput);
-    return {
-      data: color,
-      message: await this.i18n.t('color.UPDATED', {
-        args: { id: updateColorInput.id },
-      }),
-    };
+    const command = new UpdateColorCommand(
+      this.facade,
+      updateColorInput,
+      this.i18n,
+    );
+    const result = await command.execute();
+
+    return result;
   }
 
   async remove(id: string): Promise<ColorResponse> {
-    const operation = new DeleteColorOperation(this.colorRepository, this.i18n);
-    return operation.execute(id);
+    const color = await this.colorRepository.findOne({ where: { id } });
+
+    const existsHandler = new ColorExistsHandler(id);
+    await existsHandler.handle(color, this.i18n);
+
+    await this.colorRepository.remove(color!);
+
+    return {
+      data: null,
+      message: await this.i18n.t('color.DELETED', { args: { id } }),
+    };
   }
 }

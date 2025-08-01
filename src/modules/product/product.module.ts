@@ -13,6 +13,7 @@ import { Image } from './entities/image.entity';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { ProductDataLoader } from './dataLoader/product.loader';
 import { ProductFacadeService } from './fascade/product.fascade';
+import { ProductCommandFactory } from './command/product.command';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ProductFacadeService } from './fascade/product.fascade';
   providers: [
     ProductService,
     ProductFacadeService,
+    ProductCommandFactory,
     ProductResolver,
     ProductDataLoader,
   ],

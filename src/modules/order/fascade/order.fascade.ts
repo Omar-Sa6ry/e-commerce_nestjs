@@ -7,6 +7,8 @@ import { I18nService } from 'nestjs-i18n';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { DelevaryPrice } from 'src/common/constant/messages.constant';
+import { CreateOrderFromCartCommand, CreateOrderFromProductsCommand } from '../command/order.command';
+import { IOrderCommand } from '../interfaces/IOrderCommand.interface';
 
 @Injectable()
 export class OrderFacadeService {
@@ -15,6 +17,39 @@ export class OrderFacadeService {
     private readonly orderProcessingService: OrderProcessingService,
     @InjectQueue(QueuesNames.ORDER_PROCESSING) private orderQueue: Queue,
   ) {}
+
+  createCommand(
+    type: 'cart' | 'products',
+    userId: string,
+    addressId: string,
+    paymentMethod: PaymentMethod,
+    delevaryPrice: number = DelevaryPrice,
+    detailsId?: string,
+    quantity?: number,
+    couponId?: string,
+  ): IOrderCommand {
+    if (type === 'cart') {
+      return new CreateOrderFromCartCommand(
+        this,
+        userId,
+        addressId,
+        paymentMethod,
+        delevaryPrice,
+        couponId,
+      );
+    } else {
+      return new CreateOrderFromProductsCommand(
+        this,
+        userId,
+        addressId,
+        paymentMethod,
+        detailsId,
+        quantity,
+        delevaryPrice,
+        couponId,
+      );
+    }
+  }
 
   @Transactional()
   async createOrderFromCart(

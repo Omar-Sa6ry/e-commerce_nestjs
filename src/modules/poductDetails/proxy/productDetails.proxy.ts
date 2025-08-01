@@ -6,14 +6,23 @@ import { Product } from '../../product/entities/product.entity';
 import { Details } from '../entity/productDetails.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CacheSubject, RedisCacheObserver } from '../observer/details.observer';
 
 @Injectable()
 export class ProductDetailsProxy {
+  private cacheSubject = new CacheSubject();
+
   constructor(
     @InjectRepository(Details) private detailsRepository: Repository<Details>,
     private readonly redisService: RedisService,
     private readonly i18n: I18nService,
-  ) {}
+  ) {
+    this.cacheSubject.addObserver(new RedisCacheObserver(redisService));
+  }
+
+  async invalidateCache(id: string): Promise<void> {
+    await this.cacheSubject.notify(`details:${id}`);
+  }
 
   async findOne(id: string): Promise<ProductDetailResponse> {
     const cacheKey = `details:${id}`;
@@ -27,7 +36,7 @@ export class ProductDetailsProxy {
         await this.i18n.t('productDetails.NOT_FOUND', { args: { id } }),
       );
 
-    this.redisService.set(cacheKey, Details);
+    this.redisService.set(cacheKey, detail);
     return { data: detail };
   }
 
@@ -45,8 +54,8 @@ export class ProductDetailsProxy {
       );
     }
 
-    this.redisService.set(`details:${detailId}`, Details);
-    this.redisService.set(`product:${detail.product.id}`, Product);
+    this.redisService.set(`details:${detailId}`, detail);
+    this.redisService.set(`product:${detail.product.id}`, detail.product);
 
     return detail.product;
   }

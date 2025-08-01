@@ -35,7 +35,7 @@ export class OrderProxy {
       throw new NotFoundException(await this.i18n.t('order.NOT_FOUND'));
     }
 
-    this.redisService.set(cacheKey, Order);
+    this.redisService.set(cacheKey, order);
     return { data: order };
   }
 }
