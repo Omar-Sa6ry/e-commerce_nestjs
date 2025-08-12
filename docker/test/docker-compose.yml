@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: docker/test/Dockerfile
+    container_name: e-commerce-test
+    restart: always
+    ports:
+      - "4002:4002"
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ../../.env
+      - ../../.env.test
+    volumes:
+      - ../..:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - app_network
+
+  redis:
+    image: redis:alpine
+    container_name: e-commerce-redis-test
+    restart: always
+    ports:
+      - "6380:6379"
+    networks:
+      - app_network
+
+  postgres:
+    image: postgres:15
+    container_name: e-commerce-db-test
+    restart: always
+    ports:
+      - "5433:5432"
+    env_file:
+      - ../../.env
+      - ../../.env.test
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+volumes:
+  postgres_data_test:
+
+networks:
+  app_network:

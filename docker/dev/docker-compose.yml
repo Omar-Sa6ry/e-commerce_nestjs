@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   app:
-    build: .
+    build:
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
     container_name: e-commerce-project
     restart: always
     ports:
@@ -11,7 +11,8 @@ services:
       - postgres
       - redis
     env_file:
-      - .env
+      - ../../.env
+      - ../../.env.development
     networks:
       - app_network
 
@@ -30,10 +31,9 @@ services:
     restart: always
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: O9M1a8r5+=2004
-      POSTGRES_DB: e-commerce
+    env_file:
+      - ../../.env
+      - ../../.env.development
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

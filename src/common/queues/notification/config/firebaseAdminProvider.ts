@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import * as admin from 'firebase-admin'
 
 export const firebaseAdminProvider = {
   provide: 'FIREBASE_ADMIN',
@@ -9,7 +9,7 @@ export const firebaseAdminProvider = {
         clientEmail: process.env.CLIENT_EMAIL,
         privateKey: process.env.PRIVATE_KEY?.replace(/\\n/g, '\n'),
       }),
-    });
-    return { defaultApp };
+    })
+    return { defaultApp }
   },
-};
+}

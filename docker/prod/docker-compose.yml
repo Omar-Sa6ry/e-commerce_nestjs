@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: docker/prod/Dockerfile
+    container_name: e-commerce-prod
+    restart: always
+    ports:
+      - "4002:4002"
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ../../.env
+      - ../../.env.production
+    volumes:
+      - ../..:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - app_network
+
+  redis:
+    image: redis:alpine
+    container_name: e-commerce-redis-prod
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  postgres:
+    image: postgres:15
+    container_name: e-commerce-db-prod
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - ../../.env
+      - ../../.env.production
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  app_network:
