@@ -1,24 +1,38 @@
+version: '3.8'
+
 services:
   app:
     build:
       context: ../..
       dockerfile: docker/dev/Dockerfile
-    container_name: e-commerce-project
+    container_name: e-commerce-dev
     restart: always
-    ports:
-      - "4002:4002"
+    expose:
+      - "4002"
     depends_on:
       - postgres
       - redis
     env_file:
-      - ../../.env
       - ../../.env.development
+    networks:
+      - app_network
+
+  nginx:
+    image: nginx:latest
+    container_name: e-commerce-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
     networks:
       - app_network
 
   redis:
     image: redis:alpine
-    container_name: e-commerce-redis
+    container_name: e-commerce-redis-dev
     restart: always
     ports:
       - "6379:6379"
@@ -27,7 +41,7 @@ services:
 
   postgres:
     image: postgres:15
-    container_name: e-commerce-db
+    container_name: e-commerce-db-dev
     restart: always
     ports:
       - "5432:5432"
@@ -35,12 +49,12 @@ services:
       - ../../.env
       - ../../.env.development
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_prod:/var/lib/postgresql/data
     networks:
       - app_network
 
 volumes:
-  postgres_data:
+  postgres_data_prod:
 
 networks:
   app_network:
