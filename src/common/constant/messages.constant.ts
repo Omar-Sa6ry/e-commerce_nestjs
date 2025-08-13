@@ -2,7 +2,7 @@
 export const Limit = 12;
 export const Page = 1;
 
-// Decerator
+// decorator
 export const CurrentUserMsg = 'User not found in request';
 export const PasswordValidator = 'Password should be from 6 to 16 digits';
 

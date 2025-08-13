@@ -8,7 +8,7 @@ import {
 } from '@nestjs/graphql';
 import { Address } from './entity/address.entity';
 import { AddressResponse } from './dto/addressResponse.dto';
-import { Auth } from 'src/common/decerator/auth.decerator';
+import { Auth } from 'src/common/decorator/auth.decorator';
 import { Permission, Role } from 'src/common/constant/enum.constant';
 import { CreateAddressInput } from './inputs/createAddress.dto';
 import { UpdateAddressInput } from './inputs/updateAddress.input';

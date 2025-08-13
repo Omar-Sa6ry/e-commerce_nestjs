@@ -15,7 +15,7 @@ import { CategoryRepositoryProxy } from '../category/proxy/category.proxy';
 import { RedisService } from 'src/common/redis/redis.service';
 import { CouponValidationContext } from './strategy/coupon.strategy';
 import { Category } from '../category/entity/category.entity';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { TypeCoupon } from 'src/common/constant/enum.constant';
 import { UpdateCouponInput } from './inputs/updateCoupon.input';
 import { FindCouponInput } from './inputs/findCoupon.input';

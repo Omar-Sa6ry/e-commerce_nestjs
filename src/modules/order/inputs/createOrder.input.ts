@@ -1,6 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsArray, IsInt, IsOptional, Min } from 'class-validator';
-import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
+import { IdField } from 'src/common/decorator/validation/IdValidate.decorator';
 
 @InputType()
 export class CreateOrderItemInput {

@@ -9,7 +9,7 @@ import { RedisService } from 'src/common/redis/redis.service';
 import { UploadService } from '../../common/upload/upload.service';
 import { UserResponse } from './dto/UserResponse.dto';
 import { UserProxy } from './proxy/user.proxy';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { IUserObserver } from './interfaces/IUserObserver.interface';
 import { CacheObserver } from './observer/user.observer';
 import { UserRoleContext } from './state/user.state';

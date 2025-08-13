@@ -5,7 +5,7 @@ import { City } from '../location/entities/city.entity';
 import { Address } from './entity/address.entity';
 import { UserAddress } from '../userAdress/entity/userAddress.entity';
 import { CreateAddressInput } from './inputs/createAddress.dto';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { AddressResponse } from './dto/addressResponse.dto';
 import { AddressFactory } from './factories/address.factory';
 import { I18nService } from 'nestjs-i18n';

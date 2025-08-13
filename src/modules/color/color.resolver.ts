@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { ColorService } from './color.service';
-import { Auth } from 'src/common/decerator/auth.decerator';
+import { Auth } from 'src/common/decorator/auth.decorator';
 import { Color } from './entity/color.entity';
 import { ColorResponse, ColorsResponse } from './dto/colorResponse.dto';
 import { CreateColorInput } from './inputs/createColor.input';

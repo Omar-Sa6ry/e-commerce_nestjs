@@ -12,7 +12,7 @@ import { CreateUserAddressInput } from 'src/modules/userAdress/inputs/createUser
 import { CreateUserDto } from '../inputs/CreateUserData.dto';
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto';
 import { CreateAddressInput } from 'src/modules/address/inputs/createAddress.dto';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { SendWelcomeEmailCommand } from '../command/auth.command';
 import { SendEmailService } from 'src/common/queues/email/sendemail.service';
 import { UploadService } from 'src/common/upload/upload.service';
@@ -92,36 +92,36 @@ export class AuthServiceFacade {
     };
   }
 
-   async roleBasedLogin(
-      fcmToken: string,
-      loginDto: LoginDto,
-      role: Role,
-    ): Promise<AuthResponse> {
-      const { email, password } = loginDto;
-      const user = await this.userService.findByEmail(email);
-  
-      const passwordValidator = new PasswordValidator(
-        this.i18n,
-        this.passwordStrategy,
-        password,
-      );
-      const roleValidator = new RoleValidator(this.i18n, role);
-  
-      passwordValidator.setNext(roleValidator);
-      await passwordValidator.validate(user.data);
-  
-      const tokenService = await this.tokenFactory.createTokenGenerator();
-      const token = await tokenService.generate(user.data.email, user.data.id);
-  
-      user.data.fcmToken = fcmToken;
-      await this.userRepo.save(user.data);
-  
-      this.redisService.set(`user:${user.data.id}`, user);
-      return {
-        data: { user: user.data, token },
-        message: await this.i18n.t('user.LOGIN'),
-      };
-    }
+  async roleBasedLogin(
+    fcmToken: string,
+    loginDto: LoginDto,
+    role: Role,
+  ): Promise<AuthResponse> {
+    const { email, password } = loginDto;
+    const user = await this.userService.findByEmail(email);
+
+    const passwordValidator = new PasswordValidator(
+      this.i18n,
+      this.passwordStrategy,
+      password,
+    );
+    const roleValidator = new RoleValidator(this.i18n, role);
+
+    passwordValidator.setNext(roleValidator);
+    await passwordValidator.validate(user.data);
+
+    const tokenService = await this.tokenFactory.createTokenGenerator();
+    const token = await tokenService.generate(user.data.email, user.data.id);
+
+    user.data.fcmToken = fcmToken;
+    await this.userRepo.save(user.data);
+
+    this.redisService.set(`user:${user.data.id}`, user);
+    return {
+      data: { user: user.data, token },
+      message: await this.i18n.t('user.LOGIN'),
+    };
+  }
 
   private async createUser(
     createUserDto: CreateUserDto,

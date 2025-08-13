@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
+import { CapitalTextField } from 'src/common/decorator/validation/CapitalField.decorator';
 
 @InputType()
 export class CreateCategoryInput {

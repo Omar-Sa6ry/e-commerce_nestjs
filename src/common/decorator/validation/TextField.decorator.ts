@@ -8,10 +8,10 @@ import {
   Matches,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { CapitalizeWords } from '../WordsTransform.decerator';
+import { LowwerWords } from '../WordsTransform.decorator';
 
 const min = 1;
-export function CapitalTextField(
+export function TextField(
   text: string,
   max = 255,
   nullable: boolean = false,
@@ -32,6 +32,6 @@ export function CapitalTextField(
         message: `${text} contains forbidden SQL keywords or patterns`,
       },
     ),
-    Transform(({ value }) => CapitalizeWords(value)),
+    Transform(({ value }) => LowwerWords(value)),
   );
 }

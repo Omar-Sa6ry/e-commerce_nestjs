@@ -8,8 +8,8 @@ import {
   Parent,
 } from '@nestjs/graphql';
 import { OrderService } from './services/order.service';
-import { CurrentUser } from 'src/common/decerator/currentUser.decerator';
-import { Auth } from 'src/common/decerator/auth.decerator';
+import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
+import { Auth } from 'src/common/decorator/auth.decorator';
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto';
 import { Order } from './entities/order.entity';
 import { OrdersResponse, OrderResponse } from './dtos/orderResponse.dto';

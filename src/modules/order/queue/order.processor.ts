@@ -10,7 +10,7 @@ import { NotificationService } from 'src/common/queues/notification/notification
 import { BadRequestException } from '@nestjs/common';
 import { Coupon } from 'src/modules/coupon/entity/coupon.entity';
 import { StripeService } from 'src/modules/stripe/stripe.service';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IOrderObserver } from '../interfaces/IOrderObserver.interface';
 import { IPaymentStrategy } from '../interfaces/IPaymentStrategy.interface';

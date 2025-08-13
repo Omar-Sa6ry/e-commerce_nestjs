@@ -11,7 +11,7 @@ import { Repository } from 'typeorm';
 import { Limit, Page } from 'src/common/constant/messages.constant';
 import { UploadService } from 'src/common/upload/upload.service';
 import { RedisService } from 'src/common/redis/redis.service';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { ProductProxy } from './proxy/prouct.proxy';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { RedisPubSub } from 'graphql-redis-subscriptions';

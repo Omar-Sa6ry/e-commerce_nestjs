@@ -11,7 +11,7 @@ import { Color } from '../color/entity/color.entity';
 import { ProductDetailsFactory } from './factory/productDetails.factory';
 import { Details } from './entity/productDetails.entity';
 import { User } from '../users/entity/user.entity';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { CreateDetailInput } from './inputs/createProductDetails.input';
 import { FindProductDetailsInput } from './inputs/findProductDetails.input';
 import { Limit, Page } from 'src/common/constant/messages.constant';

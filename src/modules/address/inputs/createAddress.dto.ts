@@ -1,8 +1,8 @@
 import { AddressType } from 'src/common/constant/enum.constant';
 import { Field, InputType } from '@nestjs/graphql';
 import { IsEnum, IsOptional } from 'class-validator';
-import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
-import { TextField } from 'src/common/decerator/validation/TextField.decerator';
+import { IdField } from 'src/common/decorator/validation/IdValidate.decorator';
+import { TextField } from 'src/common/decorator/validation/TextField.decorator';
 
 @InputType()
 export class CreateAddressInput {

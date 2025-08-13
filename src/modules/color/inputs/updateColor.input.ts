@@ -1,7 +1,7 @@
 import { InputType } from '@nestjs/graphql';
 import { IsHexColor } from 'class-validator';
-import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
-import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
+import { CapitalTextField } from 'src/common/decorator/validation/CapitalField.decorator';
+import { IdField } from 'src/common/decorator/validation/IdValidate.decorator';
 
 @InputType()
 export class UpdateColorInput {

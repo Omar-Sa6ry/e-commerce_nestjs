@@ -3,7 +3,7 @@ import { UserService } from 'src/modules/users/users.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from 'src/modules/users/entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { RedisService } from 'src/common/redis/redis.service';
 import { AuthResponse } from './dto/AuthRes.dto';
 import { MoreThan, Repository } from 'typeorm';

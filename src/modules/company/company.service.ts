@@ -15,7 +15,7 @@ import { AddressService } from '../address/address.service';
 import { CreateAddressInput } from '../address/inputs/createAddress.dto';
 import { CompanyFacade } from './fascade/company.fascade';
 import { CompanyRepositoryProxy } from './proxy/company.proxy';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { Address } from '../address/entity/address.entity';
 import { CompanyExistsHandler } from './chain/company.chain';
 import {

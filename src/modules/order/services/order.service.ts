@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { TrackOrderStatusResponse } from '../dtos/trackOrder.dto';
 import { OrderProxy } from '../proxy/order.proxy';
 import { RedisService } from 'src/common/redis/redis.service';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { OrderItemsResponse } from '../dtos/orderItemResponse.dto';
 import { OrderStatisticsResponse } from '../dtos/orderStatistics.dto';
 import { OrderResponse, OrdersResponse } from '../dtos/orderResponse.dto';

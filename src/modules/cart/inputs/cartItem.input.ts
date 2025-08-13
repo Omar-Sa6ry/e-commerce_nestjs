@@ -1,6 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsInt } from 'class-validator';
-import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
+import { IdField } from 'src/common/decorator/validation/IdValidate.decorator';
 
 @InputType()
 export class CartItemInput {
@@ -10,7 +10,7 @@ export class CartItemInput {
   @IdField('Details')
   detailsId: string;
 
-  @Field(()=>Int)
+  @Field(() => Int)
   @IsInt()
   quantity: number;
 }

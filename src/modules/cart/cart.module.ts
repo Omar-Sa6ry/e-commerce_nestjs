@@ -10,8 +10,8 @@ import { UserModule } from '../users/users.module';
 import { DefaultCalculationStrategy } from './strategy/cart.strategy';
 import { ProductValidatorAdapter } from './adapter/productValidator.adapter';
 import { CartRepositoryProxy } from './proxy/Cart.proxy';
-import { CartCalculationDecorator } from './decerator/cartCaluclate.decerator';
 import { CartCommandFactory } from './factories/cartCommand.factory';
+import { CartCalculationDecorator } from './decerator/cartCaluclate.decorator';
 
 @Module({
   imports: [

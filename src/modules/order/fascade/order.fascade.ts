@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { OrderProcessingService } from '../services/orderProcessing.service';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { PaymentMethod, QueuesNames } from 'src/common/constant/enum.constant';
 import { CreateOrderResponse } from '../dtos/createOrderResponse.dto';
 import { I18nService } from 'nestjs-i18n';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { DelevaryPrice } from 'src/common/constant/messages.constant';
-import { CreateOrderFromCartCommand, CreateOrderFromProductsCommand } from '../command/order.command';
+import {
+  CreateOrderFromCartCommand,
+  CreateOrderFromProductsCommand,
+} from '../command/order.command';
 import { IOrderCommand } from '../interfaces/IOrderCommand.interface';
 
 @Injectable()

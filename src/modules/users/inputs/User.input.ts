@@ -1,6 +1,6 @@
 import { InputType } from '@nestjs/graphql';
-import { EmailField } from 'src/common/decerator/validation/EmailField.decerator';
-import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
+import { EmailField } from 'src/common/decorator/validation/EmailField.decorator';
+import { IdField } from 'src/common/decorator/validation/IdValidate.decorator';
 
 @InputType()
 export class UserIdInput {

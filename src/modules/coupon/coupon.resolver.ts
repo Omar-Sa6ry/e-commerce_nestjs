@@ -5,7 +5,7 @@ import { UpdateCouponInput } from './inputs/updateCoupon.input';
 import { FindCouponInput } from './inputs/findCoupon.input';
 import { CouponResponse, CouponsResponse } from './dto/couponResponse.dto';
 import { Permission, Role } from '../../common/constant/enum.constant';
-import { Auth } from 'src/common/decerator/auth.decerator';
+import { Auth } from 'src/common/decorator/auth.decorator';
 import { Coupon } from './entity/coupon.entity';
 import { CouponIdInput, CouponNameInput } from './inputs/coupon.input';
 

@@ -1,9 +1,9 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto';
-import { EmailField } from 'src/common/decerator/validation/EmailField.decerator';
 import { IsOptional } from 'class-validator';
-import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
-import { PhoneField } from 'src/common/decerator/validation/PhoneField.decerator';
+import { CapitalTextField } from 'src/common/decorator/validation/CapitalField.decorator';
+import { PhoneField } from 'src/common/decorator/validation/PhoneField.decorator';
+import { EmailField } from 'src/common/decorator/validation/EmailField.decorator';
 
 @InputType()
 export class UpdateUserDto {

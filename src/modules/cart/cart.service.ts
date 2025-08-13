@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {  QueryRunner, Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { Cart } from './entities/cart.entity';
@@ -18,7 +18,7 @@ import { Product } from '../product/entities/product.entity';
 import { DefaultCalculationStrategy } from './strategy/cart.strategy';
 import { ICartObserver } from './interfaces/ICartObserver.interface';
 import { CartCommandFactory } from './factories/cartCommand.factory';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { Details } from '../poductDetails/entity/productDetails.entity';
 import { CartResponse } from './dtos/cartResponse';
 import { CartFactory } from './factories/cart.factory';

@@ -11,7 +11,7 @@ import { CreateCountryInput } from './inputs/createCountry.input';
 import { CreateCityInput } from './inputs/createCity.input';
 import { CountryResponse, CountrysResponse } from './dtos/countryResponse.dto';
 import { Permission, Role } from '../../common/constant/enum.constant';
-import { Auth } from 'src/common/decerator/auth.decerator';
+import { Auth } from 'src/common/decorator/auth.decorator';
 import { CityResponse, CitysResponse } from './dtos/cityResponse.dto';
 import { Country } from './entities/country.entity';
 import { City } from './entities/city.entity';

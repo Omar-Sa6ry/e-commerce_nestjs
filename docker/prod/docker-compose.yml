@@ -19,7 +19,7 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: e-commerce-nginx
+    container_name: e-commerce-nginx-prod
     restart: always
     ports:
       - "80:80"

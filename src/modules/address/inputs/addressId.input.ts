@@ -1,5 +1,5 @@
 import { InputType } from '@nestjs/graphql';
-import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
+import { IdField } from 'src/common/decorator/validation/IdValidate.decorator';
 
 @InputType()
 export class AddressIdInput {

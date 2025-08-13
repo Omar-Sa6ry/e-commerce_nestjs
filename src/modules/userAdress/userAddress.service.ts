@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { AddressService } from '../address/address.service';
 import { UserAddress } from './entity/userAddress.entity';
 import { City } from '../location/entities/city.entity';
-import { Transactional } from 'src/common/decerator/transactional.decerator';
+import { Transactional } from 'src/common/decorator/transactional.decorator';
 import { CreateUserAddressInput } from './inputs/createUserAddress.input';
 import { UserAddressFactory } from './factories/userAddress.factory';
 import { UserAddressResponse } from './dto/userAddressResponse.dto';

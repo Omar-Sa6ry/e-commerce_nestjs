@@ -1,5 +1,5 @@
-import { InputType, Field } from '@nestjs/graphql';
-import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
+import { InputType } from '@nestjs/graphql';
+import { CapitalTextField } from 'src/common/decorator/validation/CapitalField.decorator';
 
 @InputType()
 export class CreateCountryInput {

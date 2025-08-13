@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { CategoryService } from './category.service';
 import { Category } from './entity/category.entity';
-import { Auth } from 'src/common/decerator/auth.decerator';
+import { Auth } from 'src/common/decorator/auth.decorator';
 import { Role } from 'src/common/constant/enum.constant';
 import { Permission } from 'src/common/constant/enum.constant';
 import {

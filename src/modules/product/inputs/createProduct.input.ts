@@ -3,9 +3,9 @@ import { InputType, Field, Float, Int } from '@nestjs/graphql';
 import { IsNumber, IsArray, ValidateNested } from 'class-validator';
 import { CreateDetailInput } from '../../poductDetails/inputs/createProductDetails.input';
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto';
-import { CapitalTextField } from 'src/common/decerator/validation/capitalField.decerator';
-import { IdField } from 'src/common/decerator/validation/IdValidate.decerator';
-import { TextField } from 'src/common/decerator/validation/TextField.decerator';
+import { CapitalTextField } from 'src/common/decorator/validation/CapitalField.decorator';
+import { TextField } from 'src/common/decorator/validation/TextField.decorator';
+import { IdField } from 'src/common/decorator/validation/IdValidate.decorator';
 
 @InputType()
 export class CreateProductInput {
